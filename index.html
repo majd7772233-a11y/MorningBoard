@@ -17,7 +17,8 @@
       }
 
       var _allowed = ['localhost', '127.0.0.1'];
-      if (_allowed.indexOf(_h) === -1 && window.location.protocol !== 'file:') {
+      var _isGitHubPages = _h === 'github.io' || _h.endsWith('.github.io');
+      if (_allowed.indexOf(_h) === -1 && !_isGitHubPages && window.location.protocol !== 'file:') {
         document.open(); document.write('<html><head><title>404 Not Found</title><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#0a0a0a;color:#333;display:flex;align-items:center;justify-content:center;height:100vh;font-family:monospace;}div{text-align:center;}.c{color:#1a1a1a;font-size:3em;margin-bottom:10px;}.m{color:#2a2a2a;font-size:1em;}</style></head><body><div><div class="c">404</div><div class="m">Not Found</div></div></body></html>'); document.close();
         window.stop(); Object.freeze(window);
         return;
