@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>قص الشاشة</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: transparent;
+      user-select: none;
+      cursor: crosshair;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    #background-img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+    #canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
+    #hint-box {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.85);
+      color: #f8fafc;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      pointer-events: none;
+      z-index: 3;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      direction: rtl;
+    }
+  </style>
+</head>
+<body>
+  <img id="background-img" alt="">
+  <canvas id="canvas"></canvas>
+  <div id="hint-box">اسحب الماوس لتحديد الجزء المطلوب لقطته | اضغط ESC للإلغاء</div>
+
+  <script>
+    const api = window.electronAPI || (typeof require !== 'undefined' ? require('electron').ipcRenderer : null);
+
+    const backgroundImg = document.getElementById('background-img');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    let screenWidth = window.innerWidth;
+    let screenHeight = window.innerHeight;
+    let imgDataUrl = '';
+    let originalImage = null;
+
+    let isDrawing = false;
+    let startX = 0;
+    let startY = 0;
+    let currentX = 0;
+    let currentY = 0;
+
+    const handleInitCapture = (data) => {
+      imgDataUrl = data.imgData;
+      screenWidth = data.width;
+      screenHeight = data.height;
+
+      canvas.width = screenWidth;
+      canvas.height = screenHeight;
+
+      originalImage = new Image();
+      originalImage.onload = () => {
+        backgroundImg.src = imgDataUrl;
+        drawOverlay();
+      };
+      originalImage.src = imgDataUrl;
+    };
+
+    if (window.electronAPI && window.electronAPI.onInitCapture) {
+      window.electronAPI.onInitCapture(handleInitCapture);
+    } else if (api && api.on) {
+      api.on('init-capture', (event, data) => handleInitCapture(data));
+    }
+
+    function drawOverlay() {
+      ctx.clearRect(0, 0, screenWidth, screenHeight);
+      
+      // Draw semi-transparent dark overlay
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.fillRect(0, 0, screenWidth, screenHeight);
+
+      if (isDrawing) {
+        const x = Math.min(startX, currentX);
+        const y = Math.min(startY, currentY);
+        const w = Math.abs(startX - currentX);
+        const h = Math.abs(startY - currentY);
+
+        if (w > 0 && h > 0) {
+          ctx.save();
+          // Clear the selection rectangle to show original image brightly
+          ctx.clearRect(x, y, w, h);
+
+          // Draw a fine golden selection border
+          ctx.strokeStyle = '#c5a059';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x, y, w, h);
+
+          // Draw simple dimension bubble
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+          ctx.font = '11px sans-serif';
+          const sizeText = `${w} x ${h}`;
+          const textW = ctx.measureText(sizeText).width;
+          ctx.fillRect(x, y - 20, textW + 10, 16);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(sizeText, x + 5, y - 9);
+          ctx.restore();
+        }
+      }
+    }
+
+    window.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return; // Only left click
+      isDrawing = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      currentX = startX;
+      currentY = startY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDrawing) return;
+      currentX = e.clientX;
+      currentY = e.clientY;
+      drawOverlay();
+    });
+
+    window.addEventListener('mouseup', (e) => {
+      if (!isDrawing) return;
+      isDrawing = false;
+
+      const x = Math.min(startX, e.clientX);
+      const y = Math.min(startY, e.clientY);
+      const w = Math.abs(startX - e.clientX);
+      const h = Math.abs(startY - e.clientY);
+
+      if (w > 10 && h > 10) {
+        // Create offscreen canvas to crop the original image
+        const cropCanvas = document.createElement('canvas');
+        cropCanvas.width = w;
+        cropCanvas.height = h;
+        const cropCtx = cropCanvas.getContext('2d');
+
+        // Draw cropped section from originalImage
+        cropCtx.drawImage(
+          originalImage,
+          x, y, w, h, // Source coords
+          0, 0, w, h  // Dest coords
+        );
+
+        const croppedDataUrl = cropCanvas.toDataURL('image/png');
+        if (window.electronAPI && window.electronAPI.cropCompleted) {
+          window.electronAPI.cropCompleted(croppedDataUrl);
+        } else if (api && api.send) {
+          api.send('crop-completed', croppedDataUrl);
+        }
+      } else {
+        // Cancel if too small
+        if (window.electronAPI && window.electronAPI.cropCancelled) {
+          window.electronAPI.cropCancelled();
+        } else if (api && api.send) {
+          api.send('crop-cancelled');
+        }
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (window.electronAPI && window.electronAPI.cropCancelled) {
+          window.electronAPI.cropCancelled();
+        } else if (api && api.send) {
+          api.send('crop-cancelled');
+        }
+      }
+    });
+  </script>
+</body>
+</html>

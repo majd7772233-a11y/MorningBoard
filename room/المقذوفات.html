@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فيزياء المقذوفات - النسخة الاحترافية</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0a0a1a 0%, #0d1b2a 50%, #1a0a2e 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden; height: 100vh; width: 100vw;
+        }
+        #canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; outline: none; }
+        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        
+        /* Main Controls */
+        #controls {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(15px);
+            border: 1px solid rgba(100, 200, 255, 0.3); border-radius: 20px;
+            padding: 20px 30px; pointer-events: all; min-width: 500px;
+            box-shadow: 0 0 40px rgba(100, 150, 255, 0.2);
+        }
+        @media (max-width: 768px) {
+            #controls {
+                min-width: 92% !important;
+                max-width: 96% !important;
+                padding: 10px 14px !important;
+                bottom: 8px !important;
+            }
+            .control-row label {
+                min-width: 80px !important;
+                font-size: 0.8em !important;
+            }
+            #stats {
+                top: 10px !important;
+                right: 10px !important;
+                font-size: 0.85em !important;
+                padding: 10px !important;
+            }
+        }
+        #controls h2 {
+            color: #64c8ff; text-align: center; margin-bottom: 15px;
+            font-size: 1.2em; text-shadow: 0 0 20px rgba(100, 200, 255, 0.8);
+        }
+        .control-row { display: flex; align-items: center; margin-bottom: 12px; gap: 10px; }
+        .control-row label { color: #aacfff; font-size: 0.9em; min-width: 120px; text-align: right; }
+        .control-row input[type="range"] {
+            flex: 1; -webkit-appearance: none; height: 6px;
+            background: linear-gradient(to left, #1a3a5c, #64c8ff); border-radius: 3px; outline: none;
+        }
+        .control-row input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 18px; height: 18px;
+            background: radial-gradient(circle, #64c8ff, #0066cc); border-radius: 50%;
+            cursor: pointer; box-shadow: 0 0 10px rgba(100, 200, 255, 0.6);
+        }
+        /* Exact Number Input */
+        .num-input {
+            width: 70px; background: rgba(100, 200, 255, 0.15); border: 1px solid #64c8ff;
+            color: #fff; font-size: 0.9em; text-align: center; border-radius: 8px; padding: 4px;
+            outline: none; font-weight: bold;
+        }
+        
+        .btn-row { display: flex; gap: 8px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
+        button {
+            padding: 10px 15px; border: none; border-radius: 12px; cursor: pointer;
+            font-size: 0.9em; font-weight: bold; transition: all 0.3s; letter-spacing: 1px;
+        }
+        #fireBtn { background: linear-gradient(135deg, #ff4444, #cc2200); color: white; box-shadow: 0 0 20px rgba(255, 100, 50, 0.4); }
+        #fireBtn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255, 100, 50, 0.7); }
+        #resetBtn { background: linear-gradient(135deg, #333, #555); color: #aaa; }
+        #resetBtn:hover { background: linear-gradient(135deg, #444, #666); color: white; }
+        .toggle-btn { background: linear-gradient(135deg, #1f4068, #162447); color: #64c8ff; border: 1px solid #64c8ff; }
+        .toggle-btn.active { background: #64c8ff; color: #000; box-shadow: 0 0 15px rgba(100, 200, 255, 0.6); }
+
+        /* Stats Panel */
+        #stats {
+            position: absolute; top: 20px; right: 20px; background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px); border: 1px solid rgba(100, 200, 255, 0.3);
+            border-radius: 15px; padding: 15px 20px; color: white; font-size: 0.9em;
+            line-height: 2; pointer-events: none; box-shadow: 0 0 30px rgba(100, 150, 255, 0.1);
+            min-width: 270px;
+        }
+        #stats h3 { color: #ffeb3b; margin-bottom: 5px; text-shadow: 0 0 15px rgba(255, 235, 59, 0.6); text-align: center; }
+        .stat-line { display: flex; justify-content: space-between; gap: 20px; border-bottom: 1px dashed rgba(255,255,255,0.15); padding-bottom: 2px;}
+        .stat-line:last-child { border-bottom: none; }
+        .stat-line .label { color: #aacfff; }
+        .stat-line .value { color: #00e676; font-weight: bold; font-family: monospace; font-size: 1.1em;}
+        .highlight { color: #ff4081 !important; }
+
+        #title {
+            position: absolute; top: 20px; right: 20px;
+            color: #fff; font-size: 1.8em; font-weight: bold; text-align: right;
+            text-shadow: 0 0 30px rgba(100, 200, 255, 0.8); pointer-events: none;
+        }
+        #title span { color: #64c8ff; }
+
+        /* Virtual Joystick Controls */
+        #virtual-pad {
+            position: absolute; bottom: 20px; left: 20px; pointer-events: all;
+            display: grid; grid-template-columns: repeat(3, 45px); grid-template-rows: repeat(3, 45px);
+            gap: 5px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 50%;
+            border: 1px solid rgba(100,200,255,0.2);
+        }
+        .v-btn {
+            background: rgba(100, 200, 255, 0.1); border: 1px solid rgba(100, 200, 255, 0.3);
+            border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2em; cursor: pointer; transition: 0.2s;
+        }
+        .v-btn:hover { background: rgba(100, 200, 255, 0.4); transform: scale(1.1); }
+        .v-btn:active { background: #64c8ff; color: #000; }
+        
+        #btn-up { grid-column: 2; grid-row: 1; }
+        #btn-left { grid-column: 1; grid-row: 2; }
+        #btn-right { grid-column: 3; grid-row: 2; }
+        #btn-down { grid-column: 2; grid-row: 3; }
+        #btn-zoomIn { grid-column: 1; grid-row: 1; font-size: 1.4em; }
+        #btn-zoomOut { grid-column: 3; grid-row: 1; font-size: 1.4em; }
+        #pad-label { grid-column: 1 / 4; grid-row: 4; text-align: center; color: #64c8ff; font-size: 0.8em; margin-top: 5px;}
+        
+        @media (max-width: 768px) {
+            #title { font-size: 1.1em; right: 10px; top: 10px; }
+            #stats { top: 60px; right: 10px; font-size: 0.7em; padding: 6px 10px; min-width: 170px; line-height: 1.4; }
+            #controls { bottom: 10px; padding: 10px 15px; min-width: calc(100vw - 20px); border-radius: 12px; }
+            #controls h2 { font-size: 0.95em; margin-bottom: 6px; }
+            .control-row { margin-bottom: 6px; gap: 4px; }
+            .control-row label { font-size: 0.75em; min-width: 70px; }
+            .btn-row { margin-top: 6px; gap: 3px; }
+            button { padding: 5px 8px; font-size: 0.7em; border-radius: 5px; }
+            #virtual-pad { bottom: 10px; left: 10px; scale: 0.7; transform-origin: bottom left; }
+            #btnLangToggle { top: 10px; font-size: 10px; padding: 4px 8px; border-radius: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div id="ui">
+    <button id="btnLangToggle" style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); pointer-events: all; padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(100, 200, 255, 0.3); background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #64c8ff; font-family: 'Segoe UI', Tahoma, sans-serif; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.3s; z-index: 99995;">🌐 English</button>
+    <div id="title">فيزياء <span>المقذوفات</span></div>
+
+    <div id="virtual-pad">
+        <div class="v-btn" id="btn-zoomIn" title="تقريب">+</div>
+        <div class="v-btn" id="btn-up">▲</div>
+        <div class="v-btn" id="btn-zoomOut" title="إبعاد">-</div>
+        <div class="v-btn" id="btn-left">◀</div>
+        <div class="v-btn" id="btn-right">▶</div>
+        <div class="v-btn" id="btn-down">▼</div>
+        <div id="pad-label">التحكم بالكاميرا</div>
+    </div>
+
+    <div id="stats">
+        <h3>🔴 قراءات حية (Real-time)</h3>
+        <div class="stat-line"><span class="label">زاوية الإطلاق:</span><span class="value" id="statAngle">45°</span></div>
+        <div class="stat-line"><span class="label">زمن الطيران (t):</span><span class="value" id="timeVal">0.00 ث</span></div>
+        <div class="stat-line"><span class="label">أقصى ارتفاع مسجل:</span><span class="value highlight" id="maxHeightVal">0.0 م</span></div>
+        <div class="stat-line"><span class="label">الارتفاع اللحظي (y):</span><span class="value" id="heightVal">0.0 م</span></div>
+        <div class="stat-line"><span class="label">المدى الأفقي (x):</span><span class="value" id="rangeVal">0.0 م</span></div>
+        <div class="stat-line"><span class="label">الإزاحة الخطية:</span><span class="value" id="dispVal">0.0 م</span></div>
+    </div>
+
+    <div id="controls">
+        <h2>🎯 تحكم دقيق في المدفع</h2>
+        <div class="control-row">
+            <label>زاوية الإطلاق (θ)</label>
+            <input type="range" id="angleSlider" min="5" max="85" step="0.5" value="45">
+            <input type="number" id="angleNum" class="num-input" min="5" max="85" step="0.5" value="45">
+            <span style="min-width:20px;">°</span>
+        </div>
+        <div class="control-row">
+            <label>السرعة الابتدائية (v)</label>
+            <input type="range" id="speedSlider" min="10" max="100" step="1" value="50">
+            <input type="number" id="speedNum" class="num-input" min="10" max="100" step="1" value="50">
+            <span>م/ث</span>
+        </div>
+        <div class="control-row">
+            <label>عدد المقذوفات</label>
+            <input type="range" id="countSlider" min="1" max="8" value="1">
+            <span id="countVal">1</span>
+        </div>
+        <div class="btn-row">
+            <button id="fireBtn">🔥 إطلاق</button>
+            <button id="followBtn" class="toggle-btn">🎥 تتبع المقذوف</button>
+            <button id="pauseBtn" class="toggle-btn">⏸️ تجميد الزمن</button>
+            <button id="resetBtn">🗑️ مسح المشهد</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+// --- Global State ---
+let isPaused = false;
+let isFollowing = false;
+
+// Expose camera lock state to parent
+Object.defineProperty(window, 'isCameraLocked', {
+    get: function() {
+        return isFollowing;
+    },
+    configurable: true
+});
+
+// --- Multi-language translation setup ---
+const urlParams = new URLSearchParams(window.location.search);
+let lang = urlParams.get('lang') || 'ar';
+let unitTime = lang === 'en' ? ' s' : ' ث';
+let unitDist = lang === 'en' ? ' m' : ' م';
+
+function applyLanguage() {
+    unitTime = lang === 'en' ? ' s' : ' ث';
+    unitDist = lang === 'en' ? ' m' : ' م';
+    const btnLang = document.getElementById('btnLangToggle');
+    if (btnLang) {
+        btnLang.textContent = lang === 'en' ? '🌐 العربية' : '🌐 English';
+    }
+
+    if (lang === 'en') {
+        document.documentElement.dir = 'ltr';
+        document.getElementById('title').innerHTML = 'Projectile <span>Physics</span>';
+        document.getElementById('pad-label').textContent = 'Camera Controls';
+        document.getElementById('btn-zoomIn').title = 'Zoom In';
+        document.getElementById('btn-zoomOut').title = 'Zoom Out';
+        
+        const stats = document.getElementById('stats');
+        if (stats) {
+            stats.querySelector('h3').textContent = '🔴 Real-time Readings';
+            const labels = stats.querySelectorAll('.label');
+            if (labels[0]) labels[0].textContent = 'Launch Angle:';
+            if (labels[1]) labels[1].textContent = 'Flight Time (t):';
+            if (labels[2]) labels[2].textContent = 'Max Height:';
+            if (labels[3]) labels[3].textContent = 'Height (y):';
+            if (labels[4]) labels[4].textContent = 'Range (x):';
+            if (labels[5]) labels[5].textContent = 'Displacement:';
+        }
+        
+        const controlsPanel = document.getElementById('controls');
+        if (controlsPanel) {
+            controlsPanel.querySelector('h2').textContent = '🎯 Cannon Controls';
+            const labels = controlsPanel.querySelectorAll('.control-row label');
+            if (labels[0]) labels[0].textContent = 'Launch Angle (θ)';
+            if (labels[1]) labels[1].textContent = 'Initial Velocity (v)';
+            if (labels[2]) labels[2].textContent = 'Projectiles Count';
+            
+            const units = controlsPanel.querySelectorAll('.control-row span');
+            if (units[1]) units[1].textContent = 'm/s';
+        }
+        
+        document.getElementById('fireBtn').textContent = '🔥 Launch';
+        document.getElementById('followBtn').textContent = '🎥 Track Projectile';
+        document.getElementById('pauseBtn').textContent = isPaused ? "▶️ Resume Time" : "⏸️ Pause Time";
+        document.getElementById('resetBtn').textContent = '🗑️ Clear Scene';
+    } else {
+        document.documentElement.dir = 'rtl';
+        document.getElementById('title').innerHTML = 'فيزياء <span>المقذوفات</span>';
+        document.getElementById('pad-label').textContent = 'التحكم بالكاميرا';
+        document.getElementById('btn-zoomIn').title = 'تقريب';
+        document.getElementById('btn-zoomOut').title = 'إبعاد';
+        
+        const stats = document.getElementById('stats');
+        if (stats) {
+            stats.querySelector('h3').textContent = '🔴 قراءات حية (Real-time)';
+            const labels = stats.querySelectorAll('.label');
+            if (labels[0]) labels[0].textContent = 'زاوية الإطلاق:';
+            if (labels[1]) labels[1].textContent = 'زمن الطيران (t):';
+            if (labels[2]) labels[2].textContent = 'أقصى ارتفاع مسجل:';
+            if (labels[3]) labels[3].textContent = 'الارتفاع اللحظي (y):';
+            if (labels[4]) labels[4].textContent = 'المدى الأفقي (x):';
+            if (labels[5]) labels[5].textContent = 'الإزاحة الخطية:';
+        }
+        
+        const controlsPanel = document.getElementById('controls');
+        if (controlsPanel) {
+            controlsPanel.querySelector('h2').textContent = '🎯 تحكم دقيق في المدفع';
+            const labels = controlsPanel.querySelectorAll('.control-row label');
+            if (labels[0]) labels[0].textContent = 'زاوية الإطلاق (θ)';
+            if (labels[1]) labels[1].textContent = 'السرعة الابتدائية (v)';
+            if (labels[2]) labels[2].textContent = 'عدد المقذوفات';
+            
+            const units = controlsPanel.querySelectorAll('.control-row span');
+            if (units[1]) units[1].textContent = 'م/ث';
+        }
+        
+        document.getElementById('fireBtn').textContent = '🔥 إطلاق';
+        document.getElementById('followBtn').textContent = '🎥 تتبع المقذوف';
+        document.getElementById('pauseBtn').textContent = isPaused ? "▶️ استئناف الزمن" : "⏸️ تجميد الزمن";
+        document.getElementById('resetBtn').textContent = '🗑️ مسح المشهد';
+    }
+    
+    // Update live text labels based on current values
+    const timeVal = parseFloat(document.getElementById('timeVal').textContent) || 0;
+    const heightVal = parseFloat(document.getElementById('heightVal').textContent) || 0;
+    const maxHeightVal = parseFloat(document.getElementById('maxHeightVal').textContent) || 0;
+    const rangeVal = parseFloat(document.getElementById('rangeVal').textContent) || 0;
+    const dispVal = parseFloat(document.getElementById('dispVal').textContent) || 0;
+
+    document.getElementById('timeVal').textContent = timeVal.toFixed(2) + unitTime;
+    document.getElementById('heightVal').textContent = heightVal.toFixed(1) + unitDist;
+    document.getElementById('maxHeightVal').textContent = maxHeightVal.toFixed(2) + unitDist;
+    document.getElementById('rangeVal').textContent = rangeVal.toFixed(1) + unitDist;
+    document.getElementById('dispVal').textContent = dispVal.toFixed(1) + unitDist;
+}
+
+// Initial language application
+applyLanguage();
+
+document.getElementById('btnLangToggle').addEventListener('click', () => {
+    lang = lang === 'en' ? 'ar' : 'en';
+    applyLanguage();
+});
+
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new AudioContext();
+
+function playSoundEffect(type) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    if (type === 'shoot') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+    } else if (type === 'explosion') {
+        const bufferSize = audioCtx.sampleRate * 1.5;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass'; filter.frequency.setValueAtTime(800, audioCtx.currentTime);
+        filter.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 1);
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1);
+        noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+        noise.start();
+    }
+}
+
+// --- Scene & Camera Setup ---
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x0a0a1a, 0.006);
+
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 3000);
+camera.position.set(-30, 20, 60);
+
+// Smooth OrbitControls
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; 
+controls.dampingFactor = 0.05;
+controls.maxPolarAngle = Math.PI / 2 - 0.02; // Don't go below ground
+controls.minDistance = 5;
+controls.maxDistance = 600;
+controls.target.set(-100, 5, 0); // Center exactly on Cannon
+
+window.camera = camera;
+window.controls = controls;
+window.scene = scene;
+window.renderer = renderer;
+
+scene.add(new THREE.AmbientLight(0x1a2a3a, 0.8));
+const sunLight = new THREE.DirectionalLight(0xffeedd, 1.5);
+sunLight.position.set(100, 150, 50);
+sunLight.castShadow = true;
+sunLight.shadow.camera.near = 1; sunLight.shadow.camera.far = 500;
+sunLight.shadow.camera.left = -200; sunLight.shadow.camera.right = 200;
+sunLight.shadow.camera.top = 200; sunLight.shadow.camera.bottom = -200;
+scene.add(sunLight);
+
+const starGeo = new THREE.BufferGeometry();
+const starPos = new Float32Array(3000 * 3);
+for (let i = 0; i < 9000; i++) starPos[i] = (Math.random() - 0.5) * 2000;
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 })));
+
+const groundGeo = new THREE.PlaneGeometry(1200, 1200, 60, 60);
+const pos = groundGeo.attributes.position;
+for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), z = pos.getZ(i);
+    if (Math.abs(x) > 5 || Math.abs(z) > 5) pos.setY(i, Math.sin(x*0.1)*Math.cos(z*0.1)*2);
+}
+groundGeo.computeVertexNormals();
+const ground = new THREE.Mesh(groundGeo, new THREE.MeshStandardMaterial({ color: 0x1a3a1a, roughness: 0.9 }));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true;
+scene.add(ground);
+const grid = new THREE.GridHelper(1200, 120, 0x003300, 0x002200);
+grid.position.y = 0.05; scene.add(grid);
+
+// --- Cannon ---
+const cannonGroup = new THREE.Group();
+cannonGroup.position.set(-100, 0, 0); 
+scene.add(cannonGroup);
+
+const base = new THREE.Mesh(new THREE.CylinderGeometry(3, 4, 3, 12), new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.5 }));
+base.position.y = 1.5; base.castShadow = true; cannonGroup.add(base);
+
+[-3.5, 3.5].forEach(z => {
+    const wheel = new THREE.Mesh(new THREE.TorusGeometry(2.5, 0.6, 8, 16), new THREE.MeshStandardMaterial({ color: 0x222222 }));
+    wheel.position.set(0, 2.5, z); wheel.rotation.y = Math.PI / 2; wheel.castShadow = true; cannonGroup.add(wheel);
+});
+
+const barrelLength = 10;
+const barrelGeo = new THREE.CylinderGeometry(1, 1.4, barrelLength, 16);
+barrelGeo.translate(0, barrelLength / 2, 0); 
+const barrel = new THREE.Mesh(barrelGeo, new THREE.MeshStandardMaterial({ color: 0x555555 }));
+barrel.position.set(0, 3, 0); barrel.castShadow = true; cannonGroup.add(barrel);
+
+const targetMarker = new THREE.Mesh(new THREE.RingGeometry(3, 4, 32), new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide, transparent: true, opacity: 0.8 }));
+targetMarker.rotation.x = -Math.PI / 2; targetMarker.position.y = 0.15;
+scene.add(targetMarker);
+
+// --- State & Variables ---
+const G = 9.8;
+const projectiles = [];
+let explosionParticles = [];
+let craters = [];
+let trajectoryPreview = null;
+
+
+// --- UI Sync & Scientific Input ---
+const angleSlider = document.getElementById('angleSlider');
+const angleNum = document.getElementById('angleNum');
+const speedSlider = document.getElementById('speedSlider');
+const speedNum = document.getElementById('speedNum');
+
+// --- M&S State Sync logic ---
+function sendStateToParent(action, data) {
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+            type: 'room3d_state_change',
+            roomType: 'projectiles',
+            action: action,
+            data: data
+        }, '*');
+    }
+}
+
+function syncInputs(slider, num, isAngle) {
+    slider.addEventListener('input', () => { 
+        num.value = slider.value; 
+        updateLogic(); 
+        sendStateToParent('update_params', { angle: angleSlider.value, speed: speedSlider.value, count: document.getElementById('countSlider').value });
+    });
+    num.addEventListener('input', () => { 
+        slider.value = num.value; 
+        updateLogic(); 
+        sendStateToParent('update_params', { angle: angleSlider.value, speed: speedSlider.value, count: document.getElementById('countSlider').value });
+    });
+}
+syncInputs(angleSlider, angleNum, true);
+syncInputs(speedSlider, speedNum, false);
+
+document.getElementById('countSlider').addEventListener('input', (e) => { 
+    document.getElementById('countVal').textContent = e.target.value; 
+    sendStateToParent('update_params', { angle: angleSlider.value, speed: speedSlider.value, count: e.target.value });
+});
+
+// --- Virtual Pad Logic ---
+const panSpeed = 8;
+document.getElementById('btn-up').onclick = () => { controls.target.z -= panSpeed; camera.position.z -= panSpeed; };
+document.getElementById('btn-down').onclick = () => { controls.target.z += panSpeed; camera.position.z += panSpeed; };
+document.getElementById('btn-left').onclick = () => { controls.target.x -= panSpeed; camera.position.x -= panSpeed; };
+document.getElementById('btn-right').onclick = () => { controls.target.x += panSpeed; camera.position.x += panSpeed; };
+document.getElementById('btn-zoomIn').onclick = () => { camera.translateZ(-panSpeed * 1.5); };
+document.getElementById('btn-zoomOut').onclick = () => { camera.translateZ(panSpeed * 1.5); };
+
+// Toggles
+document.getElementById('pauseBtn').addEventListener('click', (e) => {
+    isPaused = !isPaused;
+    e.target.classList.toggle('active', isPaused);
+    e.target.innerHTML = isPaused ? (lang === 'en' ? "▶️ Resume Time" : "▶️ استئناف الزمن") : (lang === 'en' ? "⏸️ Pause Time" : "⏸️ تجميد الزمن");
+    sendStateToParent('toggle_pause', { isPaused: isPaused });
+});
+
+document.getElementById('followBtn').addEventListener('click', (e) => {
+    isFollowing = !isFollowing;
+    e.target.classList.toggle('active', isFollowing);
+    if (!isFollowing) {
+        controls.target.set(-100, 5, 0);
+    }
+    sendStateToParent('toggle_follow', { isFollowing: isFollowing });
+});
+
+function getFireOrigin() {
+    const tip = new THREE.Vector3(0, barrelLength, 0);
+    barrel.localToWorld(tip);
+    return tip;
+}
+
+function updateLogic() {
+    const angleDeg = parseFloat(angleNum.value);
+    const angleRad = angleDeg * Math.PI / 180;
+    const speed = parseFloat(speedNum.value);
+    const scale = 1.5; 
+
+    barrel.rotation.z = -Math.PI / 2 + angleRad;
+    const origin = getFireOrigin();
+    const vx = Math.cos(angleRad) * speed * scale;
+    const vy = Math.sin(angleRad) * speed * scale;
+    const t_impact = (vy + Math.sqrt(vy*vy + 2 * G * origin.y)) / G;
+    const impactX = origin.x + vx * t_impact;
+    
+    targetMarker.position.x = impactX;
+    document.getElementById('statAngle').textContent = angleDeg + '°';
+
+    if (trajectoryPreview) scene.remove(trajectoryPreview);
+    const points = [];
+    for(let t=0; t <= t_impact; t += 0.1) {
+        points.push(new THREE.Vector3(origin.x + vx * t, origin.y + vy * t - 0.5 * G * t * t, 0));
+    }
+    points.push(new THREE.Vector3(impactX, 0, 0)); 
+    trajectoryPreview = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(points),
+        new THREE.LineDashedMaterial({ color: 0x44aaff, dashSize: 3, gapSize: 2, opacity: 0.3, transparent: true })
+    );
+    trajectoryPreview.computeLineDistances();
+    scene.add(trajectoryPreview);
+
+    return { origin, vx, vy, speed, scale };
+}
+updateLogic(); 
+
+function fireProjectileDirectly(params) {
+    playSoundEffect('shoot');
+    const phys = updateLogic();
+    const count = params && params.count !== undefined ? parseInt(params.count) : parseInt(document.getElementById('countSlider').value);
+
+    // Reset max height UI when a new batch fires
+    document.getElementById('maxHeightVal').textContent = "0.0" + unitDist;
+
+    for (let i = 0; i < count; i++) {
+        const spreadAngle = count > 1 ? (i - (count - 1) / 2) * 0.1 : 0;
+        const vz = Math.sin(spreadAngle) * phys.speed * phys.scale;
+
+        const mesh = new THREE.Mesh(
+            new THREE.SphereGeometry(1.2, 16, 16),
+            new THREE.MeshStandardMaterial({ color: 0xff6600, emissive: 0xff2200, emissiveIntensity: 0.5 })
+        );
+        mesh.position.copy(phys.origin);
+        scene.add(mesh);
+
+        const trail = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xff6600, opacity: 0.6, transparent: true }));
+        scene.add(trail);
+
+        projectiles.push({
+            mesh, trail, trailPositions: [],
+            vx: phys.vx, vy: phys.vy, vz,
+            originX: phys.origin.x, originY: phys.origin.y, originZ: phys.origin.z,
+            t: 0, active: true,
+            recordedMaxHeight: phys.origin.y // Initialize max height
+        });
+    }
+
+    const ogPos = cannonGroup.position.x;
+    cannonGroup.position.x -= 4;
+    setTimeout(() => { cannonGroup.position.x = ogPos; }, 150);
+}
+
+document.getElementById('fireBtn').addEventListener('click', () => {
+    if(isPaused) return; 
+    fireProjectileDirectly();
+    sendStateToParent('fire', { angle: angleSlider.value, speed: speedSlider.value, count: document.getElementById('countSlider').value });
+});
+
+function createExplosion(pos) {
+    playSoundEffect('explosion');
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(100 * 3);
+    const velocities = [];
+    for (let i = 0; i < 100; i++) {
+        positions[i * 3] = pos.x; positions[i * 3 + 1] = pos.y; positions[i * 3 + 2] = pos.z;
+        velocities.push({ x: (Math.random()-0.5)*50, y: Math.random()*35+10, z: (Math.random()-0.5)*50 });
+    }
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const particles = new THREE.Points(geometry, new THREE.PointsMaterial({ color: 0xffaa00, size: 2.5, transparent: true }));
+    scene.add(particles);
+    
+    const crater = new THREE.Mesh(new THREE.CircleGeometry(4, 16), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.7 }));
+    crater.rotation.x = -Math.PI / 2; crater.position.set(pos.x, 0.1, pos.z);
+    scene.add(crater); craters.push(crater);
+
+    explosionParticles.push({ particles, velocities, life: 1.0 });
+}
+
+function resetSceneDirectly() {
+    projectiles.forEach(p => { scene.remove(p.mesh); scene.remove(p.trail); });
+    projectiles.length = 0;
+    explosionParticles.forEach(e => { scene.remove(e.particles); });
+    explosionParticles = [];
+    craters.forEach(c => { scene.remove(c); });
+    craters = [];
+    
+    document.getElementById('timeVal').textContent = '0.00' + unitTime;
+    document.getElementById('heightVal').textContent = '0.0' + unitDist;
+    document.getElementById('maxHeightVal').textContent = '0.0' + unitDist;
+    document.getElementById('rangeVal').textContent = '0.0' + unitDist;
+    document.getElementById('dispVal').textContent = '0.0' + unitDist;
+    
+    controls.target.set(-100, 5, 0); // Focus back on Cannon
+}
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+    resetSceneDirectly();
+    sendStateToParent('reset', {});
+});
+
+window.addEventListener('message', (e) => {
+    const data = e.data;
+    if (!data || data.type !== 'apply_room3d_state') return;
+    
+    if (data.action === 'update_params') {
+        const params = data.data;
+        if (params.angle !== undefined) {
+            angleSlider.value = params.angle;
+            angleNum.value = params.angle;
+        }
+        if (params.speed !== undefined) {
+            speedSlider.value = params.speed;
+            speedNum.value = params.speed;
+        }
+        if (params.count !== undefined) {
+            document.getElementById('countSlider').value = params.count;
+            document.getElementById('countVal').textContent = params.count;
+        }
+        updateLogic();
+    } else if (data.action === 'fire') {
+        const params = data.data;
+        if (params) {
+            if (params.angle !== undefined) {
+                angleSlider.value = params.angle;
+                angleNum.value = params.angle;
+            }
+            if (params.speed !== undefined) {
+                speedSlider.value = params.speed;
+                speedNum.value = params.speed;
+            }
+            if (params.count !== undefined) {
+                document.getElementById('countSlider').value = params.count;
+                document.getElementById('countVal').textContent = params.count;
+            }
+        }
+        fireProjectileDirectly(params);
+    } else if (data.action === 'toggle_pause') {
+        isPaused = !!data.data.isPaused;
+        const pauseBtn = document.getElementById('pauseBtn');
+        pauseBtn.classList.toggle('active', isPaused);
+        pauseBtn.innerHTML = isPaused ? (lang === 'en' ? "▶️ Resume Time" : "▶️ استئناف الزمن") : (lang === 'en' ? "⏸️ Pause Time" : "⏸️ تجميد الزمن");
+    } else if (data.action === 'toggle_follow') {
+        isFollowing = !!data.data.isFollowing;
+        const followBtn = document.getElementById('followBtn');
+        followBtn.classList.toggle('active', isFollowing);
+        if (!isFollowing) {
+            controls.target.set(-100, 5, 0);
+        }
+    } else if (data.action === 'reset') {
+        resetSceneDirectly();
+    }
+});
+
+// --- Main Loop ---
+const clock = new THREE.Clock();
+function animate() {
+    requestAnimationFrame(animate);
+    const delta = Math.min(clock.getDelta(), 0.1);
+
+    controls.update(); // Smooth damping for OrbitControls
+
+    if (!isPaused) {
+        let activeProj = null;
+
+        for (let i = projectiles.length - 1; i >= 0; i--) {
+            const p = projectiles[i];
+            if (!p.active) continue;
+            
+            activeProj = p; 
+            
+            p.t += delta;
+            const nx = p.originX + p.vx * p.t;
+            const ny = p.originY + p.vy * p.t - 0.5 * G * p.t * p.t;
+            const nz = p.originZ + p.vz * p.t;
+
+            // Track Real-time Max Height (Freeze logic)
+            if (ny > p.recordedMaxHeight) {
+                p.recordedMaxHeight = ny;
+            }
+
+            p.mesh.position.set(nx, Math.max(ny, 0), nz);
+            p.mesh.rotation.x += delta * 5;
+
+            p.trailPositions.unshift(new THREE.Vector3(nx, Math.max(ny, 0), nz));
+            if (p.trailPositions.length > 50) p.trailPositions.pop();
+            p.trail.geometry.setFromPoints(p.trailPositions);
+
+            if (ny <= 0 && p.t > 0.1) {
+                p.active = false;
+                createExplosion(new THREE.Vector3(nx, 0, nz));
+                scene.remove(p.mesh);
+                scene.remove(p.trail);
+                projectiles.splice(i, 1);
+            }
+        }
+
+        // Camera Follow Logic (Cinematic)
+        if (isFollowing && activeProj) {
+            const pPos = activeProj.mesh.position;
+            // Smoothly move the camera target to the projectile
+            controls.target.lerp(pPos, 0.1);
+            // Move camera to follow behind and slightly above
+            const idealCamPos = new THREE.Vector3(pPos.x - 30, Math.max(10, pPos.y + 15), pPos.z + 40);
+            camera.position.lerp(idealCamPos, 0.05);
+        }
+
+        // Update UI Real-Time
+        if (activeProj) {
+            const currentY = activeProj.mesh.position.y;
+            const horizontalDist = activeProj.mesh.position.x - activeProj.originX;
+            const currentDisp = Math.sqrt(horizontalDist**2 + (currentY - activeProj.originY)**2);
+            
+            document.getElementById('timeVal').textContent = activeProj.t.toFixed(2) + unitTime;
+            document.getElementById('heightVal').textContent = currentY.toFixed(1) + unitDist;
+            document.getElementById('maxHeightVal').textContent = activeProj.recordedMaxHeight.toFixed(2) + unitDist;
+            document.getElementById('rangeVal').textContent = horizontalDist.toFixed(1) + unitDist;
+            document.getElementById('dispVal').textContent = currentDisp.toFixed(1) + unitDist;
+        }
+
+        // Handle Explosion Particles
+        for (let i = explosionParticles.length - 1; i >= 0; i--) {
+            const e = explosionParticles[i];
+            e.life -= delta;
+            if (e.life <= 0) { scene.remove(e.particles); explosionParticles.splice(i, 1); continue; }
+            const posArr = e.particles.geometry.attributes.position.array;
+            for (let j = 0; j < 100; j++) {
+                posArr[j*3] += e.velocities[j].x * delta;
+                posArr[j*3+1] += e.velocities[j].y * delta;
+                posArr[j*3+2] += e.velocities[j].z * delta;
+                e.velocities[j].y -= G * delta; 
+            }
+            e.particles.geometry.attributes.position.needsUpdate = true;
+            e.particles.material.opacity = e.life;
+        }
+    }
+
+    renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>

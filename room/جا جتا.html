@@ -1,0 +1,271 @@
+<!--
+  Original code by Hasan Aydoğdu
+  GitHub: https://github.com/hasanaydogdu/trigonometri
+  Modified and updated under MIT License for Sapah Board
+-->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>حساب الجا والجتا (Sine & Cosine)</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css?family=Droid+Sans+Mono");
+    
+    html, body {
+      background-color: #440015;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden; 
+      font-family: Tahoma, Geneva, sans-serif;
+    }
+
+    #app {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* الخطوط الأساسية للدوال (أبيض ناصع) */
+    svg {
+      stroke: #FFFFFF;
+      fill: transparent;
+      stroke-width: 8px;
+    }
+
+    /* الخطوط المساعدة والدوائر (أبيض شفاف) */
+    .grey {
+      stroke: rgba(255, 255, 255, 0.35);
+      fill: transparent;
+      stroke-width: 3px;
+    }
+
+    .helper {
+      stroke-dasharray: 5, 5;
+    }
+
+    /* النصوص والأرقام (أبيض ناصع) */
+    text {
+      font-family: "Droid Sans Mono", monospace;
+      font-size: 20px;
+      fill: #FFFFFF;
+      stroke: none; /* إزالة الـ stroke من النص ليكون مقروءاً ونظيفاً */
+      font-weight: bold;
+    }
+
+    /* تنسيق مؤشر الزاوية باللون الأبيض */
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      background: transparent;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 22px;
+      width: 22px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      cursor: pointer;
+      margin-top: -8px;
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 6px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">جاري التحميل...</div>
+  
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react.min.js'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react-dom.min.js'></script>
+  
+  <script>
+    /*********
+    * REACT LOGIC
+    **********/
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialLang = urlParams.get('lang') || 'ar';
+
+    function sendStateToParent(action, data) {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: 'room3d_state_change',
+          roomType: 'trigonometry',
+          action: action,
+          data: data
+        }, '*');
+      }
+    }
+
+    class Sinus extends React.Component {
+      constructor() {
+        super();
+        this.state = {
+          degree: 0,
+          isPlaying: true,
+          lang: initialLang
+        };
+        
+        window.reactSinusApp = this;
+        this.handleSlider = this.handleSlider.bind(this);
+        this.togglePlay = this.togglePlay.bind(this);
+        this.tickInterval = setInterval(this._tick.bind(this), 30);
+      }
+
+      componentDidMount() {
+        document.documentElement.dir = this.state.lang === 'ar' ? 'rtl' : 'ltr';
+        sendStateToParent('request_initial_state', {});
+      }
+
+      _tick() {
+        if (!this.state.isPlaying) return; 
+        
+        let nextDegree = this.state.degree + 1;
+        if (nextDegree > 360) {
+          nextDegree = 0;
+        }
+        this.setState({ degree: nextDegree });
+
+        if (nextDegree % 30 === 0) {
+          sendStateToParent('update_degree', { degree: nextDegree, isPlaying: true });
+        }
+      }
+
+      handleSlider(e) {
+        const deg = parseInt(e.target.value, 10);
+        this.setState({ degree: deg, isPlaying: false });
+        sendStateToParent('update_degree', { degree: deg, isPlaying: false });
+      }
+
+      togglePlay() {
+        const nextPlaying = !this.state.isPlaying;
+        this.setState({ isPlaying: nextPlaying });
+        sendStateToParent('toggle_play', { isPlaying: nextPlaying, degree: this.state.degree });
+      }
+
+      render() {
+        const isAr = this.state.lang === 'ar';
+        return React.createElement(
+          "div",
+          { style: { display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100vh', justifyContent: 'flex-start', paddingTop: '90px', boxSizing: 'border-box' } },
+          
+          // --- زر اللغة العائم والوسطي ---
+          React.createElement("button", {
+            id: "btnLangToggle",
+            onClick: () => {
+              const newLang = this.state.lang === 'ar' ? 'en' : 'ar';
+              this.setState({ lang: newLang });
+              document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr';
+              sendStateToParent('toggle_lang', { lang: newLang });
+            },
+            style: { position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', pointerEvents: 'all', padding: '10px 20px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.3)', background: 'rgba(0, 0, 0, 0.6)', color: '#FFFFFF', fontFamily: 'sans-serif', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.3s', zIndex: 99999 }
+          }, isAr ? '🌐 English' : '🌐 العربية'),
+
+          // --- لوحة التحكم العلوية ---
+          React.createElement(
+            "div",
+            { style: { zIndex: 10, display: 'flex', gap: '15px', alignItems: 'center', background: 'rgba(0, 0, 0, 0.4)', padding: '15px 30px', borderRadius: '15px', border: '1px solid rgba(255,255,255,0.2)', width: '95%', maxWidth: '850px', direction: isAr ? 'rtl' : 'ltr', flexWrap: 'wrap', justifyContent: 'center' } },
+            
+            React.createElement("button", { 
+              onClick: this.togglePlay,
+              style: { padding: '10px 20px', cursor: 'pointer', background: this.state.isPlaying ? 'rgba(255,255,255,0.2)' : '#FFFFFF', color: this.state.isPlaying ? '#FFFFFF' : '#440015', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '16px', minWidth: '100px', transition: 'all 0.3s' }
+            }, this.state.isPlaying ? (isAr ? 'إيقاف ⏸' : 'Pause ⏸') : (isAr ? 'تشغيل ▶' : 'Play ▶')),
+            
+            React.createElement("input", {
+              type: "range", min: "0", max: "360", value: this.state.degree, onChange: this.handleSlider, style: { flexGrow: 1, cursor: 'pointer', minWidth: '150px' }
+            }),
+            
+            React.createElement("span", { style: { color: '#FFFFFF', fontFamily: 'monospace', fontSize: '22px', minWidth: '60px', fontWeight: 'bold', textAlign: 'center' } }, this.state.degree + "°"),
+
+            React.createElement("span", { style: { color: '#FFFFFF', background: 'rgba(255,255,255,0.15)', padding: '5px 15px', borderRadius: '8px', fontFamily: 'monospace', fontSize: '18px', minWidth: '220px', textAlign: 'center', border: '1px solid rgba(255,255,255,0.3)', letterSpacing: '1px' } }, isAr ? `جا = ${parseFloat(Math.sin(this.state.degree / 180 * Math.PI)).toFixed(4)} | جتا = ${parseFloat(Math.cos(this.state.degree / 180 * Math.PI)).toFixed(4)}` : `sin = ${parseFloat(Math.sin(this.state.degree / 180 * Math.PI)).toFixed(4)} | cos = ${parseFloat(Math.cos(this.state.degree / 180 * Math.PI)).toFixed(4)}`)
+          ),
+
+          // --- الرسم البياني ---
+          React.createElement(SinusDraw, { degree: this.state.degree, lang: this.state.lang })
+        );
+      }
+    }
+
+    const SinusDraw = ({ degree, lang }) => {
+      const isAr = lang === 'ar';
+      return React.createElement("div", { id: "container", style: { position: 'relative', width: '100%', height: '85vh', display: 'flex', justifyContent: 'center', alignItems: 'center' } }, 
+        React.createElement("svg", { viewBox: "0 0 940 960", style: { maxWidth: '100%', maxHeight: '100%' }, xmlns: "http://www.w3.org/2000/svg" }, 
+          React.createElement("g", { transform: "translate(20 580), rotate(-45)" }, 
+            
+            React.createElement("text", { x: "0", y: "100" }, isAr ? "جا(" : "sin("), 
+
+            React.createElement("line", { className: "grey helper", x1: Math.cos(degree / 180 * Math.PI) * 100 + 100 + 110, y1: -Math.sin(degree / 180 * Math.PI) * 100 + 100, x2: degree + 460, y2: -Math.sin(degree / 180 * Math.PI) * 100 + 100 }), 
+
+            React.createElement("line", { className: "grey helper", x1: Math.cos(degree / 180 * Math.PI) * 100 + 100 + 110, y1: -Math.sin(degree / 180 * Math.PI) * 100 + 100, x2: Math.cos(degree / 180 * Math.PI) * 100 + 210, y2: degree + 360 }), 
+
+            React.createElement("g", { transform: "translate(110 0)" }, 
+              React.createElement("line", { className: "grey", x1: "100", y1: "100", x2: "200", y2: "100" }), 
+              React.createElement("circle", { className: "grey", cx: "100", cy: "100", r: "100" }), 
+              React.createElement("path", { d: 'M 130 100 A 30 30 0 ' + (degree <= 180 ? '0' : '1') + ' 0 ' + (Math.cos(degree / 180 * Math.PI) * 30 + 100) + ' ' + (-Math.sin(degree / 180 * Math.PI) * 30 + 100) }), 
+              React.createElement("line", { className: "grey", x1: "100", y1: "100", x2: Math.cos(degree / 180 * Math.PI) * 100 + 100, y2: -Math.sin(degree / 180 * Math.PI) * 100 + 100 }), 
+              React.createElement("g", { transform: 'translate(' + (Math.cos(degree / 180 * Math.PI) * 100 + 100 + 10) + ' ' + (-Math.sin(degree / 180 * Math.PI) * 100 + 100) + '), rotate(45)' }, 
+                React.createElement("text", null, degree, "\xB0")
+              )
+            ), 
+
+            React.createElement("text", { x: "370", y: "100" }, ") ="), 
+
+            React.createElement("g", { transform: "translate(460 0)" }, 
+              React.createElement("line", { className: "grey", x1: "0", y1: "100", x2: "360", y2: "100" }), 
+              React.createElement("polyline", { className: "grey", points: Array.from({ length: 360 }, (value, key) => { return key + " " + (-Math.sin(key / 180 * Math.PI) * 100 + 100); }) }), 
+              React.createElement("polyline", { points: Array.from({ length: degree }, (value, key) => { return key + " " + (-Math.sin(key / 180 * Math.PI) * 100 + 100); }) }), 
+              React.createElement("text", { x: degree + 10, y: -Math.sin(degree / 180 * Math.PI) * 100 + 100 }, parseFloat(Math.sin(degree / 180 * Math.PI)).toFixed(4))
+            ), 
+
+            React.createElement("g", { transform: "translate(210, -110), rotate(90)" }, 
+              React.createElement("text", null, isAr ? "جتا(" : "cos(")
+            ), 
+
+            React.createElement("g", { transform: "translate(210, 260), rotate(90)" }, 
+              React.createElement("text", null, ") =")
+            ), 
+
+            React.createElement("g", { transform: "translate(110 360)" }, 
+              React.createElement("line", { className: "grey", x1: "100", y1: "0", x2: "100", y2: "360" }), 
+              React.createElement("polyline", { className: "grey", points: Array.from({ length: 360 }, (value, key) => { return Math.cos(key / 180 * Math.PI) * 100 + 100 + " " + key; }) }), 
+              React.createElement("polyline", { points: Array.from({ length: degree }, (value, key) => { return Math.cos(key / 180 * Math.PI) * 100 + 100 + " " + key; }) }), 
+              React.createElement("g", { transform: 'translate(' + (Math.cos(degree / 180 * Math.PI) * 100 + 100) + ' ' + (degree + 10) + '), rotate(90)' }, 
+                React.createElement("text", null, parseFloat(Math.cos(degree / 180 * Math.PI)).toFixed(4))
+              )
+            )
+          )
+        )
+      );
+    };
+
+    window.addEventListener('message', (e) => {
+      const data = e.data;
+      if (!data || data.type !== 'apply_room3d_state') return;
+
+      const app = window.reactSinusApp;
+      if (!app) return;
+
+      if (data.action === 'update_degree') {
+        app.setState({ degree: data.data.degree, isPlaying: !!data.data.isPlaying });
+      } else if (data.action === 'toggle_play') {
+        const updates = { isPlaying: !!data.data.isPlaying };
+        if (data.data.degree !== undefined) updates.degree = data.data.degree;
+        app.setState(updates);
+      } else if (data.action === 'toggle_lang') {
+        app.setState({ lang: data.data.lang });
+        document.documentElement.dir = data.data.lang === 'ar' ? 'rtl' : 'ltr';
+      }
+    });
+
+    ReactDOM.render(
+      React.createElement(Sinus, null),
+      document.getElementById('app')
+    );
+  </script>
+</body>
+</html>

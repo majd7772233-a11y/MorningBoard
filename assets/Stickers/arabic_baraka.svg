@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="barakaBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#047857" />
+      <stop offset="70%" stop-color="#064e3b" />
+      <stop offset="100%" stop-color="#022c22" />
+    </radialGradient>
+    <linearGradient id="goldSeal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#eab308" />
+      <stop offset="100%" stop-color="#a16207" />
+    </linearGradient>
+    <filter id="barakaShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#022c22" flood-opacity="0.45" />
+    </filter>
+  </defs>
+
+  <!-- Islamic 8-Point Star Outer Medallion -->
+  <g filter="url(#barakaShadow)">
+    <rect x="22" y="22" width="156" height="156" rx="20" fill="url(#goldSeal)" />
+    <rect x="22" y="22" width="156" height="156" rx="20" transform="rotate(45 100 100)" fill="url(#goldSeal)" />
+    <circle cx="100" cy="100" r="76" fill="#022c22" />
+    <circle cx="100" cy="100" r="72" fill="url(#barakaBg)" stroke="url(#goldSeal)" stroke-width="2.5" />
+    <circle cx="100" cy="100" r="66" fill="none" stroke="#fef08a" stroke-width="1.5" stroke-dasharray="3,3" />
+  </g>
+
+  <!-- Ornate Leaves / Floral decoration -->
+  <path d="M70,58 Q100,48 130,58 Q100,52 70,58 Z" fill="url(#goldSeal)" />
+  <path d="M70,142 Q100,152 130,142 Q100,148 70,142 Z" fill="url(#goldSeal)" />
+  <circle cx="100" cy="52" r="3" fill="#fef08a" />
+  <circle cx="100" cy="148" r="3" fill="#fef08a" />
+
+  <!-- Arabic Calligraphy "بارك الله فيك" -->
+  <text x="100" y="94" font-family="'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif" font-size="22" font-weight="900" fill="url(#goldSeal)" text-anchor="middle">بَارَكَ اللهُ</text>
+  <text x="100" y="122" font-family="'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif" font-size="24" font-weight="900" fill="#ffffff" text-anchor="middle">فِـيـكَ 🌿</text>
+</svg>

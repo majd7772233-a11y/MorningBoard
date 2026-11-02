@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="excBg" cx="50%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="60%" stop-color="#6d28d9" />
+      <stop offset="100%" stop-color="#4c1d95" />
+    </radialGradient>
+    <linearGradient id="excGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fffbeb" />
+      <stop offset="50%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+    <filter id="excShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#3b0764" flood-opacity="0.45" />
+    </filter>
+  </defs>
+
+  <!-- Ribbons -->
+  <polygon points="65,142 38,186 66,174 90,186 80,142" fill="#b45309" />
+  <polygon points="135,142 162,186 134,174 110,186 120,142" fill="#92400e" />
+
+  <!-- Badge Body -->
+  <g filter="url(#excShadow)">
+    <circle cx="100" cy="95" r="82" fill="url(#excGold)" />
+    <circle cx="100" cy="95" r="75" fill="#faf5ff" />
+    <circle cx="100" cy="95" r="70" fill="url(#excBg)" stroke="#ffffff" stroke-width="3" />
+    <circle cx="100" cy="95" r="64" fill="none" stroke="#ddd6fe" stroke-width="1.5" stroke-dasharray="4,4" />
+  </g>
+
+  <!-- Crown Icon at Top -->
+  <path d="M85,58 L88,44 L95,50 L100,40 L105,50 L112,44 L115,58 Z" fill="url(#excGold)" stroke="#ffffff" stroke-width="1" />
+  <circle cx="88" cy="42" r="2" fill="#fffbeb" />
+  <circle cx="100" cy="38" r="2.5" fill="#fffbeb" />
+  <circle cx="112" cy="42" r="2" fill="#fffbeb" />
+
+  <!-- English Text -->
+  <text x="100" y="102" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1">EXCELLENT</text>
+
+  <!-- 100% or Stars -->
+  <rect x="55" y="118" width="90" height="22" rx="11" fill="url(#excGold)" />
+  <text x="100" y="134" font-family="system-ui, sans-serif" font-size="13" font-weight="900" fill="#4c1d95" text-anchor="middle" letter-spacing="1">100% ★★★</text>
+</svg>

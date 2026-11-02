@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b0f19"/>
+      <stop offset="50%" stop-color="#111827"/>
+      <stop offset="100%" stop-color="#1f2937"/>
+    </linearGradient>
+    <!-- Sun Glow Gradient -->
+    <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fbbf24" stop-opacity="1"/>
+      <stop offset="35%" stop-color="#f59e0b" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#ea580c" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Sun Core Gradient -->
+    <linearGradient id="sunCore" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+    <!-- Pen Tip Gradient -->
+    <linearGradient id="penGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <!-- Drawn Path Neon Glow -->
+    <linearGradient id="neonPath" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00ffcc"/>
+      <stop offset="50%" stop-color="#00a2ff"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <!-- Drop Shadow Filter -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.55"/>
+    </filter>
+    <!-- Neon Path Glow Filter -->
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- App Rounded Background Frame -->
+  <rect width="512" height="512" rx="120" fill="url(#bgGrad)" stroke="rgba(255, 255, 255, 0.08)" stroke-width="6"/>
+
+  <!-- Stylized Sun / Morning Symbol -->
+  <g transform="translate(256, 230)" filter="url(#shadow)">
+    <!-- Sun Glow Behind -->
+    <circle cx="0" cy="0" r="150" fill="url(#sunGlow)"/>
+    <!-- Rising Sun Rays -->
+    <path d="M-90,0 A90,90 0 0,1 90,0" fill="url(#sunCore)"/>
+    <circle cx="0" cy="0" r="90" fill="url(#sunCore)"/>
+    <!-- Horizon Line -->
+    <line x1="-160" y1="0" x2="160" y2="0" stroke="rgba(255, 255, 255, 0.15)" stroke-width="8" stroke-linecap="round"/>
+    <!-- Horizon reflection ripples -->
+    <line x1="-100" y1="20" x2="100" y2="20" stroke="#f59e0b" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
+    <line x1="-60" y1="40" x2="60" y2="40" stroke="#f97316" stroke-width="5" stroke-linecap="round" opacity="0.4"/>
+  </g>
+
+  <!-- Board Outline Concept -->
+  <rect x="76" y="76" width="360" height="360" rx="40" fill="none" stroke="rgba(255, 255, 255, 0.06)" stroke-width="4" stroke-dasharray="16 12"/>
+
+  <!-- Smooth Neon Drawn Line -->
+  <path d="M120 380 Q 200 280, 280 340 T 400 200" fill="none" stroke="url(#neonPath)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" filter="url(#neonGlow)" opacity="0.95"/>
+
+  <!-- Stylized Smart Stylus/Pen drawing the line -->
+  <g transform="translate(400, 200) rotate(-45)" filter="url(#shadow)">
+    <!-- Pen Body Shadow/Back -->
+    <path d="M-10,-10 L-10,-160 L10,-160 L10,-10 L0,15 Z" fill="#1e293b"/>
+    <!-- Pen Body Metallic Shell -->
+    <path d="M-8,-8 L-8,-150 L8,-150 L8,-8 L0,12 Z" fill="url(#penGrad)"/>
+    <!-- Pen Chisel Tip Collar -->
+    <polygon points="-8,-8 8,-8 5,-2 -5,-2" fill="#0b0f19"/>
+    <!-- Active Stylus Tip (Glowing Neon) -->
+    <polygon points="-4,-2 4,-2 0,12" fill="#00ffcc" filter="url(#neonGlow)"/>
+    <!-- Stylus Grip Rings -->
+    <line x1="-8" y1="-30" x2="8" y2="-30" stroke="rgba(255, 255, 255, 0.3)" stroke-width="3"/>
+    <line x1="-8" y1="-40" x2="8" y2="-40" stroke="rgba(255, 255, 255, 0.3)" stroke-width="3"/>
+  </g>
+
+  <!-- Corner Accent Dots -->
+  <circle cx="256" cy="50" r="5" fill="rgba(255, 255, 255, 0.25)"/>
+  <circle cx="50" cy="256" r="5" fill="rgba(255, 255, 255, 0.25)"/>
+  <circle cx="256" cy="462" r="5" fill="rgba(255, 255, 255, 0.25)"/>
+  <circle cx="462" cy="256" r="5" fill="rgba(255, 255, 255, 0.25)"/>
+</svg>

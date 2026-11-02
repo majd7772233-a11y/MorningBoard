@@ -1,0 +1,3377 @@
+<!--
+  Family of Prophet Muhammad - 3D Interactive System
+-->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>عائلة النبي محمد ﷺ - نظام تفاعلي ثلاثي الأبعاد</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Amiri:wght@400;700&family=Reem+Kufi:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  overflow: hidden;
+  background: #000;
+  font-family: 'Cairo', 'Tahoma', sans-serif;
+  color: #fff;
+  user-select: none;
+}
+#canvas-container { position: fixed; inset: 0; z-index: 1; }
+#canvas-container canvas { display: block; cursor: grab; }
+#canvas-container canvas:active { cursor: grabbing; }
+
+#loading {
+  position: fixed; inset: 0; background: #000;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100; transition: opacity 1s ease;
+}
+.loading-content { text-align: center; }
+.loading-orb {
+  width: 70px; height: 70px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #c8a84e, #8B6914);
+  margin: 0 auto 24px;
+  animation: pulse 1.5s ease infinite;
+  box-shadow: 0 0 60px #c8a84e, 0 0 120px rgba(200,168,78,0.4);
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+.loading-text {
+  font-size: 16px; color: rgba(200, 168, 78, 0.8);
+  letter-spacing: 3px; font-weight: 600;
+}
+
+#title-panel {
+  position: fixed; top: 20px; right: 20px;
+  text-align: right;
+  z-index: 10; pointer-events: none;
+}
+#title-panel h1 {
+  font-size: 26px; font-weight: 900;
+  background: linear-gradient(90deg, #ffd700, #c8a84e, #e8d5a0, #ffd700);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 3px;
+  animation: shimmer 4s linear infinite;
+}
+@keyframes shimmer { to { background-position: 200% center; } }
+#title-panel .subtitle {
+  font-size: 13px; color: rgba(255, 255, 255, 0.4);
+  margin-top: 6px; letter-spacing: 1px;
+}
+
+#lock-btn {
+  position: fixed; top: 20px; left: 20px;
+  z-index: 15; pointer-events: all;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.7);
+  width: 42px; height: 42px; border-radius: 50%;
+  cursor: pointer; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s ease;
+}
+#lock-btn:hover {
+  background: rgba(200,168,78,0.12);
+  border-color: rgba(200,168,78,0.3);
+  color: #ffd700;
+}
+#lock-btn.locked {
+  background: rgba(255,80,80,0.15);
+  border-color: rgba(255,80,80,0.4);
+  color: #ff6666;
+  box-shadow: 0 0 12px rgba(255,80,80,0.15);
+}
+
+.panel {
+  background: rgba(8, 10, 24, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(100, 130, 255, 0.12);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+#controls-panel {
+  position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; gap: 10px; align-items: center;
+  padding: 10px 16px; z-index: 10;
+  flex-wrap: wrap; justify-content: center;
+}
+.ctrl-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.75);
+  padding: 8px 14px; border-radius: 8px;
+  cursor: pointer; font-family: inherit;
+  font-size: 13px; font-weight: 600;
+  transition: all 0.2s ease; white-space: nowrap;
+}
+.ctrl-btn:hover {
+  background: rgba(200, 168, 78, 0.12);
+  border-color: rgba(200, 168, 78, 0.3);
+  color: #ffd700;
+}
+.ctrl-btn.active {
+  background: rgba(200, 168, 78, 0.18);
+  border-color: rgba(200, 168, 78, 0.4);
+  color: #ffd700;
+  box-shadow: 0 0 12px rgba(200, 168, 78, 0.15);
+}
+.speed-control {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 6px;
+}
+.speed-control label {
+  font-size: 13px; color: rgba(255, 255, 255, 0.5); font-weight: 600;
+}
+.speed-control input[type="range"] {
+  width: 100px; height: 4px;
+  -webkit-appearance: none; appearance: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px; outline: none;
+}
+.speed-control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #c8a84e; cursor: pointer;
+  box-shadow: 0 0 8px rgba(200, 168, 78, 0.6);
+}
+.speed-control input[type="range"]::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #c8a84e; cursor: pointer; border: none;
+  box-shadow: 0 0 8px rgba(200, 168, 78, 0.6);
+}
+#speed-value {
+  font-size: 12px; color: #c8a84e;
+  min-width: 35px; text-align: center; font-weight: 700;
+}
+
+#toggle-panel {
+  position: fixed; top: 50%; right: 125px;
+  transform: translateY(-50%);
+  z-index: 100;
+  width: 32px; height: 52px;
+  border-radius: 12px 0 0 12px;
+  background: rgba(10, 14, 30, 0.95);
+  border: 1.5px solid rgba(200,168,78,0.5);
+  border-right: none;
+  color: #ffd700;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: right 0.4s cubic-bezier(0.4,0,0.2,1), background 0.3s ease, color 0.3s ease;
+  pointer-events: all;
+  box-shadow: -4px 0 15px rgba(0,0,0,0.5);
+  user-select: none;
+}
+#toggle-panel:hover {
+  background: rgba(200,168,78,0.28);
+  color: #ffffff;
+  border-color: #ffd700;
+}
+#toggle-panel.panel-closed {
+  right: 0px !important;
+  background: rgba(200,168,78,0.2);
+  border-color: rgba(200,168,78,0.6);
+}
+
+.filter-section {
+  padding: 6px 4px 2px;
+  border-bottom: 1px solid rgba(200,168,78,0.15);
+  margin-bottom: 4px;
+}
+.filter-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 5px 8px; border-radius: 6px;
+  cursor: pointer; font-family: inherit;
+  font-size: 11px; font-weight: 700;
+  transition: all 0.2s ease; width: 100%;
+  text-align: right;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.filter-btn:hover {
+  background: rgba(200, 168, 78, 0.15);
+  border-color: rgba(200, 168, 78, 0.3);
+  color: #ffd700;
+}
+.filter-btn.active-filter {
+  background: rgba(200, 168, 78, 0.2);
+  border-color: rgba(200, 168, 78, 0.5);
+  color: #ffd700;
+  box-shadow: 0 0 10px rgba(200, 168, 78, 0.15);
+}
+.filter-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex-shrink: 0; box-shadow: 0 0 6px currentColor;
+}
+
+#planet-selector {
+  position: fixed; top: 50%; right: 10px;
+  transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 6px; z-index: 10; max-height: 82vh;
+  width: 115px;
+  max-width: 115px;
+  overflow-y: auto;
+  overflow-x: visible;
+  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
+}
+#planet-selector.hidden-panel {
+  transform: translateY(-50%) translateX(calc(100% + 15px));
+  opacity: 0.95;
+}
+#planet-selector::-webkit-scrollbar { width: 3px; }
+#planet-selector::-webkit-scrollbar-thumb { background: rgba(200,168,78,0.3); border-radius: 2px; }
+.planet-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.75);
+  padding: 5px 8px; border-radius: 6px;
+  cursor: pointer; font-family: inherit;
+  font-size: 11.5px; font-weight: 600;
+  transition: all 0.2s ease; min-width: 0; width: 100%;
+  text-align: right;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.planet-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  transform: translateX(-4px);
+  border-color: rgba(255,255,255,0.12);
+}
+.planet-btn.selected {
+  background: rgba(200, 168, 78, 0.1);
+  border-color: rgba(200, 168, 78, 0.35);
+  color: #ffd700;
+}
+.planet-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  flex-shrink: 0; box-shadow: 0 0 8px currentColor;
+}
+.planet-dot.diamond {
+  border-radius: 2px;
+  transform: rotate(45deg);
+  width: 8px; height: 8px;
+}
+
+#info-panel {
+  position: fixed; top: 50%; left: 20px;
+  transform: translateY(-50%) translateX(-120%);
+  width: 360px; max-height: 82vh; overflow-y: auto;
+  padding: 24px; z-index: 20;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#info-panel.visible { transform: translateY(-50%) translateX(0); }
+#info-panel::-webkit-scrollbar { width: 4px; }
+#info-panel::-webkit-scrollbar-thumb { background: rgba(200, 168, 78, 0.3); border-radius: 2px; }
+.close-btn {
+  position: absolute; top: 12px; left: 12px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s ease; font-family: inherit;
+}
+.close-btn:hover { background: rgba(255, 80, 80, 0.2); color: #ff6666; border-color: rgba(255,80,80,0.3); }
+.info-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 16px;
+}
+.info-icon {
+  width: 50px; height: 50px; border-radius: 50%;
+  flex-shrink: 0; box-shadow: 0 0 20px currentColor;
+}
+.info-icon.diamond {
+  border-radius: 4px;
+}
+.info-header h2 {
+  font-size: 20px; font-weight: 700; color: #fff;
+  letter-spacing: 1px;
+}
+.info-header .name-en {
+  font-size: 11px; color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase; letter-spacing: 2px;
+  margin-top: 2px;
+}
+.info-description {
+  font-size: 13.5px; line-height: 1.8;
+  color: rgba(255, 255, 255, 0.65);
+  margin-bottom: 18px;
+}
+.stats-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.stat-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px; padding: 10px 12px;
+}
+.stat-label {
+  font-size: 10.5px; color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 4px; font-weight: 600;
+}
+.stat-value {
+  font-size: 13px; color: #ffd700; font-weight: 700;
+}
+
+#labels-container {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 8;
+}
+.planet-label {
+  position: absolute; font-size: 13px; font-weight: 900;
+  color: #fff;
+  text-shadow:
+    0 0 4px rgba(0,0,0,1),
+    0 0 8px rgba(0,0,0,0.9),
+    0 0 14px rgba(0,0,0,0.7),
+    0 0 20px rgba(0,0,0,0.5),
+    0 0 30px rgba(0,0,0,0.3);
+  transform: translate(-50%, -100%);
+  white-space: nowrap; letter-spacing: 1px;
+  transition: opacity 0.3s ease;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+.planet-label.labels-hidden {
+  opacity: 0 !important;
+}
+.planet-label.hover-visible {
+  opacity: 1 !important;
+}
+.mini-moon-label {
+  position: absolute; font-size: 9px; font-weight: 700;
+  color: rgba(255,220,160,0.9);
+  text-shadow:
+    0 0 3px rgba(0,0,0,1),
+    0 0 6px rgba(0,0,0,0.8),
+    0 0 10px rgba(0,0,0,0.6);
+  transform: translate(-50%, -50%);
+  white-space: nowrap; letter-spacing: 0.5px;
+  font-style: italic;
+  pointer-events: none;
+}
+.mini-moon-label.labels-hidden {
+  opacity: 0 !important;
+}
+.mini-moon-label.hover-visible {
+  opacity: 1 !important;
+}
+
+.orbit-label {
+  position: absolute; font-size: 10px; font-weight: 600;
+  color: rgba(200, 168, 78, 0.4);
+  pointer-events: none; z-index: 4;
+  letter-spacing: 2px;
+}
+
+#sun-calligraphy-label {
+  position: absolute;
+  pointer-events: none;
+  z-index: 20;
+  font-family: 'Amiri', 'Reem Kufi', serif;
+  font-size: 32px;
+  font-weight: 900;
+  color: #fbbf24;
+  background: rgba(15, 23, 42, 0.88);
+  padding: 6px 22px;
+  border-radius: 24px;
+  border: 2px solid #fbbf24;
+  text-shadow: 0 0 10px rgba(0,0,0,0.9), 0 0 20px rgba(251,191,36,0.8);
+  box-shadow: 0 0 25px rgba(251,191,36,0.5), inset 0 0 12px rgba(251,191,36,0.3);
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  direction: rtl;
+  letter-spacing: 2px;
+  opacity: 1;
+}
+
+body.student-device #lock-btn,
+body.student-device #theme-picker,
+body.student-device #controls-panel,
+body.student-device #hint,
+body.student-device #title-panel,
+body.student-device .top-toolbar {
+  display: none !important;
+}
+
+#hint {
+  position: fixed; bottom: 72px; left: 50%;
+  transform: translateX(-50%); font-size: 11px;
+  color: rgba(255, 255, 255, 0.25); z-index: 5;
+  pointer-events: none; letter-spacing: 0.5px;
+}
+
+/* ===== SEARCH (inside side panel) ===== */
+#panel-search {
+  position: relative; padding: 8px 10px;
+}
+#panel-search-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(200,168,78,0.15);
+  border-radius: 10px;
+  padding: 9px 12px 9px 34px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  outline: none;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+}
+#panel-search-input::placeholder { color: rgba(255,255,255,0.25); }
+#panel-search-input:focus {
+  border-color: rgba(200,168,78,0.4);
+  background: rgba(255,255,255,0.06);
+}
+#panel-search-icon {
+  position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+  font-size: 14px; color: rgba(200,168,78,0.5); pointer-events: none;
+}
+#panel-search-results {
+  position: absolute; top: 100%; left: 8px; right: 8px;
+  background: rgba(8, 10, 24, 0.95);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(200,168,78,0.15);
+  border-radius: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  display: none;
+  z-index: 100;
+}
+#panel-search-results::-webkit-scrollbar { width: 3px; }
+#panel-search-results::-webkit-scrollbar-thumb { background: rgba(200,168,78,0.3); border-radius: 2px; }
+.panel-search-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
+  border-bottom: 1px solid rgba(200,168,78,0.06);
+  display: flex; align-items: center; gap: 8px;
+  transition: all 0.15s ease;
+}
+.panel-search-item:hover {
+  background: rgba(200,168,78,0.12);
+  color: #ffd700;
+}
+.panel-search-item:last-child { border-bottom: none; }
+.panel-search-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+
+
+
+@media (max-width: 768px) {
+  #title-panel h1 { font-size: 18px; letter-spacing: 1.5px; }
+  #title-panel .subtitle { font-size: 10px; }
+  #planet-selector {
+    top: 50%; right: 6px; bottom: auto; left: auto;
+    transform: translateY(-50%); flex-direction: column;
+    width: 105px !important; max-width: 105px !important;
+    max-height: 70vh; padding: 4px; z-index: 99;
+  }
+  #planet-selector.hidden-panel {
+    transform: translateY(-50%) translateX(calc(100% + 15px));
+  }
+  #toggle-panel {
+    right: 111px; width: 30px; height: 48px; font-size: 15px;
+  }
+  #toggle-panel.panel-closed {
+    right: 0px !important;
+  }
+  .planet-btn { min-width: auto; padding: 4px 6px; font-size: 10px; gap: 4px; }
+  .filter-btn { padding: 4px 6px; font-size: 9.5px; }
+  #controls-panel { gap: 4px; padding: 6px 10px; bottom: 10px; }
+  .ctrl-btn { padding: 5px 8px; font-size: 10px; }
+  .speed-control input[type="range"] { width: 50px; }
+  .speed-control label { font-size: 10px; }
+  #info-panel { width: 92%; left: 4%; max-height: 55vh; padding: 16px; }
+  #hint { display: none; }
+
+  #stats-bar { top: auto; bottom: 70px; left: 50%; transform: translateX(-50%); font-size: 10px; padding: 6px 14px; }
+}
+
+/* ===== STATS BAR ===== */
+#stats-bar {
+  position: fixed; top: 68px; left: 20px;
+  z-index: 10; pointer-events: none;
+  display: flex; flex-wrap: wrap; gap: 6px 12px;
+  max-width: 420px;
+}
+.stats-chip {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 600;
+  color: rgba(255,255,255,0.55);
+  padding: 3px 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
+  transition: all 0.4s ease;
+}
+.stats-chip .chip-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.stats-chip .chip-count {
+  color: #ffd700; font-weight: 800; font-size: 11px;
+}
+
+/* ===== STORY MODE ===== */
+#story-panel {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 50; display: none;
+  pointer-events: none;
+}
+#story-panel.visible { display: block; }
+#story-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0);
+  transition: background 0.8s ease;
+  pointer-events: all;
+  cursor: pointer;
+}
+#story-panel.visible #story-backdrop { background: rgba(0,0,0,0.55); }
+#story-card {
+  position: absolute; bottom: 60px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  opacity: 0;
+  width: min(560px, 92%);
+  pointer-events: all;
+  background: rgba(8,10,24,0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(200,168,78,0.2);
+  border-radius: 20px;
+  padding: 0;
+  overflow: hidden;
+  transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(200,168,78,0.08);
+}
+#story-panel.visible #story-card {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+.story-banner {
+  height: 6px; width: 100%;
+  border-radius: 0;
+}
+.story-body {
+  padding: 28px 32px 24px;
+}
+.story-top {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 20px;
+}
+.story-icon {
+  width: 56px; height: 56px; border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 25px currentColor;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+}
+.story-icon.diamond { border-radius: 6px; transform: rotate(45deg); }
+.story-name {
+  font-size: 22px; font-weight: 800; color: #fff;
+  letter-spacing: 1.5px; line-height: 1.4;
+}
+.story-name-en {
+  font-size: 11px; color: rgba(255,255,255,0.3);
+  text-transform: uppercase; letter-spacing: 2px; margin-top: 3px;
+}
+.story-relation {
+  display: inline-block;
+  font-size: 13px; font-weight: 700;
+  color: #ffd700;
+  padding: 5px 14px;
+  background: rgba(200,168,78,0.1);
+  border: 1px solid rgba(200,168,78,0.25);
+  border-radius: 8px;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+}
+.story-text {
+  font-size: 14.5px; line-height: 2;
+  color: rgba(255,255,255,0.7);
+  max-height: 200px; overflow-y: auto;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: all 0.6s ease 0.3s;
+}
+#story-panel.visible .story-text {
+  opacity: 1; transform: translateY(0);
+}
+.story-text::-webkit-scrollbar { width: 3px; }
+.story-text::-webkit-scrollbar-thumb { background: rgba(200,168,78,0.3); border-radius: 2px; }
+.story-stats-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  margin-top: 16px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: all 0.6s ease 0.5s;
+}
+#story-panel.visible .story-stats-grid {
+  opacity: 1; transform: translateY(0);
+}
+.story-stat-item {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px; padding: 10px 14px;
+}
+.story-stat-label {
+  font-size: 10px; color: rgba(255,255,255,0.35);
+  font-weight: 600; margin-bottom: 3px;
+}
+.story-stat-value {
+  font-size: 14px; color: #ffd700; font-weight: 800;
+}
+.story-close-hint {
+  text-align: center; margin-top: 16px;
+  font-size: 10px; color: rgba(255,255,255,0.2);
+  letter-spacing: 1px;
+  opacity: 0;
+  transition: opacity 0.5s ease 0.7s;
+}
+#story-panel.visible .story-close-hint { opacity: 1; }
+@media (max-width: 768px) {
+  #story-card { width: 95%; bottom: 30px; }
+  .story-body { padding: 20px 18px 18px; }
+  .story-name { font-size: 18px; }
+  .story-stats-grid { grid-template-columns: 1fr; }
+  #info-panel {
+    width: min(320px, 88vw);
+    left: 8px;
+    padding: 16px;
+    max-height: 75vh;
+  }
+  #planet-selector {
+    right: 6px;
+    padding: 6px;
+    max-height: 65vh;
+  }
+  .planet-btn {
+    padding: 5px 8px;
+    font-size: 11px;
+    min-width: 95px;
+    gap: 6px;
+  }
+  #sun-calligraphy-label {
+    font-size: 20px !important;
+    padding: 4px 14px !important;
+    border-radius: 16px !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div id="canvas-container"></div>
+
+<div id="loading">
+  <div class="loading-content">
+    <div class="loading-orb"></div>
+    <div class="loading-text">جاري إنشاء نظام عائلة النبي محمد ﷺ</div>
+  </div>
+</div>
+
+<div id="title-panel">
+  <h1>عائلة النبي محمد ﷺ</h1>
+  <div class="subtitle">انقر على أي شخصية لاستكشاف معلوماتها</div>
+</div>
+
+<button id="lock-btn" title="قفل/فتح النقر على الشخصيات">🔓</button>
+
+<button id="toggle-panel" title="إخفاء القائمة الجانبية">▶</button>
+<div id="planet-selector" class="panel">
+  <div id="panel-search">
+    <span id="panel-search-icon">🔍</span>
+    <input type="text" id="panel-search-input" placeholder="ابحث عن شخصية أو غزوة..." autocomplete="off">
+    <div id="panel-search-results"></div>
+  </div>
+</div>
+
+<div id="info-panel" class="panel">
+  <button class="close-btn" id="close-info">&times;</button>
+  <div class="info-header">
+    <div class="info-icon" id="info-icon"></div>
+    <div>
+      <h2 id="info-name"></h2>
+      <div class="name-en" id="info-name-en"></div>
+    </div>
+  </div>
+  <div class="info-description" id="info-description"></div>
+  <div class="stats-grid" id="info-stats"></div>
+</div>
+
+<div id="controls-panel" class="panel">
+  <button class="ctrl-btn" id="play-pause">إيقاف مؤقت</button>
+  <div class="speed-control">
+    <label>السرعة</label>
+    <input type="range" id="speed-slider" min="0" max="3" step="0.1" value="1">
+    <span id="speed-value">1.0x</span>
+  </div>
+  <button class="ctrl-btn active" id="toggle-orbits">المسارات</button>
+  <button class="ctrl-btn active" id="toggle-labels">التسميات</button>
+  <button class="ctrl-btn" id="top-view">↕ من الأعلى</button>
+  <button class="ctrl-btn" id="reset-view">عرض عام</button>
+
+  <div style="width:1px;height:24px;background:rgba(255,255,255,0.1);margin:0 4px"></div>
+  <div style="display:flex;gap:6px;align-items:center;padding:0 6px">
+    <span style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:600">الخلفية:</span>
+    <div class="theme-dot" data-idx="0" style="width:22px;height:22px;border-radius:50%;background:radial-gradient(circle,#1a2a44,#0c1a30);border:2px solid rgba(255,255,255,0.15);cursor:pointer;transition:all 0.2s" title="سماوي"></div>
+    <div class="theme-dot" data-idx="1" style="width:22px;height:22px;border-radius:50%;background:radial-gradient(circle,#204878,#102848);border:2px solid rgba(255,255,255,0.15);cursor:pointer;transition:all 0.2s" title="أزرق عميق"></div>
+    <div class="theme-dot" data-idx="2" style="width:22px;height:22px;border-radius:50%;background:radial-gradient(circle,#3a2868,#2a1848);border:2px solid rgba(255,255,255,0.15);cursor:pointer;transition:all 0.2s" title="بنفسجي سديمي"></div>
+    <div class="theme-dot" data-idx="3" style="width:22px;height:22px;border-radius:50%;background:radial-gradient(circle,#382c18,#281c10);border:2px solid rgba(255,255,255,0.15);cursor:pointer;transition:all 0.2s" title="ذهبي دافئ"></div>
+    <div class="theme-dot" data-idx="4" style="width:22px;height:22px;border-radius:50%;background:radial-gradient(circle,#145030,#0c3020);border:2px solid rgba(255,255,255,0.15);cursor:pointer;transition:all 0.2s" title="أخضر فضائي"></div>
+    <div class="theme-dot" data-idx="5" style="width:22px;height:22px;border-radius:50%;background:radial-gradient(circle,#2a3444,#1a2030);border:2px solid rgba(255,255,255,0.15);cursor:pointer;transition:all 0.2s" title="فضائي محايد"></div>
+  </div>
+</div>
+
+<div id="labels-container"></div>
+<div id="sun-calligraphy-label">محمد ﷺ</div>
+<div id="hint">استخدم الفأرة للدوران والتكبير • اضغط على أي شخصية لعرض معلوماتها</div>
+
+<div id="story-panel">
+  <div id="story-backdrop"></div>
+  <div id="story-card">
+    <div class="story-banner" id="story-banner"></div>
+    <div class="story-body">
+      <div class="story-top">
+        <div class="story-icon" id="story-icon"></div>
+        <div>
+          <div class="story-name" id="story-name"></div>
+          <div class="story-name-en" id="story-name-en"></div>
+        </div>
+      </div>
+      <div class="story-relation" id="story-relation" style="display:none"></div>
+      <div class="story-text" id="story-text"></div>
+      <div class="story-stats-grid" id="story-stats"></div>
+      <div class="story-close-hint">اضغط في أي مكان أو Escape للإغلاق</div>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+window.THREE_LOAD_ERROR = false;
+</script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js" onerror="window.THREE_LOAD_ERROR=true"></script>
+<script>
+if (typeof THREE === 'undefined') { window.THREE_LOAD_ERROR = true; }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js" onerror="window.THREE_LOAD_ERROR=true"></script>
+<script>
+if (typeof THREE === 'undefined' || typeof THREE.OrbitControls === 'undefined') {
+  window.THREE_LOAD_ERROR = true;
+  document.getElementById('loading').innerHTML = '<div class="loading-content"><div class="loading-orb" style="background:radial-gradient(circle,#ff4444,#aa0000);box-shadow:0 0 40px #ff4444"></div><div class="loading-text" style="color:#ff6666">لا يمكن تحميل المكتبات.<br>تأكد من اتصالك بالإنترنت ثم حدّث الصفحة.</div></div>';
+  throw new Error('Three.js failed to load');
+}
+</script>
+<script>
+try {
+// THREE and THREE.OrbitControls are now global
+
+// ===== DATA =====
+const SUN_INFO = {
+  name: 'محمد بن عبد الله بن عبد المطلب بن هاشم ﷺ',
+  nameEn: 'Prophet Muhammad (PBUH)',
+  colorHex: '#ffd700',
+  isMale: null,
+  relation: 'خاتم الأنبياء والمرسلين',
+  description: 'محمد بن عبد الله بن عبد المطلب بن هاشم بن عبد مناف بن قصيّ بن كلاب بن مُرّة بن كعب بن لؤيّ بن غالب بن فهر بن مالك بن النضر بن كنانة بن خزيمة بن مدركة بن إلياس بن مُضر بن نزار بن معد بن عدنان، خاتم الأنبياء والمرسلين. وُلد في مكة المكرمة عام الفيل (570م) يوم الاثنين 12 ربيع الأول، ونُزل عليه الوحي في غار حراء عندما بلغ الأربعين من عمره. بُعث بالقرآن الكريم والسنة النبوية رحمةً للعالمين، وهو أعظم إنسان عرفته البشرية.',
+  stats: {
+    'الاسم': 'محمد بن عبد الله',
+    'النسب الكامل': 'هاشميّ قرشيّ عدناني',
+    'المولد': 'مكة المكرمة 570م',
+    'البعثة': 'عمر 40 سنة',
+    'الوفاة': '11 هـ / 632م',
+    'الكنية': 'أبو القاسم',
+    'الألقاب': 'الأمين، الصادق'
+  }
+};
+
+const MOONS_DATA = [
+  {
+    name: 'عبد الله بن عبد المطلب', nameEn: 'Abdullah ibn Abd al-Muttalib', colorHex: '#5a8f7b', isMale: true, relation: 'أبو النبي ﷺ',
+    description: 'أبو النبي محمد ﷺ، كان يُلقّب بـ"الظهير" لحسنه. تزوّج من آمنة بنت وهب، وتوفي قبل ميلاد النبي بحوالي شهرين أثناء رحلة تجارية إلى الشام. دُفن في المدينة المنورة. كان عمره عند وفاته حوالي 25 سنة. ومن شدة حبّ عبد المطلب له، نذر أن يذبحه قرباناً للكعبة ففداه بمئة من الإبل.',
+    stats: {
+      'النسب': 'هاشمي قرشي',
+      'اللقب': 'الظهير',
+      'العمر عند الوفاة': '25 سنة',
+      'دفن': 'المدينة المنورة',
+      'الزوجة': 'آمنة بنت وهب',
+      'المنزلة': 'أبو النبي ﷺ'
+    },
+    radius: 1.2, orbitDistance: 10, orbitSpeed: 0.25, orbitTilt: 0
+  },
+  {
+    name: 'آمنة بنت وهب', nameEn: 'Aminah bint Wahb', colorHex: '#a87ca0', isMale: false, relation: 'أم النبي ﷺ',
+    description: 'أم النبي محمد ﷺ، من بني زُهرة بن كِلاب. كانت امرأة شريفة فاضلة من أشراف قريش. توفيت في الأبواء بين مكة والمدينة وعمر النبي ست سنوات، ودفنت هناك. وقد روت آمنة من آيات كرامتها أنّها حين حملت بالنبي ﷺ خرج منها نور أضاء قصور الشام.',
+    stats: {
+      'النسب': 'زهريّة كلابية',
+      'الوفاة': 'والنبي ابن 6 سنوات',
+      'دفن': 'الأبواء',
+      'الزوج': 'عبد الله بن عبد المطلب',
+      'المنزلة': 'أم النبي ﷺ'
+    },
+    radius: 1.2, orbitDistance: 10, orbitSpeed: 0.25, orbitTilt: 0
+  }
+];
+
+const CHILDREN_DATA = [
+  {
+    name: 'القاسم', nameEn: 'Al-Qasim', isMale: true, colorHex: '#4a90d9', radius: 1.5, relation: 'ابن النبي ﷺ',
+    description: 'القاسم بن محمد ﷺ، وهو أكبر أبنائه. به اشتُقت كنية النبي ﷺ "أبو القاسم". تُوفّي قبل البعثة النبوية وعمره نحو سنتين.',
+    stats: { 'الترتيب': 'الابن الأول', 'الأم': 'خديجة بنت خويلد', 'العمر عند الوفاة': 'سنتان', 'الوفاة': 'قبل البعثة', 'المنزلة': 'منه كنية أبي القاسم', 'الجنس': 'ذكر' }
+  },
+  {
+    name: 'عبد الله (الطاهر)', nameEn: 'Abd Allah (Al-Tahir)', isMale: true, colorHex: '#3a80c9', radius: 1.5, relation: 'ابن النبي ﷺ',
+    description: 'عبد الله بن محمد ﷺ، ويُلقب بالطاهر والطيّب. وُلد بعد البعثة النبوية وتوفي صغيراً في سن الطفولة. يُروى أنّه عاش نحو ثلاث سنوات أو أقل. كان النبي ﷺ يحزن لموته حزناً شديداً.',
+    stats: { 'الترتيب': 'الابن الثاني', 'الأم': 'خديجة بنت خويلد', 'العمر عند الوفاة': '3 سنوات', 'الألقاب': 'الطاهر، الطيّب', 'الوفاة': 'بعد البعثة', 'الجنس': 'ذكر' }
+  },
+  {
+    name: 'إبراهيم', nameEn: 'Ibrahim', isMale: true, colorHex: '#5a9ee9', radius: 1.5, relation: 'ابن النبي ﷺ',
+    description: 'إبراهيم بن محمد ﷺ، وُلد من مارية القبطية في العام الثامن للهجرة. توفي وهو رضيع في السنة العاشرة للهجرة وعمره حوالي 18 شهراً. حزن النبي ﷺ عليه حزناً شديداً وقال: "القلب يحزن والعين تدمع ولا نقول إلا ما يُرضي ربنا". وقد صلّى عليه النبي ﷺ ودفن بالبقيع.',
+    stats: { 'الترتيب': 'الابن الثالث', 'الأم': 'مارية القبطية', 'العمر عند الوفاة': '18 شهراً', 'المولد': '8 هـ', 'الوفاة': '10 هـ', 'الدفن': 'البقيع' }
+  },
+  {
+    name: 'فاطمة الزهراء', nameEn: 'Fatimah al-Zahra', isMale: false, colorHex: '#e85d75', radius: 1.6, relation: 'ابنة النبي ﷺ',
+    description: 'فاطمة بنت محمد ﷺ، سيدة نساء أهل الجنة وأحب بناته إليه. تزوّجها علي بن أبي طالب ووُلد منها الحسن والحسين وزينب وأم كلثوم. عُرِفت بالزهراء والبتول. كانت أشبه الناس بالنبي ﷺ في سَمْتِه ودَلِّه. توفيت بعد وفاة أبيها بستة أشهر في سن 27 تقريباً.',
+    stats: { 'الترتيب': 'الابنة الرابعة', 'الأم': 'خديجة بنت خويلد', 'الزوج': 'علي بن أبي طالب', 'الأبناء': 'الحسن والحسين وزينب وأم كلثوم', 'الألقاب': 'الزهراء، البتول، السيّدة', 'المنزلة': 'سيدة نساء أهل الجنة' }
+  },
+  {
+    name: 'زينب', nameEn: 'Zainab', isMale: false, colorHex: '#d84d65', radius: 1.55, relation: 'ابنة النبي ﷺ',
+    description: 'زينب بنت محمد ﷺ، أكبر بناته. تزوّجها أبو العاص بن الربيع قبل الإسلام، وأسلم بعد فتح مكة. وُلد لها عليٌّ وأمامة. كانت أول بنات النبي ﷺ هجرةً إلى المدينة المنورة. توفيت في السنة الثامنة للهجرة.',
+    stats: { 'الترتيب': 'الابنة الأولى (أكبرهن)', 'الأم': 'خديجة بنت خويلد', 'الزوج': 'أبو العاص بن الربيع', 'الأبناء': 'علي وأمامة', 'الهجرة': 'أول بناتها هجرة', 'الوفاة': '8 هـ' }
+  },
+  {
+    name: 'رقية', nameEn: 'Ruqayyah', isMale: false, colorHex: '#c83d55', radius: 1.55, relation: 'ابنة النبي ﷺ',
+    description: 'رقية بنت محمد ﷺ، تزوّجها عثمان بن عفان وهاجرت معه إلى الحبشة. عُرِفت بـ"ذات الهجرتين" لأنها هاجرت إلى الحبشة ثم إلى المدينة. توفيت في السنة الثانية للهجرة يوم بدر بسبب الحُمّى.',
+    stats: { 'الترتيب': 'الابنة الثانية', 'الأم': 'خديجة بنت خويلد', 'الزوج': 'عثمان بن عفان', 'الهجرات': 'الحبشة ثم المدينة', 'اللقب': 'ذات الهجرتين', 'الوفاة': '2 هـ (يوم بدر)' }
+  },
+  {
+    name: 'أم كلثوم', nameEn: 'Umm Kulthum', isMale: false, colorHex: '#b82d45', radius: 1.5, relation: 'ابنة النبي ﷺ',
+    description: 'أم كلثوم بنت محمد ﷺ، تزوّجها عثمان بن عفان بعد وفاة أختها رقية. هاجرت إلى المدينة المنورة. لم يُعرف لها ذرّية. توفيت في السنة التاسعة للهجرة.',
+    stats: { 'الترتيب': 'الابنة الثالثة', 'الأم': 'خديجة بنت خويلد', 'الزوج': 'عثمان بن عفان', 'الهجرة': 'المدينة المنورة', 'الوفاة': '9 هـ', 'الذرية': 'لم يُعرف لها' }
+  }
+];
+
+const WIVES_DATA = [
+  {
+    name: 'خديجة بنت خويلد', nameEn: 'Khadijah bint Khuwaylid', colorHex: '#d4a04e', radius: 1.6, isMale: false, relation: 'زوجة النبي ﷺ / من أمّهات المؤمنين',
+    description: 'خديجة بنت خويلد رضي الله عنها، أول زوجات النبي ﷺ وأحبّهن إليه. كانت سيدة أعمال ثرية وتُلقّب بـ"الطاهرة". هي أوّل من آمن بالنبي ﷺ وصدّقته، وكانت تُسلّيه وتؤازره. تزوّجها النبي ﷺ وعمرها 40 وعمره 25 سنة. توفيت في العام العاشر من البعثة في "عام الحزن".',
+    stats: { 'الترتيب': 'الزوجة الأولى', 'العمر عند الزواج': '40 سنة', 'المنزلة': 'أول من آمن بالنبي ﷺ', 'اللقب': 'الطاهرة', 'الوفاة': 'العام 10 من البعثة', 'الأبناء': 'القاسم وعبد الله وفاطمة وزينب ورقية وأم كلثوم' }
+  },
+  {
+    name: 'سودة بنت زمعة', nameEn: 'Sawda bint Zam\'ah', colorHex: '#c89040', radius: 1.45, isMale: false, relation: 'زوجة النبي ﷺ / من أمّهات المؤمنين',
+    description: 'سودة بنت زمعة رضي الله عنها، تزوّجها النبي ﷺ بعد وفاة خديجة. كانت من السابقين إلى الإسلام وهاجرت إلى الحبشة مع زوجها الأول ثم توفي عنها. وُلد لها من زوجها الأول ابن. توفيت في السنة 54 للهجرة.',
+    stats: { 'الترتيب': 'الزوجة الثانية', 'الهجرة': 'إلى الحبشة ثم المدينة', 'الأبناء': 'من زوجها الأول', 'الوفاة': '54 هـ', 'الصفة': 'كريمة ومحبوبة', 'الملاحظة': 'أعطت يومها لعائشة' }
+  },
+  {
+    name: 'عائشة بنت أبي بكر', nameEn: 'Aishah bint Abi Bakr', colorHex: '#e8b85e', radius: 1.55, isMale: false, relation: 'زوجة النبي ﷺ / من أمّهات المؤمنين',
+    description: 'عائشة بنت أبي بكر الصديق رضي الله عنها، أحب زوجات النبي ﷺ إليه. تزوّجها وهي بنت ست سنوات وبُني بها وهي بنت تسع. كانت أفقه نساء الأمة وأكثرهن رواية للحديث. قال عنها النبي ﷺ: "فضل عائشة على النساء كفضل الثريد على سائر الطعام". توفيت في السنة 57 للهجرة.',
+    stats: { 'الترتيب': 'الزوجة الثالثة', 'الأب': 'أبو بكر الصديق', 'العلم': 'أفقه نساء الأمة', 'الأحاديث': 'روت 2210 حديثاً', 'الوفاة': '57 هـ', 'المنزلة': 'أحب زوجاته إليه' }
+  },
+  {
+    name: 'حفصة بنت عمر', nameEn: 'Hafsah bint Umar', colorHex: '#b8883e', radius: 1.45, isMale: false, relation: 'زوجة النبي ﷺ / من أمّهات المؤمنين',
+    description: 'حفصة بنت عمر بن الخطاب رضي الله عنها، تزوّجها النبي ﷺ بعد وفاة زوجها خُنَيس بن حُذافة رضي الله عنه الذي شارك في غزوة بدر وتوفي بعد ذلك. كانت صوّامة قوّامة. أنزل الله القرآن بخصوصها في آيات من سورة التحريم. توفيت في السنة 45 للهجرة.',
+    stats: { 'الترتيب': 'الزوجة الرابعة', 'الأب': 'عمر بن الخطاب', 'الزوج الأول': 'خُنَيس بن حُذافة (شهد بدر وتوفي بعدها)', 'الصفة': 'صوّامة قوّامة', 'الوفاة': '45 هـ', 'القرآن': 'نزل بخصوصها آيات من سورة التحريم' }
+  },
+  {
+    name: 'زينب بنت خزيمة', nameEn: 'Zaynab bint Khuzaymah', colorHex: '#c8a050', radius: 1.45, isMale: false, relation: 'زوجة النبي ﷺ / من أمّهات المؤمنين',
+    description: 'زينب بنت خزيمة رضي الله عنها، تُلقّب بـ"أم المساكين" لكثرة إطعامها الفقراء. تزوّجها النبي ﷺ بعد استشهاد زوجها في غزوة بدر. لم تلبث زوجة النبي إلاّ قليلاً حتى توفيت في السنة الرابعة للهجرة.',
+    stats: { 'الترتيب': 'الزوجة الخامسة', 'اللقب': 'أم المساكين', 'الزوج الأول': 'استُشهد في بدر', 'الوفاة': '4 هـ', 'مدة الزواج': 'قليلة', 'المنزلة': 'معروفة بالكرم' }
+  },
+  {
+    name: 'أم سلمة هند', nameEn: 'Umm Salamah Hind', colorHex: '#d4a060', radius: 1.45, isMale: false, relation: 'زوجة النبي ﷺ / من أمّهات المؤمنين',
+    description: 'أم سلمة هند بنت أبي أمية رضي الله عنها، كانت من السابقات إلى الإسلام. هاجرت إلى الحبشة ثم المدينة. تزوّجها النبي ﷺ بعد وفاة زوجها أبو سلمة. كانت من أوعية العلم وروت 378 حديثاً. توفيت في السنة 59 للهجرة.',
+    stats: { 'الترتيب': 'الزوجة السادسة', 'الهجرة': 'الحبشة ثم المدينة', 'الزوج الأول': 'أبو سلمة (توفّي)', 'الأحاديث': '378 حديثاً', 'الوفاة': '59 هـ', 'المنزلة': 'من السابقات إلى الإسلام' }
+  },
+  {
+    name: 'زينب بنت جحش', nameEn: 'Zaynab bint Jahsh', colorHex: '#c89848', radius: 1.45, isMale: false, relation: 'زوجة النبي ﷺ / من أمّهات المؤمنين',
+    description: 'زينب بنت جحش رضي الله عنها، زوجة النبي ﷺ التي أنزل الله فيها قرآناً حين كانت زوجة زيد بن حارثة، فلمّا طلّقها زيد، زوّجها الله نبيّه ﷺ. كانت تُكثر من الصدقة والصيام. توفيت في السنة 20 للهجرة.',
+    stats: { 'الترتيب': 'الزوجة السابعة', 'القرآن': 'نزل فيها آيات من سورة الأحزاب', 'الزوج الأول': 'زيد بن حارثة', 'الصفة': 'تكثر من الصدقة والصيام', 'الوفاة': '20 هـ', 'المنزلة': 'أعلى نساء النبي درجة' }
+  },
+  {
+    name: 'جويرية بنت الحارث', nameEn: 'Juwayriyyah bint al-Harith', colorHex: '#e0b868', radius: 1.45, isMale: false, relation: 'زوجة النبي ﷺ / من أمّهات المؤمنين',
+    description: 'جويرية بنت الحارث رضي الله عنها، كانت من سبايا بني المصطلق. تزوّجها النبي ﷺ فأعظم الله أمرها فأعتق أهل بيتها بسببها. كانت جميلة وضيئة الوجه. توفيت في السنة 56 للهجرة.',
+    stats: { 'الترتيب': 'الزوجة الثامنة', 'القبيلة': 'بني المصطلق', 'الأثر': 'أعتق الله أهل بيتها بسببها', 'الوفاة': '56 هـ', 'الصفة': 'جميلة وضيئة', 'المنزلة': 'بركة على أهل بيتها' }
+  },
+  {
+    name: 'أم حبيبة رملة', nameEn: 'Umm Habibah Ramlah', colorHex: '#b89040', radius: 1.45, isMale: false, relation: 'زوجة النبي ﷺ / من أمّهات المؤمنين',
+    description: 'أم حبيبة رملة بنت أبي سفيان رضي الله عنها، هاجرت إلى الحبشة مع زوجها عبيد الله بن جحش الذي تنصّر هناك. تزوّجها النبي ﷺ وهي بالحبشة قبل قدومها المدينة. روت 65 حديثاً. توفيت في السنة 44 للهجرة.',
+    stats: { 'الترتيب': 'الزوجة التاسعة', 'الأب': 'أبو سفيان بن حرب', 'الهجرة': 'إلى الحبشة', 'الأحاديث': '65 حديثاً', 'الوفاة': '44 هـ', 'المنزلة': 'هاجرت رضي الله عنها' }
+  },
+  {
+    name: 'صفية بنت حُييّ', nameEn: 'Safiyyah bint Huyayy', colorHex: '#d4a858', radius: 1.45, isMale: false, relation: 'زوجة النبي ﷺ / من أمّهات المؤمنين',
+    description: 'صفية بنت حُييّ بن أخطب رضي الله عنها، من بني إسرائيل سبيّة من خيبر. تزوّجها النبي ﷺ فكان ذلك سبب إعتاقها. كانت حكيمة فاضلة. قالت: "ما رأيت أحداً أكرم من رسول الله ﷺ". توفيت في السنة 50 للهجرة.',
+    stats: { 'الترتيب': 'الزوجة العاشرة', 'الأب': 'حُييّ بن أخطب (سيد يهود)', 'الأصل': 'من بني إسرائيل', 'الأثر': 'أعتقها النبي فصارت من أمهات المؤمنين', 'الوفاة': '50 هـ', 'المنزلة': 'حكيمة فاضلة' }
+  },
+  {
+    name: 'ميمونة بنت الحارث', nameEn: 'Maymunah bint al-Harith', colorHex: '#c89850', radius: 1.45, isMale: false, relation: 'زوجة النبي ﷺ / من أمّهات المؤمنين',
+    description: 'ميمونة بنت الحارث رضي الله عنها، أخت أم الفضل بنت الحارث. تزوّجها النبي ﷺ في عمرة القضاء. كانت امرأة صالحة تُحب الطهارة. توفيت في السنة 51 للهجرة.',
+    stats: { 'الترتيب': 'الزوجة الحادية عشرة', 'الأخت': 'أم الفضل بنت الحارث', 'الزواج': 'عمرة القضاء', 'الوفاة': '51 هـ', 'الصفة': 'تحب الطهارة', 'الملاحظة': 'آخر زوجاته تزويجاً' }
+  }
+];
+
+const PROMISED_PARADISE = [
+  {
+    name: 'أبو بكر الصديق', nameEn: 'Abu Bakr al-Siddiq', colorHex: '#66cc66', radius: 1.3, relation: 'من العشرة المبشرين بالجنة',
+    description: 'عبد الله بن عثمان بن عامر، أوّل الخلفاء الراشدين. كان أوّل من أسلم من الرجال البالغين، وصاحب النبي ﷺ في الهجرة إلى المدينة في غار ثور. عُرِف بالصدق والعدل والورع. قال عنه النبي ﷺ: "لو أنني اتخذ خليلاً من الناس لاتخذت أبا بكر". توفي في السنة 13 للهجرة.',
+    stats: { 'الخلافة': '11-13 هـ', 'الكنية': 'أبو بكر', 'اللقب': 'الصديق', 'الشهرة': 'أوّل المسلمين الرجال', 'العمر عند الوفاة': '63 سنة', 'المنزلة': 'أحب الرجال إلى النبي ﷺ' }
+  },
+  {
+    name: 'عمر بن الخطاب', nameEn: 'Umar ibn al-Khattab', colorHex: '#55bb55', radius: 1.3, relation: 'من العشرة المبشرين بالجنة',
+    description: 'الفاروق عمر بن الخطاب، ثاني الخلفاء الراشدين. أسلم في السنة السادسة من البعثة فكان إسلامه فتحاً ونصراً للمسلمين. لُقّب بالفاروق لأن الإسلام فرّق به بين الحق والباطل. أسّس الدواوين ووسّع رقعة الدولة الإسلامية. قُتل شهيداً على يد أبي لؤلؤة في السنة 23 للهجرة.',
+    stats: { 'الخلافة': '13-23 هـ', 'اللقب': 'الفاروق', 'إسلامه': 'السنة 6 من البعثة', 'الشهادة': 'مذبوحاً في المحراب', 'العمر': '63 سنة', 'الإنجاز': 'فتوحات واسعة وتأسيس الدواوين' }
+  },
+  {
+    name: 'عثمان بن عفان', nameEn: 'Uthman ibn Affan', colorHex: '#44aa44', radius: 1.3, relation: 'من العشرة المبشرين بالجنة',
+    description: 'ذو النورين عثمان بن عفان، ثالث الخلفاء الراشدين. تزوّج ابنتَي النبي ﷺ رقية ثم أم كلثوم. شُهِد له بأنه جمع القرآن الكريم في مصحف واحد. وسّع المسجد النبوي وفتح العديد من البلاد. قُتل شهيداً في داره في السنة 35 للهجرة.',
+    stats: { 'الخلافة': '23-35 هـ', 'اللقب': 'ذو النورين', 'زواج': 'رقية ثم أم كلثوم', 'الإنجاز': 'جمع القرآن في مصحف واحد', 'الشهادة': '35 هـ', 'العمر': '82 سنة' }
+  },
+  {
+    name: 'علي بن أبي طالب', nameEn: 'Ali ibn Abi Talib', colorHex: '#339933', radius: 1.3, relation: 'من العشرة المبشرين بالجنة',
+    description: 'علي بن أبي طالب بن عبد المطلب، رابع الخلفاء الراشدين. كان أوّل من أسلم من الصبيان. تزوّج فاطمة الزهراء بنت النبي ﷺ. عُرِف بفصاحته وشدّته في الحق وشجاعته. قال عنه النبي ﷺ: "أنت مني وأنا منك". قُتل شهيداً بضربة من عبد الرحمن بن ملجم في السنة 40 للهجرة.',
+    stats: { 'الخلافة': '35-40 هـ', 'إسلامه': 'أوّل من أسلم من الصبيان', 'الزوجة': 'فاطمة الزهراء', 'الأبناء': 'الحسن والحسين', 'اللقب': 'أمير المؤمنين', 'الشهادة': '40 هـ' }
+  },
+  {
+    name: 'سعد بن أبي وقاص', nameEn: 'Sa\'d ibn Abi Waqqas', colorHex: '#22aa88', radius: 1.3, relation: 'من العشرة المبشرين بالجنة',
+    description: 'سعد بن مالك بن وَهْب، أوّل من رمى بسهم في سبيل الله. فتح العراق في معركة القادسية الشهيرة. كان أحد أغنى الصحابة وأكثرهم إنفاقاً في سبيل الله. دعا النبي ﷺ له فقال: "اللهم اجعل صلاتي معه". عاش حتى بلغ أكثر من 80 سنة وتوفي في الكوفة.',
+    stats: { 'اللقب': 'أوّل من رمى بسهم', 'الفتوحات': 'فتح العراق (القادسية)', 'الدعاء النبوي': 'اللهم اجعل صلاتي معه', 'العمر': '80 سنة', 'المنزلة': 'من كبار الصحابة', 'المولد': 'قبل البعثة بـ23 سنة' }
+  },
+  {
+    name: 'سعيد بن زيد', nameEn: 'Sa\'id ibn Zayd', colorHex: '#11aa99', radius: 1.3, relation: 'من العشرة المبشرين بالجنة',
+    description: 'سعيد بن زيد بن عمرو بن نُفيل، أحد المبكرين في الإسلام وأحد العشرة المبشرين بالجنة. أسلم مبكراً وعُرِف بزهده وورعه. قاتل في كل المشاهد مع النبي ﷺ. لم يُروَ عنه أنّه سأل أحداً شيئاً من الدنيا. توفي في السنة 51 للهجرة.',
+    stats: { 'إسلامه': 'مبكر جداً', 'الشهرة': 'من العشرة المبشرين بالجنة', 'الصفة': 'زاهد ورع', 'الغزوات': 'شهد كل المشاهد', 'الوفاة': '51 هـ', 'القولة': 'لم يسأل أحداً شيئاً' }
+  },
+  {
+    name: 'عبد الرحمن بن عوف', nameEn: 'Abd al-Rahman ibn Awf', colorHex: '#0099aa', radius: 1.3, relation: 'من العشرة المبشرين بالجنة',
+    description: 'عبد الرحمن بن عوف بن الحارث، أحد العشرة المبشرين بالجنة. كان من أغنى الصحابة وأكثرهم إنفاقاً. أسلم على يد أبي بكر الصديق. شهد بدراً وأحداً والمشاهد كلها. تُوفّي في السنة 32 للهجرة وترك ثروة عظيمة تصدّق بها.',
+    stats: { 'إسلامه': 'على يد أبي بكر', 'الصفة': 'من أكثر الصحابة إنفاقاً', 'الغزوات': 'بدر وأحد وسائر المشاهد', 'الوفاة': '32 هـ', 'التجارة': 'ناجح ومُتصدّق', 'التركة': 'تصّدق بها كلها' }
+  },
+  {
+    name: 'أبو عبيدة بن الجراح', nameEn: 'Abu Ubaidah ibn al-Jarrah', colorHex: '#0088bb', radius: 1.3, relation: 'من العشرة المبشرين بالجنة',
+    description: 'أمين هذه الأمة أبو عبيدة عامر بن عبد الله بن الجراح. سمّاه النبي ﷺ "أمين الأمة". كان قائداً عسكرياً عظيماً فتح بلاد الشام. عُرِف بتواضعه وزهده وإخلاصه. توفي في طاعون عمواس في السنة 18 للهجرة بالشام.',
+    stats: { 'اللقب': 'أمين الأمة', 'الفتوحات': 'فتح بلاد الشام', 'الوفاة': '18 هـ (طاعون عمواس)', 'الأمانة': 'سمّاه النبي أمين الأمة', 'التواضع': 'معروف بالزهد والتواضع', 'المنزلة': 'من أفضل الصحابة' }
+  },
+  {
+    name: 'طلحة بن عبيد الله', nameEn: 'Talhah ibn Ubaydullah', colorHex: '#0077cc', radius: 1.3, relation: 'من العشرة المبشرين بالجنة',
+    description: 'طلحة بن عبيد الله التيمي، أحد العشرة المبشرين بالجنة وأوائل المسلمين. عُرِف بكريم الجدّ في الغزوات وقد سُمّي "طلحة الفياض" لكرمه. شهد بدراً وأحداً وجرح فيها جراحاً بالغة. قُتل شهيداً في معركة الجمل في السنة 36 للهجرة.',
+    stats: { 'إسلامه': 'من أوائل المسلمين', 'اللقب': 'طلحة الفياض', 'الغزوات': 'بدر وأحد وسائرها', 'الشهادة': '36 هـ (معركة الجمل)', 'الصفة': 'كريم الجدّ في القتال', 'الكنية': 'أبو محمد' }
+  },
+  {
+    name: 'الزبير بن العوام', nameEn: 'Zubayr ibn al-Awwam', colorHex: '#0066dd', radius: 1.3, relation: 'من العشرة المبشرين بالجنة',
+    description: 'الزبير بن العوام بن خويلد، حواري رسول الله ﷺ وأحد العشرة المبشرين بالجنة. كان أوّل من سلّ سيفه في الإسلام. شهد بدراً وأحداً والخندق وجميع المشاهد. قُتل شهيداً في معركة الجمل في السنة 36 للهجرة.',
+    stats: { 'اللقب': 'حواري رسول الله', 'إسلامه': 'من أوائل المسلمين (عمر 16)', 'الصفة': 'أوّل من سلّ سيفه في الإسلام', 'الغزوات': 'جميع المشاهد', 'الشهادة': '36 هـ (معركة الجمل)', 'الشجاعة': 'معروفة ومشهورة' }
+  }
+];
+
+const UNCLES_AUNTS_DATA = [
+  {
+    name: 'الحمزة بن عبد المطلب', nameEn: 'Hamzah ibn Abd al-Muttalib', isMale: true, colorHex: '#cc4444', radius: 1.25, relation: 'عمّ النبي ﷺ',
+    description: 'الحمزة بن عبد المطلب عمّ النبي ﷺ وأخوه من الرضاعة، يُلقّب بـ"أسد الله" و"سيّد الشهداء". أسلم في السنة الثانية من البعثة وهاجر إلى المدينة. استُشهد في غزوة أُحد سنة 3 للهجرة. شقّت هند بنت عتبة بطنه فأنزل الله فيه قرآناً.',
+    stats: { 'اللقب': 'أسد الله / سيّد الشهداء', 'إسلامه': 'السنة 2 من البعثة', 'الشهادة': 'غزوة أُحد 3 هـ', 'الأخ من الرضاعة': 'النبي محمد ﷺ', 'المنزلة': 'أعظم شهداء الإسلام', 'القصة': 'مُثّل به يوم أُحد' }
+  },
+  {
+    name: 'العباس بن عبد المطلب', nameEn: 'Al-Abbas ibn Abd al-Muttalib', isMale: true, colorHex: '#bb3333', radius: 1.2, relation: 'عمّ النبي ﷺ',
+    description: 'العباس بن عبد المطلب عمّ النبي ﷺ. أسلم سرّاً قبل فتح مكة. شارك في غزوة بدر مع المشركين ثم أُسِر فافتداه النبي ﷺ. كان يُنصر النبي ﷺ في مكة. هو جدّ الخلفاء من بني العباس. توفي في السنة 32 للهجرة.',
+    stats: { 'المنزلة': 'عم النبي ﷺ', 'إسلامه': 'قبيل فتح مكة (سرّاً)', 'بدر': 'كان مع المشركين وأُسِر', 'الوفاة': '32 هـ', 'الذرية': 'بنو العباس (الخلفاء)', 'المساعدة': 'كان ينصر النبي في مكة' }
+  },
+  {
+    name: 'أبو طالب بن عبد المطلب', nameEn: 'Abu Talib ibn Abd al-Muttalib', isMale: true, colorHex: '#aa2222', radius: 1.2, relation: 'عمّ النبي ﷺ',
+    description: 'عبد مناف (أبو طالب) بن عبد المطلب، عمّ النبي ﷺ وكافله بعد وفاة جدّه. حما النبي ﷺ من أذى قريش طوال حياته ولم يُسلم رغم نصحه. توفّي في السنة العاشرة من البعثة فحزن النبي عليه حزناً شديداً وسُمّي ذلك العام "عام الحزن".',
+    stats: { 'المنزلة': 'كافل النبي ﷺ', 'الحماية': 'حمى النبي من قريش', 'الوفاة': 'العام 10 من البعثة', 'الإسلام': 'لم يُسلم', 'الحدث': 'عام الحزن', 'الابن': 'علي بن أبي طالب' }
+  },
+  {
+    name: 'الحارث بن عبد المطلب', nameEn: 'Al-Harith ibn Abd al-Muttalib', isMale: true, colorHex: '#993333', radius: 1.15, relation: 'عمّ النبي ﷺ',
+    description: 'الحارث بن عبد المطلب، أكبر أبناء عبد المطلب. كان من المستجيبين لدعوة النبي ﷺ وأسلم. كان يكبر النبي بأكثر من عشر سنوات وكان من أشراف قريش.',
+    stats: { 'الترتيب': 'أكبر أبناء عبد المطلب', 'الإسلام': 'أسلم ومات مسلماً', 'المنزلة': 'عمّ النبي ﷺ', 'المشاركة': 'غزوات مع النبي ﷺ', 'النسب': 'هاشمي قرشي', 'الأبناء': 'له عدة أبناء' }
+  },
+  {
+    name: 'أبو لهب بن عبد المطلب', nameEn: 'Abu Lahab ibn Abd al-Muttalib', isMale: true, colorHex: '#883333', radius: 1.15, relation: 'عمّ النبي ﷺ',
+    description: 'عبد العُزّى (أبو لهب) بن عبد المطلب، عمّ النبي ﷺ. عُرِف بعداوته الشديدة للنبي ﷺ. أنزل الله فيه سورة "تَبَّتْ يَدا أبي لهب" (سورة المسد). توفّي بعد غزوة بدر بأيام قليلة.',
+    stats: { 'الاسم': 'عبد العزّى', 'اللقب': 'أبو لهب', 'السورة': 'سورة المسد (تبت)', 'الموقف': 'عدوّ النبي ﷺ', 'الوفاة': 'بعد بدر بأيام', 'الابن': 'عتبة (أسلم وهاجر)' }
+  },
+  {
+    name: 'الزبير بن عبد المطلب', nameEn: 'Al-Zubayr ibn Abd al-Muttalib', isMale: true, colorHex: '#994444', radius: 1.1, relation: 'عمّ النبي ﷺ',
+    description: 'الزبير بن عبد المطلب عمّ النبي ﷺ. كان من أشراف قريش. كان له دور في حلف الفضول الذي ينتصر فيه للمظلوم. توفي قبل الإسلام في الجاهلية.',
+    stats: { 'المنزلة': 'عمّ النبي ﷺ', 'الوفاة': 'في الجاهلية', 'المشاركة': 'حلف الفضول', 'النسب': 'هاشمي قرشي', 'الإسلام': 'لم يدرك الإسلام', 'اللقب': 'أبو الطاهر' }
+  },
+  {
+    name: 'المقوّم بن عبد المطلب', nameEn: 'Al-Muqawwim ibn Abd al-Muttalib', isMale: true, colorHex: '#885555', radius: 1.1, relation: 'عمّ النبي ﷺ',
+    description: 'المقوّم بن عبد المطلب عمّ النبي ﷺ. ذُكر في كتب السير والتاريخ كأحد أعمام النبي ﷺ. توفي في الجاهلية ولم يدرك الإسلام.',
+    stats: { 'المنزلة': 'عمّ النبي ﷺ', 'الوفاة': 'في الجاهلية', 'الإسلام': 'لم يدرك الإسلام', 'المعلومات': 'قليلة نسبياً', 'النسب': 'هاشمي قرشي', 'الملاحظة': 'لم يُعرف عنه الكثير' }
+  },
+  {
+    name: 'قثم بن عبد المطلب', nameEn: 'Qutham ibn Abd al-Muttalib', isMale: true, colorHex: '#776666', radius: 1.1, relation: 'عمّ النبي ﷺ',
+    description: 'قثم بن عبد المطلب عمّ النبي ﷺ. ذُكر في بعض المصادر أنه توفي صغيراً في الجاهلية. اسم "قثم" يعني العطاء والجود وهو اسم عربي فصيح.',
+    stats: { 'المنزلة': 'عمّ النبي ﷺ', 'المعنى': 'قثم = العطاء والجود', 'الوفاة': 'في الجاهلية (صغيراً)', 'الإسلام': 'لم يدرك الإسلام', 'النسب': 'هاشمي قرشي', 'المعلومات': 'قليلة' }
+  },
+  {
+    name: 'ضرار بن عبد المطلب', nameEn: 'Dirar ibn Abd al-Muttalib', isMale: true, colorHex: '#774444', radius: 1.05, relation: 'عمّ النبي ﷺ',
+    description: 'ضرار بن عبد المطلب عمّ النبي ﷺ. ذُكر في كتب النسب والسيرة. توفي في الجاهلية ولم يدرك الإسلام.',
+    stats: { 'المنزلة': 'عمّ النبي ﷺ', 'الوفاة': 'في الجاهلية', 'الإسلام': 'لم يدرك الإسلام', 'النسب': 'هاشمي قرشي', 'المعلومات': 'محدودة', 'الملاحظة': 'ذُكر في كتب النسب' }
+  },
+  {
+    name: 'صفية بنت عبد المطلب', nameEn: 'Safiyyah bint Abd al-Muttalib', isMale: false, colorHex: '#dd6688', radius: 1.15, relation: 'عمة النبي ﷺ',
+    description: 'صفية بنت عبد المطلب عمّة النبي ﷺ وأخته من الرضاعة. أسلمت وهاجرت إلى المدينة. شاركت في غزوة أُحد وضربت بالسيف ورمت بالسهام. كانت شديدة الغيرة على النبي ﷺ. توفيت في خلافة عمر بن الخطاب.',
+    stats: { 'المنزلة': 'عمّة النبي ﷺ', 'إسلامها': 'أسلمت وهاجرت', 'أحد': 'شاركت وضربت بالسيف', 'الرضاعة': 'أخت النبي من الرضاعة', 'الوفاة': 'خلافة عمر', 'الصفة': 'قوية وشديدة' }
+  },
+  {
+    name: 'عاتكة بنت عبد المطلب', nameEn: 'Atikah bint Abd al-Muttalib', isMale: false, colorHex: '#cc5577', radius: 1.1, relation: 'عمة النبي ﷺ',
+    description: 'عاتكة بنت عبد المطلب عمّة النبي ﷺ. أسلمت وهاجرت إلى المدينة المنورة. عُرِفت بصلاحها وعِفتها.',
+    stats: { 'المنزلة': 'عمّة النبي ﷺ', 'إسلامها': 'أسلمت وهاجرت', 'الصفة': 'صالحة عفيفة', 'الوفاة': 'بعد الهجرة', 'النسب': 'هاشمية قرشية', 'الملاحظة': 'من المهاجرات' }
+  },
+  {
+    name: 'أميمة بنت عبد المطلب', nameEn: 'Umaymah bint Abd al-Muttalib', isMale: false, colorHex: '#bb4466', radius: 1.1, relation: 'عمة النبي ﷺ',
+    description: 'أميمة بنت عبد المطلب عمّة النبي ﷺ. وهي والدة زينب بنت جحش زوجة النبي ﷺ. أسلمت وهاجرت إلى المدينة المنورة. من بنات عبد المطلب الفاضلات.',
+    stats: { 'المنزلة': 'عمّة النبي ﷺ', 'إسلامها': 'أسلمت وهاجرت', 'الابنة': 'زينب بنت جحش (زوجة النبي ﷺ)', 'الهجرة': 'المدينة المنورة', 'النسب': 'هاشمية قرشية' }
+  },
+  {
+    name: 'أروى بنت عبد المطلب', nameEn: 'Arwa bint Abd al-Muttalib', isMale: false, colorHex: '#aa3355', radius: 1.1, relation: 'عمة النبي ﷺ',
+    description: 'أروى بنت عبد المطلب عمّة النبي ﷺ. أسلمت وهاجرت إلى المدينة المنورة. كانت امرأة فاضلة من المهاجرات الأوائل.',
+    stats: { 'المنزلة': 'عمّة النبي ﷺ', 'إسلامها': 'أسلمت وهاجرت', 'الهجرة': 'المدينة المنورة', 'النسب': 'هاشمية قرشية', 'الصفة': 'من المهاجرات الأوائل' }
+  },
+  {
+    name: 'برة بنت عبد المطلب', nameEn: 'Barrah bint Abd al-Muttalib', isMale: false, colorHex: '#992244', radius: 1.1, relation: 'عمة النبي ﷺ',
+    description: 'برة بنت عبد المطلب عمّة النبي ﷺ. أسلمت وهاجرت إلى المدينة المنورة. كانت امرأة صالحة.',
+    stats: { 'المنزلة': 'عمّة النبي ﷺ', 'إسلامها': 'أسلمت وهاجرت', 'الهجرة': 'المدينة المنورة', 'النسب': 'هاشمية قرشية', 'الصفة': 'صالحة' }
+  }
+];
+
+const WET_NURSES_DATA = [
+  {
+    name: 'ثويبة', nameEn: 'Thuwaybah', isMale: false, colorHex: '#88aacc', radius: 1.15, relation: 'أول من أرضعت النبي ﷺ',
+    description: 'ثويبة مولاة أبي لهب، أول من أرضعت النبي ﷺ من بعد أمّه آمنة. كانت قد أرضعت قبله حمزة بن عبد المطلب فصار أخاه من الرضاعة. أسلمت وهاجرت. توفيت في السنة السابعة للهجرة.',
+    stats: { 'المنزلة': 'أول من أرضعت النبي ﷺ', 'الرضاع': 'أرضعته أياماً', 'الإسلام': 'أسلمت وهاجرت', 'الوفاة': '7 هـ', 'صاحبتها': 'مولاة أبي لهب', 'ملاحظة': 'أرضعت حمزة قبله' }
+  },
+  {
+    name: 'حليمة السعدية', nameEn: 'Halimah al-Sa\'diyyah', isMale: false, colorHex: '#77bbdd', radius: 1.2, relation: 'مرضعة النبي ﷺ في البادية',
+    description: 'حليمة بنت أبي ذؤيب السعدية، مرضعة النبي ﷺ من بني سعد بن بكر. ارتضع منها النبي ﷺ في بادية بني سعد ولبث عندهم نحو أربع سنين. وهي التي شُقّ صدره فيها. قال النبي ﷺ عنها: "أنا أحقّ الناس بصلة حليمة".',
+    stats: { 'المنزلة': 'مرضعة النبي ﷺ في البادية', 'القبيلة': 'بني سعد بن بكر', 'المدة': 'نحو 4 سنوات', 'الحدث': 'شقّ صدره فيها', 'البر': 'وصّى النبي بصلتها', 'الأبناء': 'عبد الله بن الحارث (أخوه من الرضاعة)' }
+  },
+  {
+    name: 'أبو لبابة', nameEn: 'Abu Lababah', isMale: true, colorHex: '#6699bb', radius: 1.1, relation: 'أخو النبي ﷺ من الرضاعة',
+    description: 'أبو لبابة بن عبد المنذر الأنصاري، رضي الله عنه، أخو النبي ﷺ من الرضاعة. شهد بدراً وأحداً والمشاهد كلها مع النبي ﷺ. كان من كبار الأنصار.',
+    stats: { 'المنزلة': 'أخو النبي ﷺ من الرضاعة', 'القبيلة': 'الأنصار (الأوس)', 'الغزوات': 'شهد المشاهد كلها', 'الإسلام': 'من أوائل الأنصار', 'الشهرة': 'من كبار صحابة الأنصار' }
+  },
+  {
+    name: 'الشيماء بنت الحارث', nameEn: 'Al-Shayma\' bint al-Harith', isMale: false, colorHex: '#99ccee', radius: 1.1, relation: 'أخت النبي ﷺ من الرضاعة',
+    description: 'الشيماء بنت الحارث بن عبد العُزّى السعدية، أخت النبي ﷺ من الرضاعة (ابنة حليمة السعدية). هي التي كانت تحمل النبي ﷺ صغيراً في بادية بني سعد. أسلمت بعد فتح مكة. أكرمها النبي ﷺ وصَلَها.',
+    stats: { 'المنزلة': 'أخت النبي ﷺ من الرضاعة', 'الأم': 'حليمة السعدية', 'الإسلام': 'أسلمت بعد فتح مكة', 'إكرام النبي': 'أكرمها وصَلَها', 'الأحداث': 'كانت تحمله صغيراً في البادية' }
+  },
+  {
+    name: 'أنيسة بنت حارث', nameEn: 'Unaysah bint al-Harith', isMale: false, colorHex: '#88bbcc', radius: 1.05, relation: 'أخت النبي ﷺ من الرضاعة',
+    description: 'أنيسة بنت الحارث السعدية، أخت النبي ﷺ من الرضاعة من بني سعد. كانت مع النبي ﷺ في بادية بني سعد وهو طفل صغير.',
+    stats: { 'المنزلة': 'أخت النبي ﷺ من الرضاعة', 'القبيلة': 'بني سعد بن بكر', 'الأب': 'الحارث بن عبد العزى', 'الملاحظة': 'من أسرة حليمة السعدية' }
+  }
+];
+
+const MAWALI_SERVANTS_DATA = [
+  {
+    name: 'زيد بن حارثة', nameEn: 'Zayd ibn Harithah', colorHex: '#c4956a', radius: 1.2, isMale: true,
+    relation: 'مولى النبي ﷺ وابنه بالتبنّي',
+    description: 'زيد بن حارثة رضي الله عنه، مولى رسول الله ﷺ وابنه بالتبنّي قبل الإسلام. كان أحبّ الناس إلى النبي ﷺ بعد فاطمة. ولاّه النبي ﷺ قيادة جيش مؤتة واستُشهد فيها سنة 8 للهجرة. كان زيد أسيراً فاشتراه النبي ﷺ واعتقه وتبنّاه.',
+    stats: { 'المنزلة': 'مولى وابن بالتبنّي', 'القيادة': 'جيش مؤتة', 'الشهادة': '8 هـ', 'الملاحظة': 'أحبّ الناس بعد فاطمة', 'التبنّي': 'قبل الإسلام' }
+  },
+  {
+    name: 'سلمان الفارسي', nameEn: 'Salman al-Farisi', colorHex: '#b88560', radius: 1.15, isMale: true,
+    relation: 'مولى النبي ﷺ',
+    description: 'سلمان الفارسي رضي الله عنه، أصله من فارس وترك كل شيء بحثاً عن الحق حتى أسلم. قال عنه النبي ﷺ: "سلمان منا أهل البيت". كان من أعلم الصحابة بالفارسية وبفتوحات العراق. شارك في حفر الخندق واقترحه.',
+    stats: { 'المنزلة': 'من أهل البيت', 'العمل': 'حفر الخندق', 'الأصل': 'فارسي', 'العلم': 'أعلم بالفارسية وفتوحات العراق', 'الفتوحات': 'العراق' }
+  },
+  {
+    name: 'أنس بن مالك', nameEn: 'Anas ibn Malik', colorHex: '#a89570', radius: 1.1, isMale: true,
+    relation: 'خادم النبي ﷺ',
+    description: 'أنس بن مالك رضي الله عنه، خادم رسول الله ﷺ خدمه منذ كان ابن عشر سنين عشر سنوات. رأى من النبي ﷺ كل خير وروى عنه أحاديث كثيرة. توفي في السنة 93 للهجرة وآخر من مات من الصحابة في البصرة.',
+    stats: { 'المنزلة': 'خادم النبي ﷺ', 'مدة الخدمة': '10 سنوات', 'سنّه عند الخدمة': '10 سنوات', 'الأحاديث': 'روى 2286 حديثاً', 'الوفاة': '93 هـ', 'الملاحظة': 'آخر الصحابة موتاً بالبصرة' }
+  },
+  {
+    name: 'بلال بن رباح', nameEn: 'Bilal ibn Rabah', colorHex: '#988868', radius: 1.15, isMale: true,
+    relation: 'مؤذّن النبي ﷺ',
+    description: 'بلال بن رباح رضي الله عنه، مؤذّن رسول الله ﷺ. كان عبداً حبشياً فاشتراه أبو بكر وأعتقه. عُذّب في الله فصبر. كان أوّل من أذّن للصلاة. قالت له أمّ المؤمنين عائشة: "ذاك مؤذّننا وحبّ رسول الله ﷺ".',
+    stats: { 'المنزلة': 'مؤذّن النبي ﷺ', 'الأصل': 'حبشي (الحبشة)', 'الإعتاق': 'أبو بكر أعتقه', 'الفضل': 'أوّل من أذّن', 'العذاب': 'صبر في الله' }
+  },
+  {
+    name: 'سفينة مولى النبي', nameEn: 'Safinah', colorHex: '#b89068', radius: 1.05, isMale: true,
+    relation: 'مولى رسول الله ﷺ',
+    description: 'سفينة مولى رسول الله ﷺ، كان خادم النبي ﷺ. سُمّي سفينة لأنّ النبي ﷺ قال له ذات يوم: "أنت سفينة". كان مولى أمّ سلمة رضي الله عنها.',
+    stats: { 'المنزلة': 'مولى رسول الله ﷺ', 'المولاة': 'أمّ سلمة', 'سبب التسمية': 'سمّاه النبي سفينة', 'الملاحظة': 'خدم النبي ﷺ' }
+  }
+];
+
+const SCRIBES_DATA = [
+  {
+    name: 'زيد بن ثابت', nameEn: 'Zayd ibn Thabit', colorHex: '#6a9ec4', radius: 1.2, isMale: true,
+    relation: 'كاتب الوحي وجامع القرآن',
+    description: 'زيد بن ثابت رضي الله عنه، كاتب الوحي وزعيم القرّاء. اختاره أبو بكر لجمع القرآن ثم عثمان لنسخه. كان من أذكياء الصحابة وأكثرهم علماً. تعلّم السريانية في عهد النبي ﷺ بأمره. توفي في السنة 45 للهجرة.',
+    stats: { 'المنزلة': 'كاتب الوحي', 'الجمع': 'جمع القرآن مرّتين', 'اللغات': 'العبرية والسريانية', 'الوفاة': '45 هـ', 'العلم': 'من أذكياء الصحابة' }
+  },
+  {
+    name: 'أبيّ بن كعب', nameEn: 'Ubayy ibn Ka\'b', colorHex: '#5a8eb4', radius: 1.15, isMale: true,
+    relation: 'كاتب الوحي وسيد القرّاء',
+    description: 'أبيّ بن كعب رضي الله عنه، سيد القرّاء وكاتب الوحي. قال عنه النبي ﷺ: "أقرأ أمّتي أبيّ". كان من أوعية العلم. شهد بدراً وأحداً والمشاهد كلها. آمن بموقف إيمان عظيم.',
+    stats: { 'المنزلة': 'سيد القرّاء', 'الفضل': 'أقرأ أمّة محمد', 'الغزوات': 'بدر وأحد والمشاهد', 'العلم': 'من أوعية العلم', 'القرآن': 'قرأ القرآن كاملاً' }
+  },
+  {
+    name: 'معاوية بن أبي سفيان', nameEn: 'Mu\'awiyah ibn Abi Sufyan', colorHex: '#4a7ea4', radius: 1.15, isMale: true,
+    relation: 'كاتب لرسول الله ﷺ',
+    description: 'معاوية بن أبي سفيان رضي الله عنه، كان كاتباً لرسول الله ﷺ. أسلم يوم فتح مكة. ولاّه عمر بن الخطاب الشام ثم صار خليفة. كان سياسياً بارعاً وحاكماً قديراً. توفي في السنة 60 للهجرة.',
+    stats: { 'المنزلة': 'كاتب لرسول الله ﷺ', 'الإسلام': 'فتح مكة', 'الولاية': 'الشام', 'الخلافة': '41-60 هـ', 'العلم': 'كان كاتباً ماهراً' }
+  },
+  {
+    name: 'خالد بن سعيد بن العاص', nameEn: 'Khalid ibn Sa\'id ibn al-\'As', colorHex: '#3a6e94', radius: 1.1, isMale: true,
+    relation: 'كاتب الوحي',
+    description: 'خالد بن سعيد بن العاص رضي الله عنه، من كتّاب الوحي. كان أوّل من كتب الدعوة للنبي ﷺ من قريش. هاجر إلى الحبشة ثم المدينة. استُشهد في فتوحات الشام في خلافة أبي بكر رضي الله عنه.',
+    stats: { 'المنزلة': 'كاتب الوحي', 'السبق': 'أوّل كاتب من قريش', 'الهجرة': 'الحبشة ثم المدينة', 'الشهادة': 'فتوحات الشام (خلافة أبي بكر)', 'الملاحظة': 'أوّل من كتب الدعوة' }
+  }
+];
+
+const CLOSE_COMPANIONS_DATA = [
+  {
+    name: 'سعد بن معاذ', nameEn: 'Sa\'d ibn Mu\'adh', colorHex: '#c4845a', radius: 1.2, isMale: true,
+    relation: 'سيد الأوس / من المقربين',
+    description: 'سعد بن معاذ رضي الله عنه، سيد الأوس ورئيس الأنصار. قال عنه النبي ﷺ: "اهتزّ عرش الرحمن لموت سعد بن معاذ". حُكِم في بني قريظة فأصاب في حكمه. تُوفّي من أثر جرح خندق في السنة الخامسة للهجرة.',
+    stats: { 'المنزلة': 'سيد الأوس', 'الحكم': 'في بني قريظة', 'الوفاة': '5 هـ (أثر جرح الخندق)', 'الفضل': 'اهتزّ العرش لموته', 'القضاء': 'حكم فأصاب' }
+  },
+  {
+    name: 'أبو ذرّ الغفاري', nameEn: 'Abu Dharr al-Ghifari', colorHex: '#b4744a', radius: 1.15, isMale: true,
+    relation: 'من المقربين',
+    description: 'جُنْدُب بن جُنادة (أبو ذرّ الغفاري) رضي الله عنه، أوّل من سلّم على النبي ﷺ تحيّة الإسلام. كان زاهداً ورعاً لا يأخذ من الدنيا إلاّ ما يسدّ الرمق. قال عنه النبي ﷺ: "ما أظلّت الخضراء ولا أقلّت الغبراء على ذي لهجة أصدق من أبي ذرّ".',
+    stats: { 'المنزلة': 'أصدق الناس لهجة', 'السبق': 'أوّل من سلّم بتحيّة الإسلام', 'الزهد': 'معروف بالزهد والورع', 'الملاحظة': 'ما تحت الأرض كمن فوقها أصدق منه', 'الوفاة': 'بالربذة' }
+  },
+  {
+    name: 'حذيفة بن اليمان', nameEn: 'Hudhayfah ibn al-Yaman', colorHex: '#a4644a', radius: 1.15, isMale: true,
+    relation: 'صاحب سرّ النبي ﷺ / من المقربين',
+    description: 'حذيفة بن اليمان رضي الله عنه، صاحب سرّ النبي ﷺ. خصّه النبي ﷺ بأسماء المنافقين. كان من أوعية العلم وروى كثيراً من الأحاديث. شهد غزوة أُحد وما بعدها. قال عنه عمر: "الرجل الذي سأل عنه رسول الله، حذيفة".',
+    stats: { 'المنزلة': 'صاحب سرّ النبي ﷺ', 'الخصوصية': 'أسماء المنافقين', 'العلم': 'من أوعية العلم', 'الغزوات': 'من أُحد وما بعدها', 'الملاحظة': 'خصّه النبي ﷺ' }
+  },
+  {
+    name: 'أبو موسى الأشعري', nameEn: 'Abu Musa al-Ash\'ari', colorHex: '#946444', radius: 1.15, isMale: true,
+    relation: 'من المقربين',
+    description: 'أبو موسى عبد الله بن قيس الأشعري رضي الله عنه، صاحب صوت النبي ﷺ الحسن. ولاّه النبي ﷺ على اليمن وعمر على الكوفة. كان فقيهاً وقارئاً للقرآن بصوت شجيّ. شهد فتح مكة والمشاهد.',
+    stats: { 'المنزلة': 'صاحب صوت النبي ﷺ', 'الولاية': 'اليمن ثم الكوفة', 'القرآن': 'قارئ بصوت شجيّ', 'الفتوحات': 'فتح مكة والمشاهد', 'الملاحظة': 'صوته من أحسن الأصوات' }
+  },
+  {
+    name: 'معاذ بن جبل', nameEn: 'Mu\'adh ibn Jabal', colorHex: '#845444', radius: 1.15, isMale: true,
+    relation: 'من المقربين',
+    description: 'معاذ بن جبل رضي الله عنه، قال عنه النبي ﷺ: "أعلم أمّتي بالحلال والحرام معاذ بن جبل". بعثه النبي ﷺ معلّماً إلى اليمن. كان شاباً جميلاً حلو الحديث. شهد بدراً والمشاهد كلها. توفي طاعون عمواس سنة 18 هـ.',
+    stats: { 'المنزلة': 'أعلم أمّة محمد بالحلال والحرام', 'البعث': 'معلّماً إلى اليمن', 'الغزوات': 'بدر وجميع المشاهد', 'الوفاة': '18 هـ (طاعون عمواس)', 'العلم': 'فقيه وعالم' }
+  },
+  {
+    name: 'أسيد بن حضير', nameEn: 'Usayd ibn Hudayr', colorHex: '#744844', radius: 1.1, isMale: true,
+    relation: 'سيد الخزرج / من المقربين',
+    description: 'أسيد بن حضير رضي الله عنه، سيد الخزرج أحد سادتي الأنصار. أسلم على يد سعد بن معاذ. شهد بدراً وأحداً والمشاهد كلها. كان من أغنياء الأنصار ذا مروءة ونجدة.',
+    stats: { 'المنزلة': 'سيد الخزرج', 'الإسلام': 'على يد سعد بن معاذ', 'الغزوات': 'بدر وأحد وجميع المشاهد', 'الصفة': 'من أغنياء الأنصار', 'المروءة': 'ذو مروءة ونجدة' }
+  }
+];
+
+const BATTLES_DATA = [
+  {
+    name: 'غزوة بدر', nameEn: 'Battle of Badr', colorHex: '#ff6644', radius: 1.4,
+    relation: 'أول معركة كبرى في الإسلام / غزوة الفرقان',
+    description: 'غزوة بدر الكبرى، وقعت يوم الجمعة 17 رمضان 2 هـ (الموافق 15 مارس 624م). هي أول معركة فاصلة في تاريخ الإسلام، سُمّيت غزوة الفرقان لأن الله فرّق فيها بين الحق والباطل. انتصر فيها المسلمون بقيادة النبي ﷺ رغم قلّة عددهم (313 مقاتل) أمام قريش (ألف مقاتل تقريباً). شهد فيها عدد من كبار الصحابة وأُسر من المشركين سبعون رجلاً.',
+    stats: { 'التاريخ': '17 رمضان 2 هـ', 'عدد المسلمين': '313 مقاتل', 'عدد المشركين': 'نحو 1000', 'النتيجة': 'نصر مؤزر للمسلمين', 'الشهداء': '14 شهيداً من المسلمين', 'الأسرى': '70 أسيراً من المشركين' }
+  },
+  {
+    name: 'غزوة أُحد', nameEn: 'Battle of Uhud', colorHex: '#ee5533', radius: 1.3,
+    relation: 'غزوة أُحد / امتحان للمسلمين',
+    description: 'غزوة أُحد، وقعت يوم السبت 15 شوال 3 هـ. خرج فيها النبي ﷺ بألف مقاتل لملاقاة قريش التي جاءت بثلاثة آلاف مقاتل بقيادة أبي سفيان. انتهت بأحداث متقلّبة حيث انتصر المسلمون أوّلاً ثم تراجع الرماة عن مواقعهم فانقلبت المعركة. استُشهد في هذه الغزوة حمزة بن عبد المطلب عمّ النبي ﷺ ومثّل به المشركون.',
+    stats: { 'التاريخ': '15 شوال 3 هـ', 'عدد المسلمين': '1000 مقاتل', 'عدد المشركين': '3000 مقاتل', 'النتيجة': 'تراجع المسلمين بعد المخالفة', 'شهداء': '70 شهيداً', 'ملاحظة': 'استُشهد حمزة رضي الله عنه' }
+  },
+  {
+    name: 'غزوة الخندق', nameEn: 'Battle of the Trench', colorHex: '#cc5533', radius: 1.35,
+    relation: 'غزوة الخندق (الأحزاب) / دفاع المدنية',
+    description: 'غزوة الخندق، وقعت في شوال 5 هـ. تجمّعت أحزاب العرب ضد المسلمين في المدينة (10,000 مقاتل)، فأشار سلمان الفارسي رضي الله عنه بحفر خندق حول المدينة. حاصروا المسلمين نحو شهرين ثم أرسل الله ريحاً عاصفة فرّقت الأحزاب. نزل قوله تعالى: "وردّ الله الذين كفروا بغيظهم لم ينالوا خيراً".',
+    stats: { 'التاريخ': 'شوال 5 هـ', 'عدد المسلمين': '3000 مقاتل', 'عدد الأحزاب': '10,000 مقاتل', 'النتيجة': 'انتصار المسلمين وافتراق الأحزاب', 'الفكرة': 'حفر الخندق - سلمان الفارسي', 'مدة الحصار': 'نحو شهرين' }
+  },
+  {
+    name: 'غزوة خيبر', nameEn: 'Battle of Khaybar', colorHex: '#aa4422', radius: 1.3,
+    relation: 'غزوة خيبر / فتح حصون اليهود',
+    description: 'غزوة خيبر، وقعت في محرم 7 هـ. خرج النبي ﷺ والمسلمون (1600 مقاتل) لفتح حصون اليهود في خيبر شمال المدينة بعد أن تحالفوا مع الأحزاب. كانت خيبر مجموعة حصون منيعة. فتحها الله على المسلمين. وفيها قال النبي ﷺ: "لأُعطينّ الراية غداً رجلاً يحبّه الله ورسوله" فأعطاها عليّاً ففتح الله على يديه.',
+    stats: { 'التاريخ': 'محرم 7 هـ', 'عدد المسلمين': '1600 مقاتل', 'الموقع': 'خيبر (شمال المدينة)', 'النتيجة': 'فتح الحصون', 'الراية': 'علي بن أبي طالب', 'ملاحظة': 'النبي ﷺ "لكلّ نبيّ حِلفاء وحلفائي المقداد"' }
+  },
+  {
+    name: 'فتح مكة', nameEn: 'Conquest of Makkah', colorHex: '#ffd700', radius: 1.6,
+    relation: 'فتح مكة / الفتح الأعظم',
+    description: 'فتح مكة الأعظم، وقعت في رمضان 8 هـ. دخل النبي ﷺ مكة في عشرة آلاف مقاتل من المسلمين فاتحاً منتصراً بعد أن نقضت قريش صلح الحديبية. قال النبي ﷺ عند دخوله: "اليوم يوم المرحمة". وعفا عن أهل مكة وقال: "اذهبوا فأنتم الطلقاء". أسلم عند الفتح الكثير من أهل مكة وأسلمت قريش عن بكرة أبيها. ودخل النبي ﷺ الكعبة وطهّرها من الأصنام.',
+    stats: { 'التاريخ': 'رمضان 8 هـ', 'عدد المسلمين': '10,000 مقاتل', 'الملاحظة': 'دخول مكة بسلام', 'العفو': "قول النبي ﷺ: اذهبوا فأنتم الطلقاء", 'الأحداث': 'تطهير الكعبة من الأصنام', 'الصحابة': 'أبو بكر وعمر وعلي يحملون الألوية' }
+  },
+  {
+    name: 'غزوة حنين', nameEn: 'Battle of Hunayn', colorHex: '#bb4422', radius: 1.3,
+    relation: 'غزوة حنين / امتحان بعد الفتح',
+    description: 'غزوة حنين، وقعت في شوال 8 هـ بعد فتح مكة مباشرة. خرج النبي ﷺ باثني عشر ألف مقاتل لملاقاة هوازن وثقيف في وادي حنين. أعجب المسلمون بكثرتهم فلم تغنِ عنهم شيئاً، ثم ولّوا مدبرين. ثبت النبي ﷺ في الميدان على بغلته الشهباء وقال: "أنا النبيّ لا كذب / أنا ابن عبد المطلب". أنزل الله نصره وأعطى النبي ﷺ غنائم كثيرة.',
+    stats: { 'التاريخ': 'شوال 8 هـ', 'عدد المسلمين': '12,000 مقاتل', 'عدد العدو': 'نحو 24,000', 'النتيجة': 'نصر المسلمين بعد الابتلاء', 'الآية': 'يوم حنين إذ أعجبتكم كثرتكم', 'الغنائم': '6000 أسير و24,000 إبل' }
+  },
+  {
+    name: 'غزوة تبوك', nameEn: 'Battle of Tabuk', colorHex: '#993322', radius: 1.25,
+    relation: 'غزوة تبوك / آخر الغزوات الكبرى',
+    description: 'غزوة تبوك، وقعت في رجب 9 هـ وهي آخر غزوات النبي ﷺ الكبرى. خرج النبي ﷺ بثلاثين ألف مقاتل (أكبر جيش إسلامي) إلى حدود الشام لمواجهة الروم. انسحب الروم قبل وصول المسلمين دون قتال. فيها نزل قوله تعالى عن المنافقين: "لو خرجوا فيكم ما زادوكم إلاّ خبالاً". وفيها تخلف ثلاثة من الصحابة عن الغزوة فنزل في حقّهم قوله تعالى عن التوبة.',
+    stats: { 'التاريخ': 'رجب 9 هـ', 'عدد المسلمين': '30,000 مقاتل', 'الهدف': 'ملاقاة الروم في الشمال', 'النتيجة': 'انسحاب الروم قبل القتال', 'الآية': 'سورة التوبة (براءة)', 'المسافة': 'نحو 700 كم شمال المدينة' }
+  }
+];
+
+const ORBITS_CONFIG = [
+  { name: 'الأبناء والبنات', nameEn: 'Children', distance: 20, color: 0x4a6a8a, orbitSpeed: 0.25 },
+  { name: 'أمهات المؤمنين', nameEn: 'Mothers of the Believers', distance: 32, color: 0x8a5a6a, orbitSpeed: 0.25 },
+  { name: 'الأعمام والعمات', nameEn: 'Uncles & Aunts', distance: 45, color: 0x6a4a4a, orbitSpeed: 0.25 },
+  { name: 'مرضعات النبي وأخواته من الرضاعة', nameEn: 'Wet Nurses & Foster Sisters', distance: 58, color: 0x5a6a7a, orbitSpeed: 0.25 },
+  { name: 'موالي وخدام النبي', nameEn: 'Mawali & Servants', distance: 70, color: 0x7a5a3a, orbitSpeed: 0.25 },
+  { name: 'المقربون وكتاب الوحي', nameEn: 'Close Companions & Scribes', distance: 82, color: 0x7a5a3a, orbitSpeed: 0.25 },
+  { name: 'العشرة المبشرين بالجنة', nameEn: 'Promised Paradise', distance: 95, color: 0x3a6a5a, orbitSpeed: 0.25 },
+  { name: 'غزوات النبي ﷺ', nameEn: 'Battles of the Prophet', distance: 112, color: 0xaa3322, orbitSpeed: 0.08 }
+];
+const uniformOrbitSpeed = 0.25;
+
+// ===== SCENE =====
+const scene = new THREE.Scene();
+
+// ===== THEMES =====
+const THEMES = [
+  { name: 'سماوي', bg: '#0c1a30', starTint: 1.0 },
+  { name: 'أزرق عميق', bg: '#102848', starTint: 1.2 },
+  { name: 'بنفسجي سديمي', bg: '#2a1848', starTint: 1.3 },
+  { name: 'ذهبي دافئ', bg: '#281c10', starTint: 1.1 },
+  { name: 'أخضر فضائي', bg: '#0c3020', starTint: 1.15 },
+  { name: 'فضائي محايد', bg: '#1a2030', starTint: 1.4 }
+];
+let currentTheme = 0;
+function applyTheme(idx) {
+  currentTheme = idx % THEMES.length;
+  const t = THEMES[currentTheme];
+  scene.background = new THREE.Color(t.bg);
+  document.querySelectorAll('.theme-dot').forEach((d, i) => {
+    d.style.borderColor = i === currentTheme ? '#ffd700' : 'rgba(255,255,255,0.15)';
+    d.style.boxShadow = i === currentTheme ? '0 0 8px #ffd700' : 'none';
+  });
+}
+
+scene.background = new THREE.Color(THEMES[0].bg);
+
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 5000);
+camera.position.set(0, 60, 110);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'low-power' });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.minDistance = 8;
+controls.maxDistance = 300;
+
+// ===== LIGHTING =====
+scene.add(new THREE.AmbientLight(0x1a1a2e, 0.4));
+const sunLight = new THREE.PointLight(0xffeedd, 4, 800, 0.6);
+scene.add(sunLight);
+
+// ===== TEXTURE FUNCTIONS (with caching) =====
+function createGlowTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+  g.addColorStop(0, 'rgba(255,220,120,1)');
+  g.addColorStop(0.15, 'rgba(200,168,78,0.7)');
+  g.addColorStop(0.4, 'rgba(150,120,50,0.3)');
+  g.addColorStop(1, 'rgba(100,80,30,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 256, 256);
+  return new THREE.CanvasTexture(c);
+}
+
+function createStarTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(0.4, 'rgba(255,255,255,0.5)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+}
+
+const textureCache = {};
+function getBodyTexture(type) {
+  if (textureCache[type]) return textureCache[type];
+  const baseColor = type === 'male' ? '#6688aa' : type === 'female' ? '#aa6688' : '#888888';
+  const c = document.createElement('canvas'); c.width = 256; c.height = 128;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = baseColor; ctx.fillRect(0, 0, 256, 128);
+  const img = ctx.getImageData(0, 0, 256, 128);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const n = (Math.random() - 0.5) * 30;
+    img.data[i] = Math.max(0, Math.min(255, img.data[i] + n));
+    img.data[i+1] = Math.max(0, Math.min(255, img.data[i+1] + n));
+    img.data[i+2] = Math.max(0, Math.min(255, img.data[i+2] + n));
+  }
+  ctx.putImageData(img, 0, 0);
+  if (type === 'male') {
+    for (let i = 0; i < 10; i++) {
+      const x = Math.random() * 256, y = Math.random() * 128, r = Math.random() * 15 + 5;
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.rect(x, y, r, r); ctx.stroke();
+    }
+  } else if (type === 'female') {
+    for (let i = 0; i < 15; i++) {
+      const x = Math.random() * 256, y = Math.random() * 128, r = Math.random() * 12 + 5;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, 'rgba(255,255,255,0.06)');
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  textureCache[type] = new THREE.CanvasTexture(c);
+  return textureCache[type];
+}
+
+function createMoonTexture(baseColor) {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 128;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = baseColor; ctx.fillRect(0, 0, 256, 128);
+  const img = ctx.getImageData(0, 0, 256, 128);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const n = (Math.random() - 0.5) * 25;
+    img.data[i] += n; img.data[i+1] += n; img.data[i+2] += n;
+  }
+  ctx.putImageData(img, 0, 0);
+  for (let i = 0; i < 40; i++) {
+    const x = Math.random() * 256, y = Math.random() * 128, r = 2 + Math.random() * 6;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, 'rgba(0,0,0,0.2)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  return new THREE.CanvasTexture(c);
+}
+
+// ===== STARFIELD (PARALLAX LAYERS) =====
+const starLayers = [];
+let prevCameraPos = new THREE.Vector3(0, 0, 0);
+function createParallaxStarfield(count, minR, maxR, size, opacity) {
+  const geo = new THREE.BufferGeometry();
+  const pos = [], col = [], sizes = [];
+  for (let i = 0; i < count; i++) {
+    const r = minR + Math.random() * (maxR - minR);
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    pos.push(r * Math.sin(phi) * Math.cos(theta), r * Math.sin(phi) * Math.sin(theta), r * Math.cos(phi));
+    const t = Math.random();
+    if (t < 0.6) col.push(1, 1, 1);
+    else if (t < 0.78) col.push(0.7, 0.85, 1);
+    else if (t < 0.9) col.push(1, 0.9, 0.7);
+    else col.push(1, 0.6, 0.4);
+    sizes.push(size * (0.5 + Math.random() * 1.0));
+  }
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  const mat = new THREE.PointsMaterial({
+    size: size, map: createStarTexture(), vertexColors: true,
+    transparent: true, opacity: opacity, sizeAttenuation: true,
+    depthWrite: false, blending: THREE.AdditiveBlending
+  });
+  return new THREE.Points(geo, mat);
+}
+// Layer 1: Far distant stars (slow parallax)
+const starLayer1 = createParallaxStarfield(8000, 500, 800, 1.8, 0.7);
+scene.add(starLayer1);
+starLayers.push({ points: starLayer1, parallaxFactor: 0.02 });
+// Layer 2: Medium stars (medium parallax)
+const starLayer2 = createParallaxStarfield(4000, 300, 500, 2.2, 0.85);
+scene.add(starLayer2);
+starLayers.push({ points: starLayer2, parallaxFactor: 0.05 });
+// Layer 3: Near stars (fast parallax)
+const starLayer3 = createParallaxStarfield(1500, 150, 300, 2.8, 0.95);
+scene.add(starLayer3);
+starLayers.push({ points: starLayer3, parallaxFactor: 0.1 });
+
+// ===== SUN =====
+const sunGroup = new THREE.Group();
+const sunGeometry = new THREE.SphereGeometry(6, 64, 64);
+const sunMaterial = new THREE.ShaderMaterial({
+  uniforms: { time: { value: 0 } },
+  vertexShader: `
+    varying vec2 vUv; varying vec3 vNormal;
+    void main() {
+      vUv = uv; vNormal = normalize(normalMatrix * normal);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform float time; varying vec2 vUv; varying vec3 vNormal;
+    float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+    float noise(vec2 p) {
+      vec2 i = floor(p), f = fract(p);
+      f = f * f * (3.0 - 2.0 * f);
+      return mix(mix(hash(i), hash(i + vec2(1,0)), f.x),
+                 mix(hash(i + vec2(0,1)), hash(i + vec2(1,1)), f.x), f.y);
+    }
+    float fbm(vec2 p) {
+      float v = 0.0, a = 0.5;
+      for (int i = 0; i < 5; i++) { v += a * noise(p); p *= 2.0; a *= 0.5; }
+      return v;
+    }
+    void main() {
+      vec2 uv = vUv * 6.0;
+      float n = fbm(uv + vec2(time * 0.02, 0.0));
+      n += fbm(uv * 2.5 + vec2(0.0, time * 0.03)) * 0.5;
+      vec3 c1 = vec3(0.85, 0.65, 0.2);
+      vec3 c2 = vec3(1.0, 0.85, 0.4);
+      vec3 c3 = vec3(1.0, 0.95, 0.7);
+      vec3 color = mix(c1, c2, n);
+      color = mix(color, c3, smoothstep(0.5, 0.8, n));
+      float edge = 1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0)));
+      color += vec3(1.0, 0.8, 0.3) * pow(edge, 2.0) * 0.4;
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `
+});
+const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial);
+sunMesh.userData = { isSun: true };
+sunGroup.add(sunMesh);
+
+const glowTex = createGlowTexture();
+const glow1 = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xc8a84e, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.5 }));
+glow1.scale.set(20, 20, 1);
+sunGroup.add(glow1);
+const glow2 = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0x8B6914, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.25 }));
+glow2.scale.set(38, 38, 1);
+sunGroup.add(glow2);
+scene.add(sunGroup);
+
+// ===== MOONS (Parents) =====
+const moonObjects = [];
+const moonMeshes = [];
+MOONS_DATA.forEach((data, i) => {
+  const moonGeo = new THREE.SphereGeometry(data.radius, 32, 32);
+  const moonMat = new THREE.MeshStandardMaterial({
+    map: createMoonTexture(data.colorHex), roughness: 0.85, metalness: 0.1
+  });
+  const moon = new THREE.Mesh(moonGeo, moonMat);
+  moon.userData = { type: 'moon', moonIndex: i, ...data };
+  const moonGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTex, color: new THREE.Color(data.colorHex), transparent: true,
+    blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.2
+  }));
+  moonGlow.scale.set(4, 4, 1);
+  moon.add(moonGlow);
+
+  const moonOrbitGroup = new THREE.Group();
+  moonOrbitGroup.add(moon);
+  moonOrbitGroup.rotation.x = data.orbitTilt || 0;
+  scene.add(moonOrbitGroup);
+
+  const label = document.createElement('div');
+  label.className = 'planet-label';
+  label.textContent = data.name;
+  label.style.color = data.colorHex;
+  document.getElementById('labels-container').appendChild(label);
+
+  moonObjects.push({
+    data, mesh: moon, orbitGroup: moonOrbitGroup, label,
+    angle: i * Math.PI,
+    distance: data.orbitDistance
+  });
+  moonMeshes.push(moon);
+});
+
+// ===== ORBIT PATHS =====
+const allOrbitPaths = [];
+
+function createOrbitRing(distance, colorHex, tiltX, tiltZ, isDashed, lineWidth, opac) {
+ const segments = 128;
+ const points = [];
+ for (let j = 0; j <= segments; j++) {
+   const a = (j / segments) * Math.PI * 2;
+   points.push(new THREE.Vector3(Math.cos(a) * distance, 0, Math.sin(a) * distance));
+ }
+ const geo = new THREE.BufferGeometry().setFromPoints(points);
+ const mat = new THREE.LineBasicMaterial({
+   color: new THREE.Color(colorHex), transparent: true, opacity: opac, depthWrite: false
+ });
+ const orbit = new THREE.Line(geo, mat);
+ if (tiltX) orbit.rotation.x = tiltX;
+ if (tiltZ) orbit.rotation.z = tiltZ;
+ scene.add(orbit);
+
+ // Glow ring (wider, fainter duplicate)
+ const glowMat = new THREE.LineBasicMaterial({
+   color: new THREE.Color(colorHex), transparent: true, opacity: opac * 0.25, depthWrite: false
+ });
+ const glowOrbit = new THREE.Line(geo.clone(), glowMat);
+ if (tiltX) glowOrbit.rotation.x = tiltX;
+ if (tiltZ) glowOrbit.rotation.z = tiltZ;
+ scene.add(glowOrbit);
+
+ allOrbitPaths.push({ orbit, type: 'main' });
+ allOrbitPaths.push({ orbit: glowOrbit, type: 'glow' });
+
+ return orbit;
+}
+
+// Moon orbit paths
+MOONS_DATA.forEach((data, i) => {
+  const colorHex = data.colorHex;
+  const segments = 128;
+  const points = [];
+  for (let j = 0; j <= segments; j++) {
+    const a = (j / segments) * Math.PI * 2;
+    points.push(new THREE.Vector3(
+      Math.cos(a) * data.orbitDistance,
+      Math.sin(a) * Math.sin(data.orbitTilt || 0) * data.orbitDistance,
+      Math.sin(a) * data.orbitDistance
+    ));
+  }
+  const geo = new THREE.BufferGeometry().setFromPoints(points);
+  const orbit = new THREE.Line(geo, new THREE.LineBasicMaterial({
+    color: new THREE.Color(colorHex), transparent: true, opacity: 0.5, depthWrite: false
+  }));
+  scene.add(orbit);
+  // Faint glow duplicate
+  const glowMat = new THREE.LineBasicMaterial({
+    color: new THREE.Color(colorHex), transparent: true, opacity: 0.15, depthWrite: false
+  });
+  const glowOrbit = new THREE.Line(geo.clone(), glowMat);
+  scene.add(glowOrbit);
+  allOrbitPaths.push({ orbit, type: 'moon' });
+  allOrbitPaths.push({ orbit: glowOrbit, type: 'glow' });
+});
+
+// Orbit circles for the five groups
+const orbitColorsHex = ['#4a8ab0', '#aa5a8a', '#aa5a5a', '#5a8aaa', '#c4956a', '#c4845a', '#3aaa7a', '#cc4422'];
+ORBITS_CONFIG.forEach((oc, idx) => {
+  createOrbitRing(oc.distance, orbitColorsHex[idx], 0, 0, false, 1.5, 0.45);
+});
+
+// Special dashed asteroid belt zone for battles orbit
+(function() {
+  const segments = 256;
+  const points = [];
+  for (let j = 0; j <= segments; j++) {
+    const a = (j / segments) * Math.PI * 2;
+    // Slight wobble for organic feel
+    const r = ORBITS_CONFIG[7].distance + Math.sin(a * 17) * 1.5;
+    points.push(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r));
+  }
+  const geo = new THREE.BufferGeometry().setFromPoints(points);
+  // Dashed material
+  const mat = new THREE.LineDashedMaterial({
+    color: new THREE.Color('#cc4422'), transparent: true, opacity: 0.35, depthWrite: false,
+    dashSize: 3, gapSize: 2
+  });
+  const beltLine = new THREE.Line(geo, mat);
+  beltLine.computeLineDistances();
+  scene.add(beltLine);
+  allOrbitPaths.push({ orbit: beltLine, type: 'belt' });
+
+  // Outer glow band
+  const outerPoints = [];
+  for (let j = 0; j <= segments; j++) {
+    const a = (j / segments) * Math.PI * 2;
+    const r = ORBITS_CONFIG[7].distance + 4 + Math.sin(a * 13) * 1;
+    outerPoints.push(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r));
+  }
+  const outerGeo = new THREE.BufferGeometry().setFromPoints(outerPoints);
+  const outerMat = new THREE.LineDashedMaterial({
+    color: new THREE.Color('#aa3322'), transparent: true, opacity: 0.12, depthWrite: false,
+    dashSize: 5, gapSize: 4
+  });
+  const outerLine = new THREE.Line(outerGeo, outerMat);
+  outerLine.computeLineDistances();
+  scene.add(outerLine);
+  allOrbitPaths.push({ orbit: outerLine, type: 'belt' });
+
+  // Inner glow band
+  const innerPoints = [];
+  for (let j = 0; j <= segments; j++) {
+    const a = (j / segments) * Math.PI * 2;
+    const r = ORBITS_CONFIG[7].distance - 4 + Math.sin(a * 11) * 1;
+    innerPoints.push(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r));
+  }
+  const innerGeo = new THREE.BufferGeometry().setFromPoints(innerPoints);
+  const innerMat = new THREE.LineDashedMaterial({
+    color: new THREE.Color('#aa3322'), transparent: true, opacity: 0.12, depthWrite: false,
+    dashSize: 4, gapSize: 3
+  });
+  const innerLine = new THREE.Line(innerGeo, innerMat);
+  innerLine.computeLineDistances();
+  scene.add(innerLine);
+  allOrbitPaths.push({ orbit: innerLine, type: 'belt' });
+})();
+
+// ===== ALL CELESTIAL BODIES =====
+const planetObjects = [];
+const allClickableMeshes = [sunMesh, ...moonMeshes];
+
+function createBodyMesh(data, type) {
+  const radius = data.radius || 0.7;
+  let geo;
+  if (type === 'companion') {
+    geo = new THREE.OctahedronGeometry(radius, 2);
+  } else {
+    geo = new THREE.SphereGeometry(radius, 48, 48);
+  }
+  const bodyColor = data.colorHex || '#ffffff';
+  const mat = new THREE.MeshStandardMaterial({
+    map: getBodyTexture(type),
+    color: new THREE.Color(bodyColor),
+    roughness: 0.75, metalness: 0.15,
+    emissive: new THREE.Color(bodyColor),
+    emissiveIntensity: 0.08
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  return mesh;
+}
+
+// Children orbit
+CHILDREN_DATA.forEach((data, i) => {
+  const type = data.isMale ? 'male' : 'female';
+  const mesh = createBodyMesh(data, type);
+  const group = new THREE.Group();
+
+  if (data.isMale) {
+    const ringGeo = new THREE.TorusGeometry(data.radius * 1.3, 0.05, 8, 32);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0x4a90d9, transparent: true, opacity: 0.4 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = Math.PI / 2;
+    mesh.add(ring);
+  } else {
+    const femaleGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: glowTex, color: new THREE.Color(data.colorHex),
+      transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.25
+    }));
+    femaleGlow.scale.set(4, 4, 1);
+    mesh.add(femaleGlow);
+  }
+
+  mesh.userData = { type: 'child', childIndex: i, ...data };
+  group.add(mesh);
+  scene.add(group);
+
+  const label = document.createElement('div');
+  label.className = 'planet-label';
+  label.textContent = data.name;
+  label.style.color = data.colorHex;
+  if (!data.isMale) label.style.fontStyle = 'italic';
+  document.getElementById('labels-container').appendChild(label);
+
+  const startAngle = (i / CHILDREN_DATA.length) * Math.PI * 2;
+  group.position.x = Math.cos(startAngle) * ORBITS_CONFIG[0].distance;
+  group.position.z = Math.sin(startAngle) * ORBITS_CONFIG[0].distance;
+
+  planetObjects.push({
+    data, group, mesh, label,
+    angle: startAngle,
+    distance: ORBITS_CONFIG[0].distance,
+    orbitSpeed: uniformOrbitSpeed,
+    rotSpeed: 0.008 + Math.random() * 0.005,
+    orbitType: 'children'
+  });
+  allClickableMeshes.push(mesh);
+});
+
+// ===== MINI-MOONS (Mother names) orbiting each child =====
+const miniMoons = [];
+CHILDREN_DATA.forEach((data, i) => {
+  const motherName = data.stats['الأم'] || '';
+  if (!motherName) return;
+  const childObj = planetObjects[i]; // children are first in planetObjects
+  const miniGeo = new THREE.SphereGeometry(0.35, 16, 16);
+  const miniMat = new THREE.MeshBasicMaterial({ color: 0xffdcb0, transparent: true, opacity: 0.85 });
+  const miniMesh = new THREE.Mesh(miniGeo, miniMat);
+  miniMesh.add(new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTex, color: 0xffdcb0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.3
+  })));
+  miniMesh.children[0].scale.set(1.5, 1.5, 1);
+  childObj.group.add(miniMesh);
+
+  const mLabel = document.createElement('div');
+  mLabel.className = 'mini-moon-label';
+  mLabel.textContent = motherName;
+  mLabel.style.color = '#ffdcb0';
+  document.getElementById('labels-container').appendChild(mLabel);
+
+  miniMoons.push({
+    mesh: miniMesh,
+    label: mLabel,
+    parentGroup: childObj.group,
+    angle: Math.random() * Math.PI * 2,
+    distance: data.radius + 1.8,
+    speed: 0.8 + Math.random() * 0.3,
+    childOrbitType: 'children'
+  });
+});
+
+// Wives orbit (أمهات المؤمنين)
+WIVES_DATA.forEach((data, i) => {
+  const mesh = createBodyMesh(data, 'female');
+  const group = new THREE.Group();
+
+  const wifeGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTex, color: new THREE.Color(data.colorHex),
+    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.25
+  }));
+  wifeGlow.scale.set(4.2, 4.2, 1);
+  mesh.add(wifeGlow);
+
+  mesh.userData = { type: 'wife', wifeIndex: i, ...data };
+  group.add(mesh);
+  scene.add(group);
+
+  const label = document.createElement('div');
+  label.className = 'planet-label';
+  label.textContent = data.name;
+  label.style.color = data.colorHex;
+  label.style.fontSize = '10px';
+  label.style.fontStyle = 'italic';
+  document.getElementById('labels-container').appendChild(label);
+
+  const startAngle = (i / WIVES_DATA.length) * Math.PI * 2;
+  group.position.x = Math.cos(startAngle) * ORBITS_CONFIG[1].distance;
+  group.position.z = Math.sin(startAngle) * ORBITS_CONFIG[1].distance;
+
+  planetObjects.push({
+    data, group, mesh, label,
+    angle: startAngle,
+    distance: ORBITS_CONFIG[1].distance,
+    orbitSpeed: uniformOrbitSpeed,
+    rotSpeed: 0.008 + Math.random() * 0.004,
+    orbitType: 'wives'
+  });
+  allClickableMeshes.push(mesh);
+});
+
+// Relatives (Uncles & Aunts) orbit
+UNCLES_AUNTS_DATA.forEach((data, i) => {
+  const type = data.isMale ? 'male' : 'female';
+  const mesh = createBodyMesh(data, type);
+  const group = new THREE.Group();
+
+  if (!data.isMale) {
+    const auntGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: glowTex, color: new THREE.Color(data.colorHex),
+      transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.2
+    }));
+    auntGlow.scale.set(4, 4, 1);
+    mesh.add(auntGlow);
+  } else {
+    const ringGeo = new THREE.TorusGeometry(data.radius * 1.4, 0.06, 8, 32);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xcc4444, transparent: true, opacity: 0.3 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = Math.PI / 2;
+    mesh.add(ring);
+  }
+
+  mesh.userData = { type: 'relative', relativeIndex: i, ...data };
+  group.add(mesh);
+  scene.add(group);
+
+  const label = document.createElement('div');
+  label.className = 'planet-label';
+  label.textContent = data.name;
+  label.style.color = data.colorHex;
+  label.style.fontSize = '9px';
+  if (!data.isMale) label.style.fontStyle = 'italic';
+  document.getElementById('labels-container').appendChild(label);
+
+  const startAngle = (i / UNCLES_AUNTS_DATA.length) * Math.PI * 2;
+  group.position.x = Math.cos(startAngle) * ORBITS_CONFIG[2].distance;
+  group.position.z = Math.sin(startAngle) * ORBITS_CONFIG[2].distance;
+
+  planetObjects.push({
+    data, group, mesh, label,
+    angle: startAngle,
+    distance: ORBITS_CONFIG[2].distance,
+    orbitSpeed: uniformOrbitSpeed,
+    rotSpeed: 0.006 + Math.random() * 0.004,
+    orbitType: 'relatives'
+  });
+  allClickableMeshes.push(mesh);
+});
+
+// Wet Nurses & Foster Sisters orbit
+WET_NURSES_DATA.forEach((data, i) => {
+  const type = data.isMale ? 'male' : 'female';
+  const mesh = createBodyMesh(data, type);
+  const group = new THREE.Group();
+
+  const nurseGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTex, color: new THREE.Color(data.colorHex),
+    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.2
+  }));
+  nurseGlow.scale.set(3.5, 3.5, 1);
+  mesh.add(nurseGlow);
+
+  mesh.userData = { type: 'wetnurse', wetnurseIndex: i, ...data };
+  group.add(mesh);
+  scene.add(group);
+
+  const label = document.createElement('div');
+  label.className = 'planet-label';
+  label.textContent = data.name;
+  label.style.color = data.colorHex;
+  label.style.fontSize = '10px';
+  if (!data.isMale) label.style.fontStyle = 'italic';
+  document.getElementById('labels-container').appendChild(label);
+
+  const startAngle = (i / WET_NURSES_DATA.length) * Math.PI * 2;
+  group.position.x = Math.cos(startAngle) * ORBITS_CONFIG[3].distance;
+  group.position.z = Math.sin(startAngle) * ORBITS_CONFIG[3].distance;
+
+  planetObjects.push({
+    data, group, mesh, label,
+    angle: startAngle,
+    distance: ORBITS_CONFIG[3].distance,
+    orbitSpeed: uniformOrbitSpeed,
+    rotSpeed: 0.007 + Math.random() * 0.004,
+    orbitType: 'wetnurses'
+  });
+  allClickableMeshes.push(mesh);
+});
+
+// Mawali & Servants orbit
+MAWALI_SERVANTS_DATA.forEach((data, i) => {
+  const type = data.isMale ? 'male' : 'female';
+  const mesh = createBodyMesh(data, type);
+  const group = new THREE.Group();
+
+  const mawaliGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTex, color: new THREE.Color(data.colorHex),
+    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.2
+  }));
+  mawaliGlow.scale.set(3.8, 3.8, 1);
+  mesh.add(mawaliGlow);
+
+  if (data.isMale) {
+    const ringGeo = new THREE.TorusGeometry(data.radius * 1.3, 0.05, 8, 32);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xc4956a, transparent: true, opacity: 0.3 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = Math.PI / 2;
+    mesh.add(ring);
+  }
+
+  mesh.userData = { type: 'mawali', mawaliIndex: i, ...data };
+  group.add(mesh);
+  scene.add(group);
+
+  const label = document.createElement('div');
+  label.className = 'planet-label';
+  label.textContent = data.name;
+  label.style.color = data.colorHex;
+  label.style.fontSize = '10px';
+  document.getElementById('labels-container').appendChild(label);
+
+  const startAngle = (i / MAWALI_SERVANTS_DATA.length) * Math.PI * 2;
+  group.position.x = Math.cos(startAngle) * ORBITS_CONFIG[4].distance;
+  group.position.z = Math.sin(startAngle) * ORBITS_CONFIG[4].distance;
+
+  planetObjects.push({
+    data, group, mesh, label,
+    angle: startAngle,
+    distance: ORBITS_CONFIG[4].distance,
+    orbitSpeed: uniformOrbitSpeed,
+    rotSpeed: 0.007 + Math.random() * 0.004,
+    orbitType: 'mawali'
+  });
+  allClickableMeshes.push(mesh);
+});
+
+// Close Companions & Scribes (merged orbit)
+const CLOSE_SCRIBES_DATA = [...SCRIBES_DATA, ...CLOSE_COMPANIONS_DATA];
+CLOSE_SCRIBES_DATA.forEach((data, i) => {
+  const type = data.isMale ? 'male' : 'female';
+  const mesh = createBodyMesh(data, type);
+  const group = new THREE.Group();
+
+  const csGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTex, color: new THREE.Color(data.colorHex),
+    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.2
+  }));
+  csGlow.scale.set(3.8, 3.8, 1);
+  mesh.add(csGlow);
+
+  if (data.isMale) {
+    const ringGeo = new THREE.TorusGeometry(data.radius * 1.3, 0.05, 8, 32);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xc4845a, transparent: true, opacity: 0.3 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = Math.PI / 2;
+    mesh.add(ring);
+  }
+
+  const isScribe = i < SCRIBES_DATA.length;
+  mesh.userData = isScribe
+    ? { type: 'scribe', scribeIndex: i, ...data }
+    : { type: 'closecomp', closecompIndex: i - SCRIBES_DATA.length, ...data };
+  group.add(mesh);
+  scene.add(group);
+
+  const label = document.createElement('div');
+  label.className = 'planet-label';
+  label.textContent = data.name;
+  label.style.color = data.colorHex;
+  label.style.fontSize = '10px';
+  document.getElementById('labels-container').appendChild(label);
+
+  const startAngle = (i / CLOSE_SCRIBES_DATA.length) * Math.PI * 2;
+  group.position.x = Math.cos(startAngle) * ORBITS_CONFIG[5].distance;
+  group.position.z = Math.sin(startAngle) * ORBITS_CONFIG[5].distance;
+
+  planetObjects.push({
+    data, group, mesh, label,
+    angle: startAngle,
+    distance: ORBITS_CONFIG[5].distance,
+    orbitSpeed: uniformOrbitSpeed,
+    rotSpeed: 0.007 + Math.random() * 0.004,
+    orbitType: 'closeScribes'
+  });
+  allClickableMeshes.push(mesh);
+});
+
+// Promised Paradise orbit (العشرة المبشرين بالجنة)
+PROMISED_PARADISE.forEach((data, i) => {
+  const mesh = createBodyMesh(data, 'companion');
+  const group = new THREE.Group();
+
+  const compGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTex, color: new THREE.Color(data.colorHex),
+    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.2
+  }));
+  compGlow.scale.set(4.5, 4.5, 1);
+  mesh.add(compGlow);
+
+  mesh.userData = { type: 'promised', promisedIndex: i, ...data };
+  group.add(mesh);
+  scene.add(group);
+
+  const label = document.createElement('div');
+  label.className = 'planet-label';
+  label.textContent = data.name;
+  label.style.color = data.colorHex;
+  label.style.fontSize = '10px';
+  document.getElementById('labels-container').appendChild(label);
+
+  const startAngle = (i / PROMISED_PARADISE.length) * Math.PI * 2;
+  group.position.x = Math.cos(startAngle) * ORBITS_CONFIG[6].distance;
+  group.position.z = Math.sin(startAngle) * ORBITS_CONFIG[6].distance;
+
+  planetObjects.push({
+    data, group, mesh, label,
+    angle: startAngle,
+    distance: ORBITS_CONFIG[6].distance,
+    orbitSpeed: uniformOrbitSpeed,
+    rotSpeed: 0.01 + Math.random() * 0.005,
+    orbitType: 'promised'
+  });
+  allClickableMeshes.push(mesh);
+});
+
+// ===== BATTLES ORBIT (Asteroid Belt) =====
+const battleAsteroidMeshes = [];
+BATTLES_DATA.forEach((data, i) => {
+  // Rocky asteroid-like geometry (Icosahedron with low detail + vertex displacement)
+  const radius = data.radius || 1.0;
+  const astGeo = new THREE.IcosahedronGeometry(radius, 1);
+  // Displace vertices randomly for rocky look
+  const posArr = astGeo.attributes.position;
+  for (let vi = 0; vi < posArr.count; vi++) {
+    const vx = posArr.getX(vi);
+    const vy = posArr.getY(vi);
+    const vz = posArr.getZ(vi);
+    const len = Math.sqrt(vx*vx + vy*vy + vz*vz) || 1;
+    const noise = 0.7 + Math.random() * 0.6;
+    posArr.setXYZ(vi, vx/len * radius * noise, vy/len * radius * noise, vz/len * radius * noise);
+  }
+  astGeo.computeVertexNormals();
+
+  const astMat = new THREE.MeshStandardMaterial({
+    map: getBodyTexture('companion'),
+    roughness: 0.95, metalness: 0.05,
+    emissive: new THREE.Color(data.colorHex),
+    emissiveIntensity: 0.12,
+    flatShading: true
+  });
+  const astMesh = new THREE.Mesh(astGeo, astMat);
+
+  const group = new THREE.Group();
+  // Add fiery glow around battle asteroids
+  const astGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTex, color: new THREE.Color(data.colorHex),
+    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.35
+  }));
+  astGlow.scale.set(5.5, 5.5, 1);
+  astMesh.add(astGlow);
+
+  // Add small orbiting debris particles around each battle asteroid
+  const debrisCount = 5;
+  for (let d = 0; d < debrisCount; d++) {
+    const dGeo = new THREE.IcosahedronGeometry(0.15 + Math.random() * 0.15, 0);
+    const dMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(data.colorHex), transparent: true, opacity: 0.6 });
+    const dMesh = new THREE.Mesh(dGeo, dMat);
+    const dAngle = (d / debrisCount) * Math.PI * 2 + Math.random();
+    const dDist = radius * 2 + Math.random() * 1.5;
+    dMesh.position.set(Math.cos(dAngle) * dDist, (Math.random() - 0.5) * 0.8, Math.sin(dAngle) * dDist);
+    group.add(dMesh);
+  }
+
+  astMesh.userData = { type: 'battle', battleIndex: i, ...data };
+  group.add(astMesh);
+  scene.add(group);
+
+  const label = document.createElement('div');
+  label.className = 'planet-label';
+  label.textContent = data.name;
+  label.style.color = data.colorHex;
+  label.style.fontSize = '11px';
+  label.style.fontWeight = '700';
+  label.style.textShadow = '0 0 8px ' + data.colorHex;
+  document.getElementById('labels-container').appendChild(label);
+
+  const startAngle = (i / BATTLES_DATA.length) * Math.PI * 2;
+  group.position.x = Math.cos(startAngle) * ORBITS_CONFIG[7].distance;
+  group.position.z = Math.sin(startAngle) * ORBITS_CONFIG[7].distance;
+
+  planetObjects.push({
+    data, group, mesh: astMesh, label,
+    angle: startAngle,
+    distance: ORBITS_CONFIG[7].distance,
+    orbitSpeed: ORBITS_CONFIG[7].orbitSpeed,
+    rotSpeed: 0.005 + Math.random() * 0.008,
+    orbitType: 'battles'
+  });
+  allClickableMeshes.push(astMesh);
+  battleAsteroidMeshes.push({ group, debris: group.children.filter(c => c !== astMesh) });
+});
+
+// Scattered asteroid belt particles (small rocks between the battle asteroids)
+const beltParticles = [];
+for (let b = 0; b < 120; b++) {
+  const bSize = 0.08 + Math.random() * 0.2;
+  const bGeo = new THREE.IcosahedronGeometry(bSize, 0);
+  const brightness = 0.3 + Math.random() * 0.4;
+  const bMat = new THREE.MeshBasicMaterial({
+    color: new THREE.Color().setHSL(0.05 + Math.random() * 0.08, 0.6, brightness),
+    transparent: true, opacity: 0.35 + Math.random() * 0.3
+  });
+  const bMesh = new THREE.Mesh(bGeo, bMat);
+  const bAngle = Math.random() * Math.PI * 2;
+  const bDist = ORBITS_CONFIG[7].distance + (Math.random() - 0.5) * 8;
+  bMesh.position.set(
+    Math.cos(bAngle) * bDist,
+    (Math.random() - 0.5) * 3,
+    Math.sin(bAngle) * bDist
+  );
+  bMesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+  scene.add(bMesh);
+  beltParticles.push({ mesh: bMesh, angle: bAngle, distance: bDist, speed: 0.02 + Math.random() * 0.04, rotSpeed: 0.002 + Math.random() * 0.01 });
+}
+
+
+// Star layers are already created above
+
+// ===== GROUP FILTER =====
+const ORBIT_GROUPS = [
+  { id: 'moons', name: 'الوالدان', color: '#a87ca0' },
+  { id: 'children', name: 'الأبناء والبنات', color: '#4a90d9' },
+  { id: 'wives', name: 'أمهات المؤمنين', color: '#d4a04e' },
+  { id: 'relatives', name: 'الأعمام والعمات', color: '#cc4444' },
+  { id: 'wetnurses', name: 'مرضعات وأخوات النبي من الرضاعة', color: '#88aacc' },
+  { id: 'mawali', name: 'موالي وخدام النبي', color: '#c4956a' },
+  { id: 'closeScribes', name: 'المقربون وكتاب الوحي', color: '#c4845a' },
+  { id: 'promised', name: 'العشرة المبشرين بالجنة', color: '#44aa44' },
+  { id: 'battles', name: 'غزوات النبي ﷺ', color: '#ff6644' }
+];
+
+function toggleFilter(groupId, isRemote = false) {
+  activeFilter = (activeFilter === groupId) ? null : groupId;
+  buildSelector();
+  updateStatsBar();
+  if (!isRemote) {
+    broadcastNasabState('filter_change', { filter: activeFilter });
+  }
+}
+
+// ===== BUILD SELECTOR =====
+function buildSelector() {
+  const selector = document.getElementById('planet-selector');
+  // Save search elements before clearing
+  const searchDiv = document.getElementById('panel-search');
+  selector.innerHTML = '';
+  // Re-add search elements
+  if (searchDiv) selector.appendChild(searchDiv);
+
+  // Show all button
+  const showAllBtn = document.createElement('button');
+  showAllBtn.className = 'filter-btn' + (activeFilter === null ? ' active-filter' : '');
+  showAllBtn.innerHTML = '<span class="filter-dot" style="background:#ffd700;color:#ffd700"></span><span>عرض الكل</span>';
+  showAllBtn.addEventListener('click', () => toggleFilter(null));
+  selector.appendChild(showAllBtn);
+
+  // Group filter buttons
+  const filterSection = document.createElement('div');
+  filterSection.className = 'filter-section';
+  selector.appendChild(filterSection);
+
+  ORBIT_GROUPS.forEach(g => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn' + (activeFilter === g.id ? ' active-filter' : '');
+    btn.innerHTML = '<span class="filter-dot" style="background:' + g.color + ';color:' + g.color + '"></span><span>' + g.name + '</span>';
+    btn.addEventListener('click', () => toggleFilter(g.id));
+    filterSection.appendChild(btn);
+  });
+
+  // Divider
+  const div1 = document.createElement('div');
+  div1.style.cssText = 'border-top:1px solid rgba(200,168,78,0.15);margin:4px 0';
+  selector.appendChild(div1);
+
+  const sunBtn = document.createElement('button');
+  sunBtn.className = 'planet-btn' + (focusedTarget === 'sun' ? ' selected' : '');
+  sunBtn.innerHTML = '<span class="planet-dot" style="background:#ffd700;color:#ffd700"></span><span>النبي محمد</span>';
+  sunBtn.addEventListener('click', () => selectSun());
+  selector.appendChild(sunBtn);
+
+  MOONS_DATA.forEach((data, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'planet-btn' + (focusedTarget === 'moon-' + i ? ' selected' : '');
+    btn.innerHTML = '<span class="planet-dot" style="background:' + data.colorHex + ';color:' + data.colorHex + '"></span><span>' + data.name + '</span>';
+    btn.addEventListener('click', () => selectMoon(i));
+    selector.appendChild(btn);
+  });
+
+  // Section: Children
+  const showChildren = !activeFilter || activeFilter === 'children';
+  const h1 = document.createElement('div');
+  h1.style.cssText = 'font-size:10px;color:rgba(200,168,78,0.5);text-align:right;padding:6px 4px 2px;letter-spacing:1px;font-weight:600;border-top:1px solid rgba(200,168,78,0.1);margin-top:4px;';
+  h1.textContent = 'الأبناء والبنات';
+  if (!showChildren) h1.style.display = 'none';
+  selector.appendChild(h1);
+
+  CHILDREN_DATA.forEach((data, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'planet-btn' + (focusedTarget === 'child-' + i ? ' selected' : '');
+    btn.style.display = showChildren ? 'flex' : 'none';
+    const dc = data.isMale ? 'planet-dot' : 'planet-dot diamond';
+    btn.innerHTML = '<span class="' + dc + '" style="background:' + data.colorHex + ';color:' + data.colorHex + '"></span><span>' + data.name + '</span>';
+    btn.addEventListener('click', () => selectChild(i));
+    selector.appendChild(btn);
+  });
+
+  // Section: Wives
+  const showWives = !activeFilter || activeFilter === 'wives';
+  const hw = document.createElement('div');
+  hw.style.cssText = 'font-size:10px;color:rgba(200,168,78,0.5);text-align:right;padding:6px 4px 2px;letter-spacing:1px;font-weight:600;border-top:1px solid rgba(200,168,78,0.1);margin-top:4px;';
+  hw.textContent = 'أمهات المؤمنين (الزوجات)';
+  if (!showWives) hw.style.display = 'none';
+  selector.appendChild(hw);
+
+  WIVES_DATA.forEach((data, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'planet-btn' + (focusedTarget === 'wife-' + i ? ' selected' : '');
+    btn.style.display = showWives ? 'flex' : 'none';
+    btn.innerHTML = '<span class="planet-dot diamond" style="background:' + data.colorHex + ';color:' + data.colorHex + '"></span><span>' + data.name + '</span>';
+    btn.addEventListener('click', () => selectWife(i));
+    selector.appendChild(btn);
+  });
+
+  // Section: Uncles & Aunts
+  const showRelatives = !activeFilter || activeFilter === 'relatives';
+  const h3 = document.createElement('div');
+  h3.style.cssText = 'font-size:10px;color:rgba(200,168,78,0.5);text-align:right;padding:6px 4px 2px;letter-spacing:1px;font-weight:600;border-top:1px solid rgba(200,168,78,0.1);margin-top:4px;';
+  h3.textContent = 'الأعمام والعمات';
+  if (!showRelatives) h3.style.display = 'none';
+  selector.appendChild(h3);
+
+  UNCLES_AUNTS_DATA.forEach((data, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'planet-btn' + (focusedTarget === 'relative-' + i ? ' selected' : '');
+    btn.style.display = showRelatives ? 'flex' : 'none';
+    const dc = data.isMale ? 'planet-dot' : 'planet-dot diamond';
+    btn.innerHTML = '<span class="' + dc + '" style="background:' + data.colorHex + ';color:' + data.colorHex + '"></span><span>' + data.name + '</span>';
+    btn.addEventListener('click', () => selectRelative(i));
+    selector.appendChild(btn);
+  });
+
+  // Section: Wet Nurses
+  const showWetnurses = !activeFilter || activeFilter === 'wetnurses';
+  const h4 = document.createElement('div');
+  h4.style.cssText = 'font-size:10px;color:rgba(200,168,78,0.5);text-align:right;padding:6px 4px 2px;letter-spacing:1px;font-weight:600;border-top:1px solid rgba(200,168,78,0.1);margin-top:4px;';
+  h4.textContent = 'مرضعات النبي وأخواته من الرضاعة';
+  if (!showWetnurses) h4.style.display = 'none';
+  selector.appendChild(h4);
+
+  WET_NURSES_DATA.forEach((data, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'planet-btn' + (focusedTarget === 'wetnurse-' + i ? ' selected' : '');
+    btn.style.display = showWetnurses ? 'flex' : 'none';
+    const dc = data.isMale ? 'planet-dot' : 'planet-dot diamond';
+    btn.innerHTML = '<span class="' + dc + '" style="background:' + data.colorHex + ';color:' + data.colorHex + '"></span><span>' + data.name + '</span>';
+    btn.addEventListener('click', () => selectWetnurse(i));
+    selector.appendChild(btn);
+  });
+
+  // Section: Mawali & Servants
+  const showMawali = !activeFilter || activeFilter === 'mawali';
+  const h5 = document.createElement('div');
+  h5.style.cssText = 'font-size:10px;color:rgba(200,168,78,0.5);text-align:right;padding:6px 4px 2px;letter-spacing:1px;font-weight:600;border-top:1px solid rgba(200,168,78,0.1);margin-top:4px;';
+  h5.textContent = 'موالي وخدام النبي';
+  if (!showMawali) h5.style.display = 'none';
+  selector.appendChild(h5);
+
+  MAWALI_SERVANTS_DATA.forEach((data, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'planet-btn' + (focusedTarget === 'mawali-' + i ? ' selected' : '');
+    btn.style.display = showMawali ? 'flex' : 'none';
+    btn.innerHTML = '<span class="planet-dot" style="background:' + data.colorHex + ';color:' + data.colorHex + '"></span><span>' + data.name + '</span>';
+    btn.addEventListener('click', () => selectMawali(i));
+    selector.appendChild(btn);
+  });
+
+  // Section: Close Companions & Scribes (merged)
+  const showCS = !activeFilter || activeFilter === 'closeScribes';
+  const h6 = document.createElement('div');
+  h6.style.cssText = 'font-size:10px;color:rgba(200,168,78,0.5);text-align:right;padding:6px 4px 2px;letter-spacing:1px;font-weight:600;border-top:1px solid rgba(200,168,78,0.1);margin-top:4px;';
+  h6.textContent = 'المقربون وكتاب الوحي';
+  if (!showCS) h6.style.display = 'none';
+  selector.appendChild(h6);
+
+  SCRIBES_DATA.forEach((data, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'planet-btn' + (focusedTarget === 'scribe-' + i ? ' selected' : '');
+    btn.style.display = showCS ? 'flex' : 'none';
+    btn.innerHTML = '<span class="planet-dot" style="background:' + data.colorHex + ';color:' + data.colorHex + '"></span><span>' + data.name + '</span>';
+    btn.addEventListener('click', () => selectScribe(i));
+    selector.appendChild(btn);
+  });
+
+  CLOSE_COMPANIONS_DATA.forEach((data, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'planet-btn' + (focusedTarget === 'closecomp-' + i ? ' selected' : '');
+    btn.style.display = showCS ? 'flex' : 'none';
+    btn.innerHTML = '<span class="planet-dot" style="background:' + data.colorHex + ';color:' + data.colorHex + '"></span><span>' + data.name + '</span>';
+    btn.addEventListener('click', () => selectClosecomp(i));
+    selector.appendChild(btn);
+  });
+
+  // Section: Promised Paradise (last)
+  const showPromised = !activeFilter || activeFilter === 'promised';
+  const h2 = document.createElement('div');
+  h2.style.cssText = 'font-size:10px;color:rgba(200,168,78,0.5);text-align:right;padding:6px 4px 2px;letter-spacing:1px;font-weight:600;border-top:1px solid rgba(200,168,78,0.1);margin-top:4px;';
+  h2.textContent = 'العشرة المبشرين بالجنة';
+  if (!showPromised) h2.style.display = 'none';
+  selector.appendChild(h2);
+
+  PROMISED_PARADISE.forEach((data, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'planet-btn' + (focusedTarget === 'promised-' + i ? ' selected' : '');
+    btn.style.display = showPromised ? 'flex' : 'none';
+    btn.innerHTML = '<span class="planet-dot" style="background:' + data.colorHex + ';color:' + data.colorHex + '"></span><span>' + data.name + '</span>';
+    btn.addEventListener('click', () => selectPromised(i));
+    selector.appendChild(btn);
+  });
+
+  // Section: Battles (asteroid belt)
+  const showBattles = !activeFilter || activeFilter === 'battles';
+  const hb = document.createElement('div');
+  hb.style.cssText = 'font-size:10px;color:rgba(200,168,78,0.5);text-align:right;padding:6px 4px 2px;letter-spacing:1px;font-weight:600;border-top:1px solid rgba(200,168,78,0.1);margin-top:4px;';
+  hb.textContent = 'غزوات النبي ﷺ';
+  if (!showBattles) hb.style.display = 'none';
+  selector.appendChild(hb);
+
+  BATTLES_DATA.forEach((data, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'planet-btn' + (focusedTarget === 'battle-' + i ? ' selected' : '');
+    btn.style.display = showBattles ? 'flex' : 'none';
+    btn.innerHTML = '<span class="planet-dot" style="background:' + data.colorHex + ';color:' + data.colorHex + ';border-radius:3px;transform:rotate(45deg);width:10px;height:10px;"></span><span>' + data.name + '</span>';
+    btn.addEventListener('click', () => selectBattle(i));
+    selector.appendChild(btn);
+  });
+}
+
+// ===== INTERACTION =====
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let isPlaying = true;
+let speedMultiplier = 1;
+let showOrbits = true;
+let showLabels = true;
+let focusedTarget = null;
+let cameraAnim = null;
+let activeFilter = null;
+let clickLock = false;
+
+function showInfo(data) {
+  document.getElementById('info-name').textContent = data.name;
+  document.getElementById('info-name-en').textContent = data.nameEn || '';
+
+  // Show relationship label prominently
+  let relEl = document.getElementById('info-relation');
+  if (!relEl) {
+    relEl = document.createElement('div');
+    relEl.id = 'info-relation';
+    relEl.style.cssText = 'font-size:15px;font-weight:800;color:#ffd700;text-align:center;padding:8px 14px;margin-bottom:14px;background:rgba(200,168,78,0.12);border:1px solid rgba(200,168,78,0.3);border-radius:10px;letter-spacing:1.5px;line-height:1.6';
+    document.querySelector('.info-header').after(relEl);
+  }
+  if (data.relation) {
+    relEl.textContent = data.relation;
+    relEl.style.display = 'block';
+  } else {
+    relEl.style.display = 'none';
+  }
+
+  document.getElementById('info-description').textContent = data.description;
+
+  const icon = document.getElementById('info-icon');
+  icon.style.background = 'radial-gradient(circle at 30% 30%, ' + data.colorHex + ', #000)';
+  icon.style.color = data.colorHex;
+  if (data.type === 'battle' || data.relation && data.relation.includes('غزوة')) {
+    icon.style.borderRadius = '6px';
+    icon.style.transform = 'rotate(45deg)';
+  } else {
+    icon.style.borderRadius = data.isMale === false ? '4px' : '50%';
+    icon.style.transform = 'none';
+  }
+
+  const statsGrid = document.getElementById('info-stats');
+  statsGrid.innerHTML = '';
+  if (data.stats) {
+    Object.entries(data.stats).forEach(([k, v]) => {
+      const item = document.createElement('div');
+      item.className = 'stat-item';
+      item.innerHTML = '<div class="stat-label">' + k + '</div><div class="stat-value">' + v + '</div>';
+      statsGrid.appendChild(item);
+    });
+  }
+  document.getElementById('info-panel').classList.add('visible');
+}
+
+function clearSelection() {
+  document.querySelectorAll('.planet-btn').forEach(btn => btn.classList.remove('selected'));
+}
+
+let isSyncingRemoteState = false;
+window.mySenderId = 'nasab_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+
+function broadcastNasabState(actionType = null, extraData = {}) {
+  if (isSyncingRemoteState) return;
+
+  const stateObj = {
+    focusedTarget: focusedTarget,
+    clickLock: clickLock,
+    activeFilter: activeFilter,
+    showLabels: showLabels,
+    showOrbits: showOrbits,
+    isPlaying: isPlaying,
+    speedMultiplier: speedMultiplier,
+    _senderId: window.mySenderId,
+    timestamp: Date.now()
+  };
+
+  if (actionType) {
+    stateObj.lastAction = Object.assign({
+      type: actionType,
+      _senderId: window.mySenderId,
+      timestamp: Date.now()
+    }, extraData);
+  }
+
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({
+      type: 'nasab_state_update',
+      state: stateObj
+    }, '*');
+  }
+}
+
+function closeInfoPanel(isRemote = false) {
+  document.getElementById('info-panel').classList.remove('visible');
+  focusedTarget = null;
+  buildSelector();
+  if (!isRemote) {
+    broadcastNasabState('close_info');
+  }
+}
+
+function selectTarget(targetId, isRemote = false) {
+  if (!targetId) return;
+
+  focusedTarget = targetId;
+
+  if (targetId === 'sun') {
+    showInfo(SUN_INFO);
+  } else if (targetId.startsWith('moon-')) {
+    const idx = parseInt(targetId.split('-')[1]);
+    if (MOONS_DATA[idx]) showInfo(MOONS_DATA[idx]);
+  } else if (targetId.startsWith('child-')) {
+    const idx = parseInt(targetId.split('-')[1]);
+    if (CHILDREN_DATA[idx]) showInfo(CHILDREN_DATA[idx]);
+  } else if (targetId.startsWith('wife-')) {
+    const idx = parseInt(targetId.split('-')[1]);
+    if (WIVES_DATA[idx]) showInfo(WIVES_DATA[idx]);
+  } else if (targetId.startsWith('relative-')) {
+    const idx = parseInt(targetId.split('-')[1]);
+    if (UNCLES_AUNTS_DATA[idx]) showInfo(UNCLES_AUNTS_DATA[idx]);
+  } else if (targetId.startsWith('wetnurse-')) {
+    const idx = parseInt(targetId.split('-')[1]);
+    if (WET_NURSES_DATA[idx]) showInfo(WET_NURSES_DATA[idx]);
+  } else if (targetId.startsWith('mawali-')) {
+    const idx = parseInt(targetId.split('-')[1]);
+    if (MAWALI_SERVANTS_DATA[idx]) showInfo(MAWALI_SERVANTS_DATA[idx]);
+  } else if (targetId.startsWith('scribe-')) {
+    const idx = parseInt(targetId.split('-')[1]);
+    if (SCRIBES_DATA[idx]) showInfo(SCRIBES_DATA[idx]);
+  } else if (targetId.startsWith('closecomp-')) {
+    const idx = parseInt(targetId.split('-')[1]);
+    if (CLOSE_COMPANIONS_DATA[idx]) showInfo(CLOSE_COMPANIONS_DATA[idx]);
+  } else if (targetId.startsWith('promised-')) {
+    const idx = parseInt(targetId.split('-')[1]);
+    if (PROMISED_PARADISE[idx]) showInfo(PROMISED_PARADISE[idx]);
+  } else if (targetId.startsWith('battle-')) {
+    const idx = parseInt(targetId.split('-')[1]);
+    if (BATTLES_DATA[idx]) showInfo(BATTLES_DATA[idx]);
+  }
+
+  buildSelector();
+
+  if (!isRemote) {
+    broadcastNasabState('select_target', { targetId: targetId });
+  }
+}
+
+function selectSun(isRemote = false) { selectTarget('sun', isRemote); }
+function selectMoon(idx, isRemote = false) { selectTarget('moon-' + idx, isRemote); }
+function selectChild(idx, isRemote = false) { selectTarget('child-' + idx, isRemote); }
+function selectWife(idx, isRemote = false) { selectTarget('wife-' + idx, isRemote); }
+function selectRelative(idx, isRemote = false) { selectTarget('relative-' + idx, isRemote); }
+function selectWetnurse(idx, isRemote = false) { selectTarget('wetnurse-' + idx, isRemote); }
+function selectMawali(idx, isRemote = false) { selectTarget('mawali-' + idx, isRemote); }
+function selectScribe(idx, isRemote = false) { selectTarget('scribe-' + idx, isRemote); }
+function selectClosecomp(idx, isRemote = false) { selectTarget('closecomp-' + idx, isRemote); }
+function selectPromised(idx, isRemote = false) { selectTarget('promised-' + idx, isRemote); }
+function selectBattle(idx, isRemote = false) { selectTarget('battle-' + idx, isRemote); }
+
+function resetView(isRemote = false) {
+  focusedTarget = null;
+  document.getElementById('info-panel').classList.remove('visible');
+  clearSelection();
+  cameraAnim = {
+    startPos: camera.position.clone(),
+    targetPos: new THREE.Vector3(0, 60, 110),
+    startLook: controls.target.clone(),
+    targetLook: new THREE.Vector3(0, 0, 0),
+    progress: 0
+  };
+  if (!isRemote) {
+    broadcastNasabState('reset_view');
+  }
+}
+
+function setTogglePlay(stateVal = null, isRemote = false) {
+  isPlaying = stateVal !== null ? !!stateVal : !isPlaying;
+  const btn = document.getElementById('play-pause');
+  if (btn) btn.textContent = isPlaying ? 'إيقاف مؤقت' : 'تشغيل';
+  if (!isRemote) {
+    broadcastNasabState('toggle_play', { isPlaying: isPlaying });
+  }
+}
+
+function setSpeedMultiplier(val, isRemote = false) {
+  speedMultiplier = parseFloat(val);
+  const slider = document.getElementById('speed-slider');
+  if (slider) slider.value = speedMultiplier;
+  const valLabel = document.getElementById('speed-value');
+  if (valLabel) valLabel.textContent = speedMultiplier.toFixed(1) + 'x';
+  if (!isRemote) {
+    broadcastNasabState('speed_change', { speed: speedMultiplier });
+  }
+}
+
+function setToggleOrbits(stateVal = null, isRemote = false) {
+  showOrbits = stateVal !== null ? !!stateVal : !showOrbits;
+  allOrbitPaths.forEach(o => o.orbit.visible = showOrbits);
+  const btn = document.getElementById('toggle-orbits');
+  if (btn) btn.classList.toggle('active', showOrbits);
+  if (!isRemote) {
+    broadcastNasabState('toggle_orbits', { showOrbits: showOrbits });
+  }
+}
+
+function setToggleLabels(stateVal = null, isRemote = false) {
+  showLabels = stateVal !== null ? !!stateVal : !showLabels;
+  const btn = document.getElementById('toggle-labels');
+  if (btn) btn.classList.toggle('active', showLabels);
+  document.querySelectorAll('.planet-label, .mini-moon-label').forEach(el => {
+    el.classList.toggle('labels-hidden', !showLabels);
+  });
+  const sunLabel = document.getElementById('sun-calligraphy-label');
+  if (sunLabel) sunLabel.classList.toggle('labels-hidden', !showLabels);
+  if (!isRemote) {
+    broadcastNasabState('toggle_labels', { showLabels: showLabels });
+  }
+}
+
+function setTopView(isRemote = false) {
+  focusedTarget = null;
+  document.getElementById('info-panel').classList.remove('visible');
+  clearSelection();
+  cameraAnim = {
+    startPos: camera.position.clone(),
+    targetPos: new THREE.Vector3(0, 120, 0.1),
+    startLook: controls.target.clone(),
+    targetLook: new THREE.Vector3(0, 0, 0),
+    progress: 0
+  };
+  if (!isRemote) {
+    broadcastNasabState('top_view');
+  }
+}
+
+window.addEventListener('message', (e) => {
+  if (!e.data) return;
+
+  if (e.data.type === 'init_player_id') {
+    if (typeof e.data.isHost === 'boolean') {
+      window.isHost = e.data.isHost;
+      if (document.body) {
+        document.body.classList.toggle('student-device', window.isHost === false);
+      }
+    }
+    if (e.data.userId) {
+      window.mySenderId = e.data.userId;
+    }
+    return;
+  }
+
+  if (e.data.type === 'sync_nasab_state' || e.data.type === 'apply_nasab_state') {
+    const state = e.data.state || e.data;
+    if (!state) return;
+
+    if (state._senderId && state._senderId === window.mySenderId) return;
+
+    isSyncingRemoteState = true;
+    try {
+      if (typeof state.clickLock === 'boolean') {
+        clickLock = state.clickLock;
+        const lockBtn = document.getElementById('lock-btn');
+        if (lockBtn) {
+          lockBtn.classList.toggle('locked', clickLock);
+          lockBtn.textContent = clickLock ? '🔒' : '🔓';
+        }
+      }
+      if (typeof state.showLabels === 'boolean' && state.showLabels !== showLabels) {
+        setToggleLabels(state.showLabels, true);
+      }
+      if (typeof state.showOrbits === 'boolean' && state.showOrbits !== showOrbits) {
+        setToggleOrbits(state.showOrbits, true);
+      }
+      if (typeof state.isPlaying === 'boolean' && state.isPlaying !== isPlaying) {
+        setTogglePlay(state.isPlaying, true);
+      }
+      if (typeof state.speedMultiplier === 'number' && state.speedMultiplier !== speedMultiplier) {
+        setSpeedMultiplier(state.speedMultiplier, true);
+      }
+      if (state.activeFilter !== undefined && state.activeFilter !== activeFilter) {
+        activeFilter = state.activeFilter;
+        buildSelector();
+        updateStatsBar();
+      }
+
+      if (state.lastAction && state.lastAction.type === 'top_view') {
+        setTopView(true);
+      } else if (state.lastAction && state.lastAction.type === 'close_info') {
+        closeInfoPanel(true);
+      } else if (state.lastAction && state.lastAction.type === 'select_target') {
+        selectTarget(state.lastAction.targetId || state.focusedTarget, true);
+      } else if (state.focusedTarget !== undefined && state.focusedTarget !== focusedTarget) {
+        if (state.focusedTarget) {
+          selectTarget(state.focusedTarget, true);
+        } else {
+          resetView(true);
+        }
+      }
+    } finally {
+      isSyncingRemoteState = false;
+    }
+  }
+});
+
+if (window.parent && window.parent !== window) {
+  window.parent.postMessage({ type: 'request_nasab_state' }, '*');
+}
+
+renderer.domElement.addEventListener('click', (e) => {
+  if (cameraAnim) return;
+  if (clickLock) return;
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(allClickableMeshes, false);
+  if (intersects.length > 0) {
+    const obj = intersects[0].object;
+    // Create explosion at click point
+    createExplosion(intersects[0].point.clone(), obj.userData.colorHex || '#ffd700');
+    if (obj.userData.isSun) selectSun();
+    else if (obj.userData.type === 'moon') selectMoon(obj.userData.moonIndex);
+    else if (obj.userData.type === 'child') selectChild(obj.userData.childIndex);
+    else if (obj.userData.type === 'wife') selectWife(obj.userData.wifeIndex);
+    else if (obj.userData.type === 'promised') selectPromised(obj.userData.promisedIndex);
+    else if (obj.userData.type === 'relative') selectRelative(obj.userData.relativeIndex);
+    else if (obj.userData.type === 'wetnurse') selectWetnurse(obj.userData.wetnurseIndex);
+    else if (obj.userData.type === 'mawali') selectMawali(obj.userData.mawaliIndex);
+    else if (obj.userData.type === 'scribe') selectScribe(obj.userData.scribeIndex);
+    else if (obj.userData.type === 'closecomp') selectClosecomp(obj.userData.closecompIndex);
+    else if (obj.userData.type === 'battle') selectBattle(obj.userData.battleIndex);
+  }
+});
+
+// ===== HOVER GLOW EFFECT =====
+const hoverGlow = new THREE.Group();
+scene.add(hoverGlow);
+let currentHoveredObj = null;
+// Create a multi-ring glow using additive sprites
+const glowRingCount = 3;
+const glowRings = [];
+for (let g = 0; g < glowRingCount; g++) {
+  const gGeo = new THREE.RingGeometry(1.5 + g * 0.6, 2.0 + g * 0.6, 32);
+  const gMat = new THREE.MeshBasicMaterial({
+    color: 0xffd700, transparent: true, opacity: 0,
+    side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false
+  });
+  const gMesh = new THREE.Mesh(gGeo, gMat);
+  gMesh.lookAt(camera.position);
+  hoverGlow.add(gMesh);
+  glowRings.push({ mesh: gMesh, baseOpacity: 0.3 - g * 0.08 });
+}
+// Central glow sprite
+const glowSpriteCanvas = document.createElement('canvas');
+glowSpriteCanvas.width = 128; glowSpriteCanvas.height = 128;
+const gsCtx = glowSpriteCanvas.getContext('2d');
+const gsGrad = gsCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
+gsGrad.addColorStop(0, 'rgba(255,215,0,0.6)');
+gsGrad.addColorStop(0.3, 'rgba(255,200,50,0.3)');
+gsGrad.addColorStop(1, 'rgba(255,180,0,0)');
+gsCtx.fillStyle = gsGrad;
+gsCtx.fillRect(0, 0, 128, 128);
+const glowSpriteMap = new THREE.CanvasTexture(glowSpriteCanvas);
+const glowSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: glowSpriteMap, transparent: true, opacity: 0,
+  blending: THREE.AdditiveBlending, depthWrite: false
+}));
+glowSprite.scale.set(8, 8, 1);
+hoverGlow.add(glowSprite);
+hoverGlow.visible = false;
+
+renderer.domElement.addEventListener('mousemove', (e) => {
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(allClickableMeshes, false);
+  // Remove all hover-visible classes first
+  document.querySelectorAll('.hover-visible').forEach(el => el.classList.remove('hover-visible'));
+  if (intersects.length > 0 && !clickLock) {
+    renderer.domElement.style.cursor = 'pointer';
+    const obj = intersects[0].object;
+    const colorHex = obj.userData.colorHex || '#ffd700';
+    // Position glow at object
+    const objPos = obj.getWorldPosition ? obj.getWorldPosition(new THREE.Vector3()) : obj.position.clone();
+    if (obj.parent && obj.parent !== scene) objPos.copy(obj.parent.position);
+    hoverGlow.position.copy(objPos);
+    hoverGlow.visible = true;
+    glowSprite.material.color.set(colorHex);
+    glowRings.forEach(r => r.mesh.material.color.set(colorHex));
+    currentHoveredObj = obj;
+    // When labels are hidden, show the hovered one
+    if (!showLabels) {
+      if (obj.userData.isSun) {
+        document.getElementById('sun-calligraphy-label').classList.add('hover-visible');
+      } else {
+        let targetLabel = null;
+        const type = obj.userData.type;
+        if (type === 'moon') {
+          const idx = obj.userData.moonIndex;
+          if (moonObjects[idx]) targetLabel = moonObjects[idx].label;
+        } else {
+          for (let i = 0; i < planetObjects.length; i++) {
+            if (planetObjects[i].mesh === obj) { targetLabel = planetObjects[i].label; break; }
+          }
+          if (!targetLabel) {
+            for (let i = 0; i < planetObjects.length; i++) {
+              if (planetObjects[i].mesh === obj || (obj.parent && obj.parent === planetObjects[i].group)) {
+                targetLabel = planetObjects[i].label; break;
+              }
+            }
+          }
+        }
+        if (targetLabel) targetLabel.classList.add('hover-visible');
+        if (type === 'child') {
+          const childIdx = obj.userData.childIndex;
+          miniMoons.forEach(m => {
+            if (m.parentGroup === planetObjects[childIdx] && planetObjects[childIdx]) {
+              m.label.classList.add('hover-visible');
+            }
+          });
+        }
+      }
+    }
+  } else {
+    renderer.domElement.style.cursor = 'grab';
+    hoverGlow.visible = false;
+    currentHoveredObj = null;
+  }
+});
+
+function safeAddListener(id, event, handler) {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener(event, handler);
+}
+
+safeAddListener('play-pause', 'click', function() { setTogglePlay(); });
+safeAddListener('speed-slider', 'input', function() { setSpeedMultiplier(this.value); });
+safeAddListener('toggle-orbits', 'click', function() { setToggleOrbits(); });
+safeAddListener('toggle-labels', 'click', function() { setToggleLabels(); });
+safeAddListener('reset-view', 'click', () => resetView());
+safeAddListener('top-view', 'click', () => setTopView());
+safeAddListener('close-info', 'click', () => closeInfoPanel());
+
+// ===== STORY MODE =====
+let storyVisible = false;
+function showStory(data) {
+  const panel = document.getElementById('story-panel');
+  document.getElementById('story-banner').style.background = 'linear-gradient(90deg, ' + data.colorHex + ', ' + data.colorHex + '88)';
+  const icon = document.getElementById('story-icon');
+  icon.style.background = 'radial-gradient(circle at 30% 30%, ' + data.colorHex + ', #000)';
+  icon.style.color = data.colorHex;
+  icon.textContent = data.type === 'battle' ? '⚔' : (data.isMale === false ? ' consort' : '');
+  if (data.type === 'battle' || (data.relation && data.relation.includes('غزوة'))) {
+    icon.className = 'story-icon diamond';
+  } else {
+    icon.className = 'story-icon';
+  }
+  document.getElementById('story-name').textContent = data.name;
+  document.getElementById('story-name-en').textContent = data.nameEn || '';
+  const relEl = document.getElementById('story-relation');
+  if (data.relation) {
+    relEl.textContent = data.relation;
+    relEl.style.display = 'inline-block';
+  } else {
+    relEl.style.display = 'none';
+  }
+  document.getElementById('story-text').textContent = data.description || '';
+  const statsGrid = document.getElementById('story-stats');
+  statsGrid.innerHTML = '';
+  if (data.stats) {
+    Object.entries(data.stats).forEach(([k, v]) => {
+      const item = document.createElement('div');
+      item.className = 'story-stat-item';
+      item.innerHTML = '<div class="story-stat-label">' + k + '</div><div class="story-stat-value">' + v + '</div>';
+      statsGrid.appendChild(item);
+    });
+  }
+  panel.classList.add('visible');
+  storyVisible = true;
+}
+
+function hideStory() {
+  document.getElementById('story-panel').classList.remove('visible');
+  storyVisible = false;
+}
+
+
+
+// ===== STATS BAR =====
+const statsBarData = [
+  { id: 'moons', name: 'الوالدان', color: '#a87ca0', count: MOONS_DATA.length },
+  { id: 'children', name: 'الأبناء', color: '#4a90d9', count: CHILDREN_DATA.length },
+  { id: 'wives', name: 'الزوجات', color: '#d4a04e', count: WIVES_DATA.length },
+  { id: 'relatives', name: 'الأعمام', color: '#cc4444', count: UNCLES_AUNTS_DATA.length },
+  { id: 'wetnurses', name: 'المرضعات', color: '#88aacc', count: WET_NURSES_DATA.length },
+  { id: 'mawali', name: 'الموالي', color: '#c4956a', count: MAWALI_SERVANTS_DATA.length },
+  { id: 'closeScribes', name: 'المقربون', color: '#c4845a', count: SCRIBES_DATA.length + CLOSE_COMPANIONS_DATA.length },
+  { id: 'promised', name: 'المبشرون', color: '#44aa44', count: PROMISED_PARADISE.length },
+  { id: 'battles', name: 'الغزوات', color: '#ff6644', count: BATTLES_DATA.length },
+];
+
+function updateStatsBar() {
+  const bar = document.getElementById('stats-bar');
+  if (!bar) return;
+  bar.innerHTML = '';
+  let totalVisible = 0;
+  statsBarData.forEach(s => {
+    const visible = !activeFilter || activeFilter === s.id;
+    if (visible) totalVisible += s.count;
+    const chip = document.createElement('div');
+    chip.className = 'stats-chip';
+    chip.style.opacity = visible ? '1' : '0.3';
+    chip.style.borderColor = visible ? s.color + '22' : 'rgba(255,255,255,0.03)';
+    chip.innerHTML = '<span class="chip-dot" style="background:' + s.color + '"></span><span>' + s.name + '</span><span class="chip-count">' + s.count + '</span>';
+    bar.appendChild(chip);
+  });
+}
+updateStatsBar();
+
+// Story mode disabled - only show info panel
+const _originalShowInfo = showInfo;
+
+safeAddListener('close-info', 'click', () => {
+  const infoPanel = document.getElementById('info-panel');
+  if (infoPanel) infoPanel.classList.remove('visible');
+  focusedTarget = null;
+  clearSelection();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space') {
+    e.preventDefault();
+    const btn = document.getElementById('play-pause');
+    if (btn) btn.click();
+  }
+  else if (e.code === 'Escape') resetView();
+});
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ===== ANIMATION =====
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  const delta = clock.getDelta();
+  const elapsed = clock.getElapsedTime();
+
+  sunMaterial.uniforms.time.value = elapsed;
+  sunMesh.rotation.y += 0.001;
+
+  // === PARALLAX STARS ===
+  const camDelta = new THREE.Vector3().subVectors(camera.position, prevCameraPos);
+  starLayers.forEach(layer => {
+    layer.points.rotation.x += camDelta.y * layer.parallaxFactor * 0.01;
+    layer.points.rotation.y += camDelta.x * layer.parallaxFactor * 0.01;
+    // Subtle twinkling via opacity pulse
+    layer.points.material.opacity += Math.sin(elapsed * 0.5 + layer.parallaxFactor * 100) * 0.001;
+  });
+  prevCameraPos.copy(camera.position);
+
+  // === FILTER VISIBILITY ===
+  // When a filter is active, ONLY show the selected group
+  // Everything else (bodies, labels, orbit lines) is completely hidden
+  const groupToOrbitIdx = { moons: -1, children: 0, wives: 1, relatives: 2, wetnurses: 3, mawali: 4, closeScribes: 5, promised: 6, battles: 7 };
+  planetObjects.forEach(obj => {
+    const visible = !activeFilter || obj.orbitType === activeFilter;
+    obj.group.visible = visible;
+  });
+  // Hide/show orbit rings (8 main orbits from ORBITS_CONFIG, each with a glow duplicate)
+  const orbitRingStartIdx = MOONS_DATA.length * 2; // each moon orbit has main+glow
+  ORBITS_CONFIG.forEach((oc, ocIdx) => {
+    const visible = !activeFilter || (groupToOrbitIdx[activeFilter] === ocIdx);
+    const mainIdx = orbitRingStartIdx + ocIdx * 2;
+    const glowIdx = orbitRingStartIdx + ocIdx * 2 + 1;
+    if (allOrbitPaths[mainIdx]) allOrbitPaths[mainIdx].orbit.visible = visible;
+    if (allOrbitPaths[glowIdx]) allOrbitPaths[glowIdx].orbit.visible = visible;
+  });
+  // Moon orbits and parents visibility
+  const showMoonsFilter = !activeFilter || activeFilter === 'moons';
+  moonObjects.forEach(obj => {
+    obj.mesh.visible = showMoonsFilter;
+  });
+  // Moon orbit ring lines
+  for (let mi = 0; mi < MOONS_DATA.length * 2; mi++) {
+    if (allOrbitPaths[mi]) allOrbitPaths[mi].orbit.visible = showMoonsFilter;
+  }
+  // Belt particles visibility
+  const showBattlesFilter = !activeFilter || activeFilter === 'battles';
+  beltParticles.forEach(bp => {
+    bp.mesh.visible = showBattlesFilter;
+  });
+  if (isPlaying) {
+    moonObjects.forEach(obj => {
+      obj.angle += obj.data.orbitSpeed * delta * 0.3 * speedMultiplier;
+      obj.mesh.position.x = Math.cos(obj.angle) * obj.distance;
+      obj.mesh.position.z = Math.sin(obj.angle) * obj.distance;
+      obj.mesh.position.y = Math.sin(obj.angle) * Math.sin(obj.data.orbitTilt || 0) * obj.distance;
+      obj.mesh.rotation.y += 0.01 * speedMultiplier;
+    });
+
+    planetObjects.forEach(obj => {
+      obj.angle += obj.orbitSpeed * delta * 0.3 * speedMultiplier;
+      obj.group.position.x = Math.cos(obj.angle) * obj.distance;
+      obj.group.position.z = Math.sin(obj.angle) * obj.distance;
+      obj.mesh.rotation.y += obj.rotSpeed * speedMultiplier;
+    });
+
+    // Mini-moons orbiting children
+    miniMoons.forEach(m => {
+      m.angle += m.speed * delta * speedMultiplier;
+      m.mesh.position.x = Math.cos(m.angle) * m.distance;
+      m.mesh.position.z = Math.sin(m.angle) * m.distance;
+      m.mesh.position.y = Math.sin(m.angle * 0.5) * 0.3;
+    });
+
+    // Belt particles slow orbit
+    beltParticles.forEach(bp => {
+      bp.angle += bp.speed * delta * speedMultiplier;
+      bp.mesh.position.x = Math.cos(bp.angle) * bp.distance;
+      bp.mesh.position.z = Math.sin(bp.angle) * bp.distance;
+      bp.mesh.rotation.x += bp.rotSpeed * speedMultiplier;
+      bp.mesh.rotation.y += bp.rotSpeed * 0.7 * speedMultiplier;
+    });
+
+    // Battle debris orbit around their parent asteroids
+    battleAsteroidMeshes.forEach(ba => {
+      ba.debris.forEach((dMesh, di) => {
+        const dAngle = (di / ba.debris.length) * Math.PI * 2 + elapsed * 0.5;
+        const dDist = 2.5 + Math.sin(elapsed * 0.3 + di) * 0.5;
+        dMesh.position.x = Math.cos(dAngle + di * 1.2) * dDist;
+        dMesh.position.z = Math.sin(dAngle + di * 1.2) * dDist;
+        dMesh.position.y = Math.sin(elapsed * 0.7 + di * 0.8) * 0.6;
+      });
+    });
+
+    // Aurora particles around sun
+    auroraParticles.forEach(ap => {
+      const a = ap.baseAngle + elapsed * ap.speed;
+      const r = ap.baseRadius + Math.sin(elapsed * ap.vertSpeed + ap.phase) * 1.5;
+      ap.mesh.position.set(
+        Math.cos(a) * r,
+        ap.yOffset + Math.sin(elapsed * ap.vertSpeed * 0.7 + ap.phase) * 2,
+        Math.sin(a) * r
+      );
+      ap.mesh.material.opacity = 0.2 + Math.sin(elapsed * 1.5 + ap.phase) * 0.15;
+    });
+
+    // Comet tails for battles
+    cometTrails.forEach(ct => {
+      const bIdx = ct.battleIndex;
+      const battleOffset = CHILDREN_DATA.length + WIVES_DATA.length + UNCLES_AUNTS_DATA.length + WET_NURSES_DATA.length + MAWALI_SERVANTS_DATA.length + SCRIBES_DATA.length + CLOSE_COMPANIONS_DATA.length + PROMISED_PARADISE.length + bIdx;
+      if (battleOffset < planetObjects.length) {
+        const pObj = planetObjects[battleOffset];
+        if (pObj) {
+          const angle = pObj.angle;
+          ct.trails.forEach((trail, ti) => {
+            const trailAngle = angle - (ti + 1) * 0.06;
+            const trailDist = pObj.distance + Math.sin(trailAngle * 3) * 0.5;
+            trail.mesh.position.set(
+              Math.cos(trailAngle) * trailDist,
+              Math.sin(elapsed * 2 + ti * 0.5) * 0.3,
+              Math.sin(trailAngle) * trailDist
+            );
+            trail.mesh.material.opacity = Math.max(0.05, (1 - ti / ct.trails.length) * 0.5 * (0.7 + Math.sin(elapsed * 3 + ti) * 0.3));
+          });
+        }
+      }
+    });
+  }
+
+  // Update explosions (runs even when paused for visual feedback)
+  for (let ei = explosions.length - 1; ei >= 0; ei--) {
+    const exp = explosions[ei];
+    exp.age += delta;
+    let allDead = true;
+    exp.parts.forEach(p => {
+      p.life -= p.decay * delta;
+      if (p.life > 0) {
+        allDead = false;
+        p.mesh.position.add(p.vel.clone().multiplyScalar(delta));
+        p.vel.multiplyScalar(0.96);
+        if (p.isFlash) {
+          p.mesh.scale.setScalar(Math.max(0.01, p.life * 2));
+        }
+        p.mesh.material.opacity = Math.max(0, p.life);
+      } else {
+        p.mesh.visible = false;
+      }
+    });
+    if (allDead) {
+      exp.parts.forEach(p => scene.remove(p.mesh));
+      explosions.splice(ei, 1);
+    }
+  }
+
+  if (cameraAnim) {
+    cameraAnim.progress += delta * 1.2;
+    const t = Math.min(1, cameraAnim.progress);
+    const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    camera.position.lerpVectors(cameraAnim.startPos, cameraAnim.targetPos, ease);
+    controls.target.lerpVectors(cameraAnim.startLook, cameraAnim.targetLook, ease);
+    if (t >= 1) cameraAnim = null;
+  } else if (focusedTarget !== null) {
+    let targetPos;
+    if (focusedTarget === 'sun') {
+      targetPos = new THREE.Vector3(0, 0, 0);
+      camera.position.lerp(new THREE.Vector3(0, 12, 35), 0.04);
+    } else if (focusedTarget.startsWith('moon-')) {
+      const idx = parseInt(focusedTarget.split('-')[1]);
+      const obj = moonObjects[idx];
+      targetPos = obj.mesh.getWorldPosition(new THREE.Vector3());
+      const dist = Math.max(obj.data.radius * 6, 8);
+      camera.position.lerp(targetPos.clone().add(new THREE.Vector3(0, obj.data.radius * 2, dist)), 0.035);
+    } else {
+      let obj;
+      if (focusedTarget.startsWith('child-')) {
+        obj = planetObjects[parseInt(focusedTarget.split('-')[1])];
+      } else if (focusedTarget.startsWith('wife-')) {
+        obj = planetObjects[CHILDREN_DATA.length + parseInt(focusedTarget.split('-')[1])];
+      } else if (focusedTarget.startsWith('relative-')) {
+        obj = planetObjects[CHILDREN_DATA.length + WIVES_DATA.length + parseInt(focusedTarget.split('-')[1])];
+      } else if (focusedTarget.startsWith('wetnurse-')) {
+        obj = planetObjects[CHILDREN_DATA.length + WIVES_DATA.length + UNCLES_AUNTS_DATA.length + parseInt(focusedTarget.split('-')[1])];
+      } else if (focusedTarget.startsWith('mawali-')) {
+        obj = planetObjects[CHILDREN_DATA.length + WIVES_DATA.length + UNCLES_AUNTS_DATA.length + WET_NURSES_DATA.length + parseInt(focusedTarget.split('-')[1])];
+      } else if (focusedTarget.startsWith('scribe-')) {
+        obj = planetObjects[CHILDREN_DATA.length + WIVES_DATA.length + UNCLES_AUNTS_DATA.length + WET_NURSES_DATA.length + MAWALI_SERVANTS_DATA.length + parseInt(focusedTarget.split('-')[1])];
+      } else if (focusedTarget.startsWith('closecomp-')) {
+        obj = planetObjects[CHILDREN_DATA.length + WIVES_DATA.length + UNCLES_AUNTS_DATA.length + WET_NURSES_DATA.length + MAWALI_SERVANTS_DATA.length + SCRIBES_DATA.length + parseInt(focusedTarget.split('-')[1])];
+      } else if (focusedTarget.startsWith('promised-')) {
+        obj = planetObjects[CHILDREN_DATA.length + WIVES_DATA.length + UNCLES_AUNTS_DATA.length + WET_NURSES_DATA.length + MAWALI_SERVANTS_DATA.length + SCRIBES_DATA.length + CLOSE_COMPANIONS_DATA.length + parseInt(focusedTarget.split('-')[1])];
+      } else if (focusedTarget.startsWith('battle-')) {
+        obj = planetObjects[CHILDREN_DATA.length + WIVES_DATA.length + UNCLES_AUNTS_DATA.length + WET_NURSES_DATA.length + MAWALI_SERVANTS_DATA.length + SCRIBES_DATA.length + CLOSE_COMPANIONS_DATA.length + PROMISED_PARADISE.length + parseInt(focusedTarget.split('-')[1])];
+      }
+      if (obj) {
+        targetPos = obj.group.position.clone();
+        const r = obj.data.radius || 0.7;
+        const dist = Math.max(r * 8, 6);
+        camera.position.lerp(targetPos.clone().add(new THREE.Vector3(0, r * 2.5, dist)), 0.035);
+      }
+    }
+    if (targetPos) controls.target.lerp(targetPos, 0.06);
+  }
+
+  if (showLabels) {
+    // Sun calligraphy label - always centered on the sun
+    const sunScreenPos = new THREE.Vector3(0, 0, 0).project(camera);
+    const sunLabel = document.getElementById('sun-calligraphy-label');
+    if (sunScreenPos.z < 1 && sunLabel) {
+      sunLabel.style.left = ((sunScreenPos.x * 0.5 + 0.5) * window.innerWidth) + 'px';
+      sunLabel.style.top = ((-sunScreenPos.y * 0.5 + 0.5) * window.innerHeight - 12) + 'px';
+      const sunDist = camera.position.length();
+      sunLabel.style.fontSize = Math.min(28, Math.max(14, 350 / sunDist)) + 'px';
+      sunLabel.style.display = 'block';
+    } else if (sunLabel) {
+      sunLabel.style.display = 'none';
+    }
+
+    moonObjects.forEach(obj => {
+      const visible = !activeFilter || activeFilter === 'moons';
+      if (!visible) { obj.label.style.display = 'none'; return; }
+      const worldPos = obj.mesh.getWorldPosition(new THREE.Vector3());
+      const pos = worldPos.clone().project(camera);
+      if (pos.z < 1) {
+        obj.label.style.display = 'block';
+        obj.label.style.left = ((pos.x * 0.5 + 0.5) * window.innerWidth) + 'px';
+        obj.label.style.top = ((-pos.y * 0.5 + 0.5) * window.innerHeight - 20) + 'px';
+        if (showLabels) {
+          const dist = camera.position.distanceTo(worldPos);
+          obj.label.style.opacity = Math.min(1, Math.max(0.35, 100 / dist));
+        }
+      } else { obj.label.style.display = 'none'; }
+    });
+    planetObjects.forEach(obj => {
+      const visible = !activeFilter || obj.orbitType === activeFilter;
+      if (!visible) { obj.label.style.display = 'none'; return; }
+      const pos = obj.group.position.clone().project(camera);
+      if (pos.z < 1) {
+        obj.label.style.display = 'block';
+        obj.label.style.left = ((pos.x * 0.5 + 0.5) * window.innerWidth) + 'px';
+        obj.label.style.top = ((-pos.y * 0.5 + 0.5) * window.innerHeight - 20) + 'px';
+        if (showLabels) {
+          const dist = camera.position.distanceTo(obj.group.position);
+          obj.label.style.opacity = Math.min(1, Math.max(0.3, 80 / dist));
+        }
+      } else { obj.label.style.display = 'none'; }
+    });
+    // Mini-moon labels
+    miniMoons.forEach(m => {
+      const parentVisible = !activeFilter || activeFilter === 'children';
+      if (!parentVisible || !m.parentGroup.visible) { m.label.style.display = 'none'; return; }
+      const worldPos = new THREE.Vector3();
+      m.mesh.getWorldPosition(worldPos);
+      const pos = worldPos.clone().project(camera);
+      if (pos.z < 1) {
+        m.label.style.display = 'block';
+        m.label.style.left = ((pos.x * 0.5 + 0.5) * window.innerWidth) + 'px';
+        m.label.style.top = ((-pos.y * 0.5 + 0.5) * window.innerHeight - 20) + 'px';
+        if (showLabels) {
+          const dist = camera.position.distanceTo(worldPos);
+          m.label.style.opacity = Math.min(1, Math.max(0.15, 40 / dist));
+        }
+      } else { m.label.style.display = 'none'; }
+    });
+  }
+
+  // === HOVER GLOW ANIMATION ===
+  if (hoverGlow.visible) {
+    const glowPulse = 0.6 + Math.sin(elapsed * 4) * 0.4;
+    glowSprite.material.opacity = 0.5 * glowPulse;
+    glowRings.forEach((r, i) => {
+      r.mesh.material.opacity = r.baseOpacity * glowPulse;
+      r.mesh.rotation.z = elapsed * (0.3 + i * 0.15);
+      r.mesh.lookAt(camera.position);
+    });
+    // Follow hovered object if it's moving
+    if (currentHoveredObj) {
+      const objPos = currentHoveredObj.parent && currentHoveredObj.parent !== scene
+        ? currentHoveredObj.parent.position.clone()
+        : currentHoveredObj.getWorldPosition(new THREE.Vector3());
+      hoverGlow.position.lerp(objPos, 0.2);
+    }
+  }
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+buildSelector();
+applyTheme(0);
+
+// Lock button - prevent clicks from opening info cards
+const lockBtn = document.getElementById('lock-btn');
+if (lockBtn) {
+  lockBtn.addEventListener('click', function() {
+    clickLock = !clickLock;
+    this.classList.toggle('locked', clickLock);
+    this.textContent = clickLock ? '🔒' : '🔓';
+    this.title = clickLock ? 'النقر مقفل - اضغط لفتحه' : 'قفل النقر على الشخصيات';
+    if (clickLock) {
+      const infoPanel = document.getElementById('info-panel');
+      if (infoPanel) infoPanel.classList.remove('visible');
+      focusedTarget = null;
+      clearSelection();
+    }
+  });
+}
+
+// Toggle panel
+const togglePanelBtn = document.getElementById('toggle-panel');
+const planetSelector = document.getElementById('planet-selector');
+
+function setSidePanelState(hide) {
+  if (!planetSelector || !togglePanelBtn) return;
+  if (hide) {
+    planetSelector.classList.add('hidden-panel');
+    togglePanelBtn.classList.add('panel-closed');
+    togglePanelBtn.innerHTML = '◀';
+    togglePanelBtn.setAttribute('title', 'إظهار القائمة الجانبية');
+  } else {
+    planetSelector.classList.remove('hidden-panel');
+    togglePanelBtn.classList.remove('panel-closed');
+    togglePanelBtn.innerHTML = '▶';
+    togglePanelBtn.setAttribute('title', 'إخفاء القائمة الجانبية');
+  }
+}
+
+if (togglePanelBtn && planetSelector) {
+  togglePanelBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const isHidden = planetSelector.classList.contains('hidden-panel');
+    setSidePanelState(!isHidden);
+  });
+}
+
+// Initial state: collapsed on mobile/small screens, open on desktop
+if (window.innerWidth <= 768 || /Android/i.test(navigator.userAgent)) {
+  setSidePanelState(true);
+} else {
+  setSidePanelState(false);
+}
+
+document.querySelectorAll('.theme-dot').forEach(dot => {
+  dot.addEventListener('click', function() {
+    applyTheme(parseInt(this.dataset.idx));
+  });
+});
+
+// ===== SEARCH SYSTEM (inside panel) =====
+(function() {
+  const allSearchableData = [];
+  function registerSearchable(arr, type, colorFn) {
+    arr.forEach((item, idx) => {
+      allSearchableData.push({ name: item.name, nameEn: (item.nameEn || '').toLowerCase(), type: type, index: idx, colorHex: item.colorHex });
+    });
+  }
+  registerSearchable(MOONS_DATA, 'moon', d => d.colorHex);
+  registerSearchable(CHILDREN_DATA, 'child', d => d.colorHex);
+  registerSearchable(WIVES_DATA, 'wife', d => d.colorHex);
+  registerSearchable(UNCLES_AUNTS_DATA, 'relative', d => d.colorHex);
+  registerSearchable(WET_NURSES_DATA, 'wetnurse', d => d.colorHex);
+  registerSearchable(MAWALI_SERVANTS_DATA, 'mawali', d => d.colorHex);
+  registerSearchable(SCRIBES_DATA, 'scribe', d => d.colorHex);
+  registerSearchable(CLOSE_COMPANIONS_DATA, 'closecomp', d => d.colorHex);
+  registerSearchable(PROMISED_PARADISE, 'promised', d => d.colorHex);
+  registerSearchable(BATTLES_DATA, 'battle', d => d.colorHex);
+  allSearchableData.push({ name: 'محمد ﷺ', nameEn: 'prophet muhammad', type: 'sun', index: 0, colorHex: '#ffd700' });
+
+  const input = document.getElementById('panel-search-input');
+  const results = document.getElementById('panel-search-results');
+  if (!input || !results) return;
+
+  input.addEventListener('input', function() {
+    const q = this.value.trim();
+    if (q.length < 2) { results.style.display = 'none'; return; }
+    const matches = allSearchableData.filter(d => d.name.includes(q) || d.nameEn.includes(q.toLowerCase()));
+    if (matches.length === 0) { results.style.display = 'none'; return; }
+    results.innerHTML = '';
+    matches.slice(0, 8).forEach(m => {
+      const item = document.createElement('div');
+      item.className = 'panel-search-item';
+      item.innerHTML = '<span class="panel-search-dot" style="background:' + m.colorHex + '"></span><span>' + m.name + '</span>';
+      item.addEventListener('click', () => {
+        results.style.display = 'none';
+        input.value = '';
+        if (m.type === 'sun') selectSun();
+        else if (m.type === 'moon') selectMoon(m.index);
+        else if (m.type === 'child') selectChild(m.index);
+        else if (m.type === 'wife') selectWife(m.index);
+        else if (m.type === 'relative') selectRelative(m.index);
+        else if (m.type === 'wetnurse') selectWetnurse(m.index);
+        else if (m.type === 'mawali') selectMawali(m.index);
+        else if (m.type === 'scribe') selectScribe(m.index);
+        else if (m.type === 'closecomp') selectClosecomp(m.index);
+        else if (m.type === 'promised') selectPromised(m.index);
+        else if (m.type === 'battle') selectBattle(m.index);
+      });
+      results.appendChild(item);
+    });
+    results.style.display = 'block';
+  });
+
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const firstItem = results.querySelector('.panel-search-item');
+      if (firstItem) firstItem.click();
+    } else if (e.key === 'Escape') {
+      this.value = ''; results.style.display = 'none'; this.blur();
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('#panel-search')) results.style.display = 'none';
+  });
+})();
+
+// ===== AURORA EFFECT AROUND SUN =====
+const auroraParticles = [];
+(function() {
+  const auroraCount = 60;
+  for (let i = 0; i < auroraCount; i++) {
+    const aGeo = new THREE.SphereGeometry(0.12 + Math.random() * 0.15, 6, 6);
+    const hue = 0.08 + Math.random() * 0.12;
+    const aMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color().setHSL(hue, 0.8, 0.6),
+      transparent: true, opacity: 0.3 + Math.random() * 0.3,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    const aMesh = new THREE.Mesh(aGeo, aMat);
+    const baseAngle = (i / auroraCount) * Math.PI * 2;
+    const baseRadius = 7 + Math.random() * 2;
+    const yOffset = (Math.random() - 0.5) * 4;
+    const speed = 0.2 + Math.random() * 0.3;
+    const vertSpeed = 0.3 + Math.random() * 0.4;
+    scene.add(aMesh);
+    auroraParticles.push({ mesh: aMesh, baseAngle, baseRadius, yOffset, speed, vertSpeed, phase: Math.random() * Math.PI * 2 });
+  }
+})();
+
+// ===== COMET TAILS FOR BATTLES =====
+const cometTrails = [];
+(function() {
+  BATTLES_DATA.forEach((data, i) => {
+    const trailCount = 12;
+    const trails = [];
+    for (let t = 0; t < trailCount; t++) {
+      const tSize = Math.max(0.05, (1 - t / trailCount) * 0.4);
+      const tGeo = new THREE.SphereGeometry(tSize, 6, 6);
+      const tMat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(data.colorHex),
+        transparent: true, opacity: Math.max(0.05, (1 - t / trailCount) * 0.6),
+        blending: THREE.AdditiveBlending, depthWrite: false
+      });
+      const tMesh = new THREE.Mesh(tGeo, tMat);
+      scene.add(tMesh);
+      trails.push({ mesh: tMesh });
+    }
+    cometTrails.push({ trails, battleIndex: i });
+  });
+})();
+
+// ===== STAR EXPLOSION ON CLICK =====
+const explosions = [];
+function createExplosion(position, colorHex) {
+  const particleCount = 25;
+  const parts = [];
+  for (let i = 0; i < particleCount; i++) {
+    const pGeo = new THREE.SphereGeometry(0.06 + Math.random() * 0.1, 4, 4);
+    const pMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(colorHex),
+      transparent: true, opacity: 1,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    const pMesh = new THREE.Mesh(pGeo, pMat);
+    pMesh.position.copy(position);
+    const vel = new THREE.Vector3(
+      (Math.random() - 0.5) * 6,
+      (Math.random() - 0.5) * 6,
+      (Math.random() - 0.5) * 6
+    );
+    scene.add(pMesh);
+    parts.push({ mesh: pMesh, vel: vel, life: 1.0, decay: 0.8 + Math.random() * 0.6 });
+  }
+  const flashGeo = new THREE.SphereGeometry(1.5, 12, 12);
+  const flashMat = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(colorHex), transparent: true, opacity: 0.7,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  });
+  const flashMesh = new THREE.Mesh(flashGeo, flashMat);
+  flashMesh.position.copy(position);
+  scene.add(flashMesh);
+  parts.push({ mesh: flashMesh, vel: new THREE.Vector3(0,0,0), life: 1.0, decay: 3.0, isFlash: true });
+  explosions.push({ parts: parts, age: 0 });
+}
+
+
+
+// Safety: force-hide loading after 15s even if something fails
+setTimeout(() => {
+  const ld = document.getElementById('loading');
+  if (ld && ld.style.display !== 'none') {
+    ld.style.opacity = '0';
+    setTimeout(() => { if(ld) ld.style.display = 'none'; }, 1000);
+  }
+}, 15000);
+
+setTimeout(() => {
+  document.getElementById('loading').style.opacity = '0';
+  setTimeout(() => document.getElementById('loading').style.display = 'none', 1000);
+}, 800);
+animate();
+} catch(err) {
+  console.error('Initialization error:', err);
+  document.getElementById('loading').innerHTML = '<div class="loading-content"><div class="loading-orb" style="background:radial-gradient(circle,#ff4444,#aa0000);box-shadow:0 0 40px #ff4444"></div><div class="loading-text" style="color:#ff6666;font-size:13px">حدث خطأ: ' + (err.message || err) + '<br><br>جرّب تحديث الصفحة</div></div>';
+}
+</script>
+</body>
+</html>

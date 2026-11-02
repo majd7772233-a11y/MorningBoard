@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="gjBg" cx="50%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#fb7185" />
+      <stop offset="50%" stop-color="#e11d48" />
+      <stop offset="100%" stop-color="#9f1239" />
+    </radialGradient>
+    <linearGradient id="gjGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#facc15" />
+      <stop offset="100%" stop-color="#ca8a04" />
+    </linearGradient>
+    <filter id="gjShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#881337" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- Ribbons -->
+  <polygon points="65,142 38,186 66,174 90,186 80,142" fill="#be123c" />
+  <polygon points="135,142 162,186 134,174 110,186 120,142" fill="#881337" />
+
+  <!-- Badge Body -->
+  <g filter="url(#gjShadow)">
+    <circle cx="100" cy="95" r="82" fill="url(#gjGold)" />
+    <circle cx="100" cy="95" r="75" fill="#fff1f2" />
+    <circle cx="100" cy="95" r="70" fill="url(#gjBg)" stroke="#ffffff" stroke-width="3" />
+    <circle cx="100" cy="95" r="64" fill="none" stroke="#fecdd3" stroke-width="1.5" stroke-dasharray="4,4" />
+  </g>
+
+  <!-- Thumbs Up Icon -->
+  <g fill="#ffffff" transform="translate(86, 38) scale(0.9)">
+    <path d="M7 11V21H2V11H7ZM8 21H18C18.9 21 19.6 20.4 19.9 19.6L22.8 12.8C22.9 12.6 23 12.3 23 12V10C23 8.9 22.1 8 21 8H14.7L15.6 3.4L15.7 3.1C15.7 2.7 15.5 2.3 15.2 2L14.2 1L7.6 7.6C7.2 8 7 8.5 7 9V19C7 20.1 7.9 21 8 21Z" />
+  </g>
+
+  <!-- English Text "GREAT JOB!" -->
+  <text x="100" y="98" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="21" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1">GREAT</text>
+  <text x="100" y="120" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="900" fill="#fef08a" text-anchor="middle" letter-spacing="1.5">JOB!</text>
+
+  <!-- Sparkles -->
+  <polygon points="56,92 57,96 61,97 57,98 56,102 55,98 51,97 55,96" fill="#fef08a" />
+  <polygon points="144,92 145,96 149,97 145,98 144,102 143,98 139,97 143,96" fill="#fef08a" />
+
+  <!-- Subtitle pill -->
+  <rect x="55" y="128" width="90" height="18" rx="9" fill="#ffffff" />
+  <text x="100" y="141" font-family="system-ui, sans-serif" font-size="10.5" font-weight="800" fill="#be123c" text-anchor="middle">KEEP IT UP ⭐</text>
+</svg>

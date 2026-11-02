@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مقطع عرضي في الخلية النباتية - البناء الضوئي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a1f0a; --bg-mid: #1a3a1a; --accent-gold: #d4af37;
+            --accent-green: #4ade80; --text-light: #e8f5e8; --card-bg: rgba(20, 60, 20, 0.85);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #0d2818 50%, var(--bg-dark) 100%);
+            min-height: 100vh; overflow-x: hidden; color: var(--text-light);
+        }
+        #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; outline: none; }
+        .ui-overlay { position: relative; z-index: 10; pointer-events: none; }
+        .ui-overlay > * { pointer-events: auto; }
+        
+        header { padding: 20px; text-align: center; background: linear-gradient(180deg, rgba(10, 31, 10, 0.95) 0%, transparent 100%); }
+        h1 {
+            font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 900;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-gold), var(--accent-green));
+            background-size: 200% auto; -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent; background-clip: text;
+            animation: shimmer 3s linear infinite; margin-bottom: 10px;
+        }
+        @keyframes shimmer { to { background-position: 200% center; } }
+        .subtitle { font-size: 1rem; opacity: 0.8; color: var(--accent-green); }
+        
+        .info-panel {
+            position: fixed; bottom: 20px; left: 20px; right: 20px;
+            background: var(--card-bg); backdrop-filter: blur(20px);
+            border-radius: 20px; padding: 20px; border: 1px solid rgba(74, 222, 128, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); max-height: 40vh; overflow-y: auto;
+        }
+        .component-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+        .component-card {
+            background: rgba(74, 222, 128, 0.1); border-radius: 12px; padding: 12px;
+            cursor: pointer; transition: all 0.3s ease; border: 1px solid transparent;
+        }
+        .component-card:hover { background: rgba(74, 222, 128, 0.2); border-color: var(--accent-green); transform: translateY(-3px); }
+        .component-card.active { background: rgba(212, 175, 55, 0.2); border-color: var(--accent-gold); box-shadow: 0 0 15px rgba(212,175,55,0.4); }
+        .component-name { font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; color: var(--accent-gold); }
+        .component-desc { font-size: 0.75rem; opacity: 0.85; line-height: 1.4; }
+        
+        /* تعديل مكان الكرت ليظهر في الجانب الأيسر */
+        .detail-popup {
+            position: fixed; top: 45%; left: 20px; /* النقل لليسار بدلاً من 50% */
+            transform: translateY(-50%) scale(0.9); /* إزالة التوسيط الأفقي */
+            background: var(--card-bg); backdrop-filter: blur(30px); border-radius: 24px;
+            padding: 30px; max-width: 350px; width: 90%; border: 2px solid var(--accent-gold);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7); z-index: 100; opacity: 0;
+            visibility: hidden; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .detail-popup.visible { opacity: 1; visibility: visible; transform: translateY(-50%) scale(1); }
+        .detail-popup h3 { font-size: 1.3rem; color: var(--accent-gold); margin-bottom: 15px; }
+        .detail-popup p { line-height: 1.8; margin-bottom: 15px; }
+        .close-btn {
+            position: absolute; top: 15px; right: 15px; /* نقل زر الإغلاق لليمين */
+            width: 36px; height: 36px;
+            border-radius: 50%; background: rgba(255, 255, 255, 0.1); border: none;
+            color: var(--text-light); font-size: 1.2rem; cursor: pointer; transition: all 0.3s;
+        }
+        .close-btn:hover { background: var(--accent-gold); color: var(--bg-dark); transform: rotate(90deg); }
+        
+        .photosynthesis-indicator {
+            position: fixed; top: 100px; right: 20px; /* نقل المؤشر لليمين لكي لا يتعارض مع الكرت */
+            background: var(--card-bg);
+            backdrop-filter: blur(20px); border-radius: 16px; padding: 15px;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+        .process-status { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent-green); animation: pulse 1.5s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.3); opacity: 0.7; } }
+        
+        .molecule-count { display: flex; gap: 15px; font-size: 0.85rem; }
+        .molecule-item { display: flex; flex-direction: column; align-items: center; }
+        .molecule-value { font-size: 1.2rem; font-weight: 700; color: var(--accent-gold); }
+        
+        @media (max-width: 768px) {
+            .photosynthesis-indicator { display: none; }
+            .info-panel { bottom: 10px; left: 10px; right: 10px; padding: 15px; }
+            .detail-popup { left: 50%; transform: translate(-50%, -50%) scale(0.9); } /* في الموبايل يرجع بالنص لضيق الشاشة */
+            .detail-popup.visible { transform: translate(-50%, -50%) scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <div class="ui-overlay">
+        <header>
+            <h1>الخلية النباتية والبناء الضوئي</h1>
+            <p class="subtitle">انقر على أي جزء للتكبير، واستخدم الماوس بحرية للتدوير</p>
+        </header>
+        
+        <div class="photosynthesis-indicator">
+            <div class="process-status"><div class="status-dot"></div><span>البناء الضوئي نشط</span></div>
+            <div class="molecule-count">
+                <div class="molecule-item"><span class="molecule-value" id="o2-count">0</span><span>O2</span></div>
+                <div class="molecule-item"><span class="molecule-value" id="glucose-count">0</span><span>جلوكوز</span></div>
+            </div>
+        </div>
+        
+        <div class="info-panel"><div class="component-grid" id="components"></div></div>
+    </div>
+    
+    <div class="detail-popup" id="detailPopup">
+        <button class="close-btn" onclick="closePopup()">×</button>
+        <h3 id="popup-title"></h3>
+        <p id="popup-content"></p>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- M&S State Sync logic ---
+        function sendStateToParent(action, data) {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'room3d_state_change',
+                    roomType: 'plant_cell',
+                    action: action,
+                    data: data
+                }, '*');
+            }
+        }
+        
+        const cellComponents = [
+            { id: 'cell-wall', name: 'جدار الخلية', desc: 'غلاف صلب يحمي الخلية', detail: 'مكون من السليلوز، يوفر الدعم والحماية ويسمح بمرور الماء.' },
+            { id: 'cell-membrane', name: 'الغشاء البلازمي', desc: 'غشاء شبه نفاذ', detail: 'يتحكم في دخول وخروج المواد، مكون من طبقة ثنائية من الدهون.' },
+            { id: 'nucleus', name: 'النواة', desc: 'مركز التحكم', detail: 'تحتوي على الـ DNA وتتحكم في جميع أنشطة الخلية.' },
+            { id: 'chloroplast', name: 'البلاستيدة الخضراء', desc: 'مصنع الغذاء', detail: 'تحتوي على اليخضور وتقوم بعملية البناء الضوئي.' },
+            { id: 'vacuole', name: 'الفجوة العصارية', desc: 'مخزن الخلية', detail: 'كيس مائي كبير يخزن الماء والأملاح ويحافظ على ضغط الامتلاء.' },
+            { id: 'mitochondria', name: 'الميتوكوندريا', desc: 'محطة الطاقة', detail: 'تنتج الطاقة (ATP) اللازمة لعمليات الخلية عبر التنفس الخلوي.' },
+            { id: 'ribosome', name: 'الريبوسومات', desc: 'مصنع البروتين', detail: 'عضيات دقيقة جداً مسؤولة عن تجميع وبناء البروتينات.' },
+            { id: 'sunlight', name: 'الشمس', desc: 'مصدر الطاقة', detail: 'تطلق الفوتونات التي تمتصها البلاستيدات لتبدأ عملية البناء الضوئي.' }
+        ];
+        
+        const objectMap = {};
+        
+        const componentsContainer = document.getElementById('components');
+        cellComponents.forEach(comp => {
+            const card = document.createElement('div');
+            card.className = 'component-card';
+            card.dataset.id = comp.id;
+            card.innerHTML = `<div class="component-name">${comp.name}</div><div class="component-desc">${comp.desc}</div>`;
+            card.addEventListener('click', () => {
+                selectComponentDirectly(comp.id);
+                sendStateToParent('select_component', { id: comp.id });
+            });
+            componentsContainer.appendChild(card);
+        });
+        
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x051005); // لون خلفية أغمق قليلاً لإبراز الخلية
+        
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const defaultCamPos = new THREE.Vector3(0, 10, 22);
+        camera.position.copy(defaultCamPos);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        // تفعيل النغمة اللونية لتبدو الإضاءة طبيعية أكثر
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.1;
+        container.appendChild(renderer.domElement);
+        
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        const defaultOrbitTarget = new THREE.Vector3(0, 0, 0);
+        controls.target.copy(defaultOrbitTarget);
+
+        window.camera = camera;
+        window.controls = controls;
+        window.scene = scene;
+        window.renderer = renderer;
+        
+        // --- تعديل الإضاءة لحل مشكلة الظلام ---
+        // 1. إضاءة محيطية قوية
+        scene.add(new THREE.AmbientLight(0xffffff, 1.2)); 
+        
+        // 2. إضاءة Hemisphere لملء الظلال العلوية والسفلية
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.0);
+        hemiLight.position.set(0, 20, 0);
+        scene.add(hemiLight);
+
+        const sunGroup = new THREE.Group();
+        sunGroup.position.set(22, 22, -15);
+        scene.add(sunGroup);
+        objectMap['sunlight'] = sunGroup;
+
+        // ضوء الشمس الفعلي - تمت زيادة قوته
+        const sunLight = new THREE.PointLight(0xFFD700, 3, 200);
+        sunGroup.add(sunLight);
+
+        const sunCore = new THREE.Mesh(new THREE.SphereGeometry(3, 32, 32), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+        sunGroup.add(sunCore);
+
+        const glowMat1 = new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending });
+        const sunGlow1 = new THREE.Mesh(new THREE.SphereGeometry(4.2, 32, 32), glowMat1);
+        sunGroup.add(sunGlow1);
+
+        const glowMat2 = new THREE.MeshBasicMaterial({ color: 0xff5500, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending });
+        const sunGlow2 = new THREE.Mesh(new THREE.SphereGeometry(6, 32, 32), glowMat2);
+        sunGroup.add(sunGlow2);
+
+        const rays = [];
+        const rayGeo = new THREE.CylinderGeometry(0.05, 0.4, 30, 8);
+        const rayMat = new THREE.MeshBasicMaterial({ color: 0xffdd00, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending });
+        
+        for (let i = 0; i < 15; i++) {
+            const ray = new THREE.Mesh(rayGeo, rayMat.clone());
+            ray.position.set((Math.random()-0.5)*4, (Math.random()-0.5)*4, (Math.random()-0.5)*4);
+            ray.lookAt(new THREE.Vector3(0, 0, 0));
+            ray.rotateX(Math.PI / 2);
+            ray.translateY(-15);
+            sunGroup.add(ray);
+            rays.push({ mesh: ray, speed: Math.random() * 2 + 1, offset: Math.random() * 10 });
+        }
+        
+        scene.add(new THREE.PointLight(0x4ade80, 1.2, 50).position.set(-5, 5, 5));
+        
+        // --- بناء الخلية ---
+        const cellGroup = new THREE.Group();
+        scene.add(cellGroup);
+        
+        const cellWall = new THREE.Mesh(
+            new THREE.SphereGeometry(6, 64, 64, 0, Math.PI * 2, 0, Math.PI / 2),
+            new THREE.MeshPhysicalMaterial({ color: 0x8B7355, roughness: 0.5, transparent: true, opacity: 0.35, side: THREE.DoubleSide })
+        );
+        cellWall.userData = { id: 'cell-wall' }; cellGroup.add(cellWall); objectMap['cell-wall'] = cellWall;
+        
+        const membrane = new THREE.Mesh(
+            new THREE.SphereGeometry(5.7, 64, 64, 0, Math.PI * 2, 0, Math.PI / 2),
+            new THREE.MeshPhysicalMaterial({ color: 0x98D8AA, roughness: 0.3, transparent: true, opacity: 0.25, side: THREE.DoubleSide })
+        );
+        membrane.userData = { id: 'cell-membrane' }; cellGroup.add(membrane); objectMap['cell-membrane'] = membrane;
+        
+        const cytoplasm = new THREE.Mesh(
+            new THREE.SphereGeometry(5.5, 64, 64, 0, Math.PI * 2, 0, Math.PI / 2),
+            new THREE.MeshPhysicalMaterial({ color: 0xc8e6c9, roughness: 0.9, transparent: true, opacity: 0.05 })
+        );
+        cellGroup.add(cytoplasm);
+        
+        const nucleus = new THREE.Mesh(
+            new THREE.SphereGeometry(1.2, 32, 32),
+            new THREE.MeshPhysicalMaterial({ color: 0x4A6FA5, roughness: 0.3, emissive: 0x1a2f4a, emissiveIntensity: 0.3 })
+        );
+        nucleus.position.set(0, 1.5, 0); nucleus.userData = { id: 'nucleus' }; cellGroup.add(nucleus); objectMap['nucleus'] = nucleus;
+        
+        const nucleolus = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), new THREE.MeshBasicMaterial({ color: 0x2c3e50 }));
+        nucleolus.position.set(0, 1.5, 0); cellGroup.add(nucleolus);
+        
+        const chloroplasts = [];
+        const chloroplastGeometry = new THREE.CapsuleGeometry(0.3, 0.8, 8, 16);
+        const chloroplastMaterial = new THREE.MeshPhysicalMaterial({ color: 0x228B22, roughness: 0.2, emissive: 0x115511, emissiveIntensity: 0.4 });
+        for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * Math.PI * 2; const radius = 3 + Math.random() * 1.5;
+            const chloroplast = new THREE.Mesh(chloroplastGeometry, chloroplastMaterial.clone());
+            chloroplast.position.set(Math.cos(angle) * radius, 1 + Math.random() * 2, Math.sin(angle) * radius * 0.6);
+            chloroplast.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+            chloroplast.userData = { id: 'chloroplast' }; chloroplasts.push(chloroplast); cellGroup.add(chloroplast);
+            if(i === 0) objectMap['chloroplast'] = chloroplast;
+        }
+        
+        const vacuole = new THREE.Mesh(
+            new THREE.SphereGeometry(2.5, 32, 32),
+            new THREE.MeshPhysicalMaterial({ color: 0x87CEEB, roughness: 0.1, transparent: true, opacity: 0.6 })
+        );
+        vacuole.position.set(2, 2, 1); vacuole.userData = { id: 'vacuole' }; cellGroup.add(vacuole); objectMap['vacuole'] = vacuole;
+        
+        const mitochondriaGeometry = new THREE.CapsuleGeometry(0.2, 0.6, 8, 16);
+        const mitochondriaMaterial = new THREE.MeshPhysicalMaterial({ color: 0xFF6B6B, roughness: 0.3, emissive: 0x663333, emissiveIntensity: 0.4 });
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2 + Math.PI / 8; const radius = 2 + Math.random() * 2;
+            const mito = new THREE.Mesh(mitochondriaGeometry, mitochondriaMaterial);
+            mito.position.set(Math.cos(angle) * radius, 1.5 + Math.random(), Math.sin(angle) * radius * 0.5);
+            mito.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+            mito.userData = { id: 'mitochondria' }; cellGroup.add(mito);
+            if(i === 0) objectMap['mitochondria'] = mito;
+        }
+        
+        const ribosomeGeometry = new THREE.SphereGeometry(0.08, 8, 8);
+        const ribosomeMaterial = new THREE.MeshBasicMaterial({ color: 0xFFD93D });
+        for (let i = 0; i < 50; i++) {
+            const ribo = new THREE.Mesh(ribosomeGeometry, ribosomeMaterial);
+            const theta = Math.random() * Math.PI * 2; const phi = Math.random() * Math.PI / 2; const r = 3 + Math.random() * 2;
+            ribo.position.set(r * Math.sin(phi) * Math.cos(theta), r * Math.cos(phi) + 0.5, r * Math.sin(phi) * Math.sin(theta));
+            ribo.userData = { id: 'ribosome' }; cellGroup.add(ribo);
+            if(i === 0) objectMap['ribosome'] = ribo;
+        }
+        
+        // --- حل مشكلة صعوبة التحكم والدوران ---
+        let targetCamPos = new THREE.Vector3();
+        let targetOrbit = new THREE.Vector3();
+        let isTransitioning = false;
+        
+        // Expose camera lock state to parent
+        Object.defineProperty(window, 'isCameraLocked', {
+            get: function() {
+                return isTransitioning;
+            },
+            configurable: true
+        });
+        
+        // بمجرد أن يقوم المستخدم بالضغط وتحريك الماوس يدوياً، يتم إيقاف الزوم التلقائي
+        controls.addEventListener('start', () => {
+            isTransitioning = false;
+        });
+
+        function selectComponentDirectly(compId) {
+            const comp = cellComponents.find(c => c.id === compId);
+            if (comp) {
+                // UI Detail
+                document.getElementById('popup-title').textContent = comp.name;
+                document.getElementById('popup-content').textContent = comp.detail;
+                document.getElementById('detailPopup').classList.add('visible');
+                
+                document.querySelectorAll('.component-card').forEach(card => {
+                    card.classList.remove('active');
+                    if (card.dataset.id === comp.id) card.classList.add('active');
+                });
+
+                // Focus
+                const obj = objectMap[compId];
+                if (obj) {
+                    const pos = new THREE.Vector3();
+                    obj.getWorldPosition(pos);
+                    targetOrbit.copy(pos);
+                    
+                    let distance = 5;
+                    if (['cell-wall', 'cell-membrane'].includes(compId)) distance = 16;
+                    else if (compId === 'vacuole') distance = 10;
+                    else if (compId === 'sunlight') distance = 15;
+                    else if (compId === 'nucleus') distance = 8;
+
+                    let dir = camera.position.clone().sub(pos).normalize();
+                    if(dir.lengthSq() === 0) dir.set(0, 0, 1);
+                    
+                    targetCamPos.copy(pos).add(dir.multiplyScalar(distance));
+                    isTransitioning = true;
+                }
+            }
+        }
+
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        
+        renderer.domElement.addEventListener('click', (event) => {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            const interactables = [...cellGroup.children];
+            sunGroup.children.forEach(c => interactables.push(c));
+            
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(interactables, true);
+            
+            if (intersects.length > 0) {
+                let selectedObj = null;
+                for (let i = 0; i < intersects.length; i++) {
+                    const obj = intersects[i].object;
+                    let rootUserData = obj.userData;
+                    if(!rootUserData.id && obj.parent && obj.parent.userData.id) rootUserData = obj.parent.userData;
+                    if(!rootUserData.id && obj.parent && obj.parent.parent && obj.parent.parent.userData.id) rootUserData = obj.parent.parent.userData;
+
+                    if (rootUserData.id && !['cell-wall', 'cell-membrane'].includes(rootUserData.id)) {
+                        selectedObj = obj;
+                        break;
+                    }
+                }
+                if (!selectedObj) selectedObj = intersects[0].object;
+
+                let compId = selectedObj.userData.id;
+                if(!compId && selectedObj.parent) compId = selectedObj.parent.userData.id;
+                if(!compId && selectedObj.parent.parent) compId = selectedObj.parent.parent.userData.id;
+                if(selectedObj === sunCore || selectedObj === sunGlow1 || selectedObj === sunGlow2) compId = 'sunlight';
+
+                if (compId) {
+                    const comp = cellComponents.find(c => c.id === compId);
+                    if (comp) {
+                        selectComponentDirectly(compId);
+                        sendStateToParent('select_component', { id: compId });
+                    }
+                }
+            }
+        });
+        
+        window.showDetail = function(comp) {
+            selectComponentDirectly(comp.id);
+            sendStateToParent('select_component', { id: comp.id });
+        }
+        
+        function closePopupDirectly() {
+            document.getElementById('detailPopup').classList.remove('visible');
+            document.querySelectorAll('.component-card').forEach(card => card.classList.remove('active'));
+            targetOrbit.copy(defaultOrbitTarget);
+            targetCamPos.copy(defaultCamPos);
+            isTransitioning = true;
+        }
+
+        window.closePopup = function() {
+            closePopupDirectly();
+            sendStateToParent('close_popup', {});
+        };
+        
+        const clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+            
+            cellGroup.rotation.y = Math.sin(time * 0.05) * 0.1;
+            
+            rays.forEach((rayData) => {
+                rayData.mesh.material.opacity = 0.05 + Math.sin(time * rayData.speed + rayData.offset) * 0.15;
+            });
+            sunGlow1.scale.setScalar(1 + Math.sin(time * 2) * 0.05);
+            sunGlow2.scale.setScalar(1 + Math.sin(time * 1.5) * 0.08);
+            
+            chloroplasts.forEach((c, i) => {
+                c.material.emissiveIntensity = 0.4 + Math.sin(time * 3 + i) * 0.2;
+                c.rotation.y += 0.005;
+            });
+            
+            nucleus.scale.setScalar(1 + Math.sin(time * 2) * 0.02);
+            
+            if (isTransitioning) {
+                camera.position.lerp(targetCamPos, 0.06);
+                controls.target.lerp(targetOrbit, 0.06);
+                if (camera.position.distanceTo(targetCamPos) < 0.1 && controls.target.distanceTo(targetOrbit) < 0.1) {
+                    isTransitioning = false;
+                }
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        window.addEventListener('message', (e) => {
+            const data = e.data;
+            if (!data || data.type !== 'apply_room3d_state') return;
+
+            if (data.action === 'select_component') {
+                selectComponentDirectly(data.data.id);
+            } else if (data.action === 'close_popup') {
+                closePopupDirectly();
+            }
+        });
+
+        animate();
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePopup(); });
+    </script>
+</body>
+</html>

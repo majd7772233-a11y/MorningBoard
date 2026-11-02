@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="starGlow" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#fff7b2" />
+      <stop offset="45%" stop-color="#ffb703" />
+      <stop offset="100%" stop-color="#fb8500" />
+    </radialGradient>
+    <linearGradient id="starFacet1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+    <filter id="starShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="7" stdDeviation="5" flood-color="#804b00" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- Aura Circle -->
+  <circle cx="100" cy="100" r="90" fill="#fffdf0" stroke="#fb8500" stroke-width="2.5" stroke-dasharray="5,4" />
+
+  <!-- 3D Star Shape -->
+  <g filter="url(#starShadow)">
+    <polygon points="100,20 124,72 181,77 138,115 151,171 100,141 49,171 62,115 19,77 76,72"
+             fill="url(#starGlow)" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" />
+  </g>
+
+  <!-- Star 3D Bevel Facets (adds depth) -->
+  <polygon points="100,20 100,141 49,171 62,115 19,77 76,72" fill="#000000" opacity="0.08" />
+  <polygon points="100,20 124,72 100,141" fill="url(#starFacet1)" />
+  <polygon points="181,77 138,115 100,141" fill="url(#starFacet1)" opacity="0.7" />
+
+  <!-- Cute Star Face / Sparkle -->
+  <ellipse cx="84" cy="94" rx="4.5" ry="6" fill="#432818" />
+  <ellipse cx="116" cy="94" rx="4.5" ry="6" fill="#432818" />
+  <circle cx="86" cy="92" r="1.8" fill="#ffffff" />
+  <circle cx="118" cy="92" r="1.8" fill="#ffffff" />
+  <path d="M92,108 Q100,118 108,108" fill="none" stroke="#432818" stroke-width="3" stroke-linecap="round" />
+  <!-- Cheeks -->
+  <ellipse cx="76" cy="104" rx="6" ry="3.5" fill="#ff70a6" opacity="0.65" />
+  <ellipse cx="124" cy="104" rx="6" ry="3.5" fill="#ff70a6" opacity="0.65" />
+
+  <!-- Sparkles around -->
+  <polygon points="168,36 170,44 178,46 170,48 168,56 166,48 158,46 166,44" fill="#ffb703" />
+  <polygon points="32,48 33,54 39,56 33,58 32,64 31,58 25,56 31,54" fill="#ffb703" />
+  <polygon points="165,150 167,156 173,158 167,160 165,166 163,160 157,158 163,156" fill="#ffb703" />
+</svg>

@@ -1,0 +1,40 @@
+html, body{
+  overflow: hidden;
+  background: #000;
+  margin: 0px;
+  padding: 0px;
+}
+
+#canvas{
+  overflow: hidden;
+}
+#canvas:hover{
+  cursor: none;
+}
+
+#fps{
+  position: absolute;
+  left: 5px;
+  top: 0px;
+  color: #fff;
+  font-size: 20px;
+}
+
+.workshop{
+    color: #fff;
+    font-weight: 600;
+    position: absolute;
+    top: 0px;
+    left: 75px;
+    background: #292929;
+    padding: 6px 10px;
+    transition: 0.3s;
+    text-decoration: none;
+    border-radius: 10px;
+}
+.workshop:hover{
+    background: #fff;
+    color: #292929;
+    transition: 0.3s;
+    cursor: pointer;
+}

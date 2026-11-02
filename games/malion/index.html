@@ -1,0 +1,2921 @@
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>من سيربح المليون</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #0a0a2e;
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(212, 175, 55, 0.8), 0 0 60px rgba(212, 175, 55, 0.3); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes correctFlash {
+            0% { background: #1a6b1a; }
+            50% { background: #2ecc40; }
+            100% { background: #1a6b1a; }
+        }
+
+        @keyframes wrongFlash {
+            0% { background: #8b1a1a; }
+            50% { background: #e74c3c; }
+            100% { background: #8b1a1a; }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        body.student-device .walk-away-container,
+        body.student-device .admin-panel,
+        body.student-device .admin-btn,
+        body.student-device .start-screen .btn,
+        body.student-device .modal-content button {
+            display: none !important;
+        }
+
+        /* Header */
+        .game-header {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        .game-title {
+            font-size: 3em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #d4af37, #f4e17e, #d4af37);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: none;
+            animation: glow 2s infinite;
+            margin-bottom: 10px;
+        }
+
+        .game-subtitle {
+            color: #aaa;
+            font-size: 1.2em;
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Start Screen */
+        .start-screen {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .start-screen.active {
+            display: block;
+        }
+
+        .logo-container {
+            margin: 30px auto;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, #1a1a4e, #0a0a2e);
+            border: 4px solid #d4af37;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: glow 2s infinite, spin 20s linear infinite;
+            position: relative;
+        }
+
+        .logo-text {
+            font-size: 3em;
+            font-weight: 900;
+            color: #d4af37;
+            animation: spin 20s linear infinite reverse;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1.2em;
+            font-weight: 700;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            color: #1a1a2e;
+            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(212, 175, 55, 0.6);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #2a2a6e, #1a1a4e);
+            color: #d4af37;
+            border: 2px solid #d4af37;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #3a3a8e, #2a2a6e);
+            transform: translateY(-3px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #8b1a1a, #6b1515);
+            color: white;
+            border: 2px solid #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #a52020, #8b1a1a);
+            transform: translateY(-3px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #1a6b1a, #155015);
+            color: white;
+            border: 2px solid #2ecc40;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #208020, #1a6b1a);
+            transform: translateY(-3px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Admin Panel & Intro Screen */
+        .admin-panel {
+            display: none;
+            padding: 20px;
+        }
+
+        .admin-panel.active {
+            display: block;
+        }
+
+        .intro-screen {
+            display: none;
+        }
+
+        .intro-screen.active {
+            display: flex !important;
+        }
+
+        .panel-card {
+            background: rgba(26, 26, 78, 0.8);
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel-title {
+            font-size: 1.8em;
+            font-weight: 800;
+            color: #d4af37;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #d4af37;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 18px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1em;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 12px;
+            background: rgba(10, 10, 46, 0.8);
+            color: white;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: #d4af37;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+
+        .form-input::placeholder {
+            color: #666;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .option-input-group .form-input {
+            flex: 1;
+        }
+
+        .radio-custom {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #d4af37;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            flex-shrink: 0;
+            background: rgba(10, 10, 46, 0.8);
+        }
+
+        .radio-custom.selected {
+            background: #d4af37;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+        }
+
+        .radio-custom.selected::after {
+            content: '✓';
+            color: #1a1a2e;
+            font-weight: 900;
+            font-size: 1.2em;
+        }
+
+        .option-label {
+            width: 35px;
+            height: 35px;
+            background: #d4af37;
+            color: #1a1a2e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1em;
+            flex-shrink: 0;
+        }
+
+        .questions-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .questions-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .questions-list::-webkit-scrollbar-track {
+            background: rgba(26, 26, 78, 0.5);
+            border-radius: 10px;
+        }
+
+        .questions-list::-webkit-scrollbar-thumb {
+            background: #d4af37;
+            border-radius: 10px;
+        }
+
+        .question-item {
+            background: rgba(10, 10, 46, 0.6);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: slideUp 0.3s ease;
+        }
+
+        .question-number {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            color: #1a1a2e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.2em;
+            flex-shrink: 0;
+        }
+
+        .question-text {
+            flex: 1;
+            font-size: 1em;
+        }
+
+        .question-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-sm {
+            padding: 8px 15px;
+            font-size: 0.85em;
+            border-radius: 8px;
+        }
+
+        .btn-delete {
+            background: rgba(231, 76, 60, 0.3);
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+
+        .btn-delete:hover {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .admin-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .question-count {
+            text-align: center;
+            color: #aaa;
+            font-size: 1.1em;
+            margin: 15px 0;
+        }
+
+        .question-count span {
+            color: #d4af37;
+            font-weight: 800;
+            font-size: 1.3em;
+        }
+
+        /* Game Screen */
+        .game-screen {
+            display: none;
+            padding: 20px;
+        }
+
+        .game-screen.active {
+            display: block;
+        }
+
+        .game-layout {
+            display: grid;
+            grid-template-columns: 1fr 250px;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .game-main {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .prize-ladder {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            position: sticky;
+            top: 20px;
+        }
+
+        .prize-item {
+            padding: 8px 15px;
+            text-align: left;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(26, 26, 78, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .prize-item.active {
+            background: rgba(212, 175, 55, 0.3);
+            border-color: #d4af37;
+            color: #d4af37;
+            font-weight: 800;
+            animation: pulse 1s infinite;
+        }
+
+        .prize-item.current {
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            color: #1a1a2e;
+            font-weight: 900;
+        }
+
+        .prize-item.past {
+            opacity: 0.4;
+        }
+
+        .prize-item.milestone {
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+
+        /* Timer */
+        .timer-container {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .timer {
+            font-size: 2.5em;
+            font-weight: 900;
+            color: #d4af37;
+        }
+
+        .timer.warning {
+            color: #e74c3c;
+            animation: pulse 0.5s infinite;
+        }
+
+        .timer-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e74c3c, #d4af37, #2ecc40);
+            border-radius: 3px;
+            transition: width 1s linear;
+        }
+
+        /* Question Display */
+        .question-display {
+            background: linear-gradient(135deg, #1a1a4e, #0a0a2e);
+            border: 3px solid #d4af37;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.2);
+        }
+
+        .question-number-display {
+            display: inline-block;
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            color: #1a1a2e;
+            padding: 8px 25px;
+            border-radius: 50px;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+
+        .question-text-display {
+            font-size: 1.5em;
+            font-weight: 700;
+            line-height: 1.8;
+            color: white;
+        }
+
+        /* Answer Options */
+        .answers-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .answer-btn {
+            padding: 18px 25px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: 2px solid rgba(212, 175, 55, 0.4);
+            border-radius: 15px;
+            background: rgba(26, 26, 78, 0.8);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: right;
+        }
+
+        .answer-btn:hover:not(.disabled):not(.correct):not(.wrong) {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: #d4af37;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(212, 175, 55, 0.3);
+        }
+
+        .answer-btn.selected {
+            background: rgba(212, 175, 55, 0.3);
+            border-color: #d4af37;
+        }
+
+        .answer-btn.correct {
+            background: linear-gradient(135deg, #1a6b1a, #2ecc40);
+            border-color: #2ecc40;
+            animation: correctFlash 1s;
+        }
+
+        .answer-btn.wrong {
+            background: linear-gradient(135deg, #8b1a1a, #e74c3c);
+            border-color: #e74c3c;
+            animation: wrongFlash 1s;
+        }
+
+        .answer-btn.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .answer-btn.eliminated {
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        .answer-letter {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            color: #1a1a2e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.1em;
+            flex-shrink: 0;
+        }
+
+        /* Lifelines */
+        .lifelines-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 15px 0;
+        }
+
+        .lifeline-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid #d4af37;
+            background: rgba(26, 26, 78, 0.8);
+            color: #d4af37;
+            font-size: 1.8em;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lifeline-btn:hover:not(.disabled) {
+            background: rgba(212, 175, 55, 0.2);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+        }
+
+        .lifeline-btn.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            border-color: #555;
+            color: #555;
+        }
+
+        /* Walk Away Button */
+        .walk-away-container {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .walk-away-btn {
+            padding: 12px 30px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1em;
+            font-weight: 700;
+            border: 2px solid rgba(212, 175, 55, 0.5);
+            border-radius: 50px;
+            background: transparent;
+            color: #d4af37;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .walk-away-btn:hover {
+            background: rgba(212, 175, 55, 0.2);
+        }
+
+        /* Current Prize Display */
+        .current-prize {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.05));
+            border-radius: 15px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .current-prize-label {
+            color: #aaa;
+            font-size: 0.9em;
+        }
+
+        .current-prize-amount {
+            font-size: 2em;
+            font-weight: 900;
+            color: #d4af37;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: linear-gradient(135deg, #1a1a4e, #0a0a2e);
+            border: 3px solid #d4af37;
+            border-radius: 25px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: slideUp 0.5s ease;
+        }
+
+        .modal-title {
+            font-size: 2em;
+            font-weight: 900;
+            margin-bottom: 15px;
+        }
+
+        .modal-title.win {
+            color: #2ecc40;
+        }
+
+        .modal-title.lose {
+            color: #e74c3c;
+        }
+
+        .modal-amount {
+            font-size: 3em;
+            font-weight: 900;
+            color: #d4af37;
+            margin: 15px 0;
+        }
+
+        .modal-text {
+            font-size: 1.1em;
+            color: #aaa;
+            margin-bottom: 25px;
+        }
+
+        /* Audience Modal */
+        .audience-bars {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 200px;
+            padding: 20px 10px;
+            gap: 15px;
+        }
+
+        .audience-bar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            height: 100%;
+            justify-content: flex-end;
+        }
+
+        .audience-bar {
+            width: 100%;
+            background: linear-gradient(to top, #d4af37, #f4e17e);
+            border-radius: 5px 5px 0 0;
+            transition: height 1s ease;
+            min-height: 5px;
+        }
+
+        .audience-bar-label {
+            font-weight: 700;
+            color: #d4af37;
+        }
+
+        .audience-bar-percent {
+            font-weight: 800;
+            color: white;
+        }
+
+        .audience-letter {
+            width: 30px;
+            height: 30px;
+            background: #d4af37;
+            color: #1a1a2e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+        }
+
+        /* Phone Modal */
+        .phone-content {
+            padding: 20px;
+        }
+
+        .phone-icon {
+            font-size: 4em;
+            animation: bounce 1s infinite;
+        }
+
+        .phone-text {
+            font-size: 1.3em;
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .game-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .prize-ladder {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                position: static;
+            }
+
+            .game-title {
+                font-size: 2em;
+            }
+
+            .answers-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .question-text-display {
+                font-size: 1.2em;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            .panel-card {
+                padding: 20px;
+            }
+
+            .lifeline-btn {
+                width: 55px;
+                height: 55px;
+                font-size: 1.4em;
+            }
+
+            .btn {
+                padding: 12px 25px;
+                font-size: 1em;
+            }
+
+            .question-display {
+                padding: 20px;
+            }
+
+            .game-title {
+                font-size: 1.6em;
+            }
+
+            .logo-container {
+                width: 150px;
+                height: 150px;
+            }
+
+            .logo-text {
+                font-size: 2.2em;
+            }
+
+            .prize-ladder {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(26, 26, 78, 0.95);
+            border: 2px solid #d4af37;
+            border-radius: 50px;
+            padding: 15px 30px;
+            color: #d4af37;
+            font-weight: 700;
+            z-index: 200;
+            animation: slideUp 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(212, 175, 55, 0.2);
+            border-top: 4px solid #d4af37;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 150;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            animation: confettiFall linear forwards;
+        }
+
+        @keyframes confettiFall {
+            to {
+                top: 110vh;
+                transform: rotate(720deg);
+            }
+        }
+
+        .final-answer-highlight {
+            border: 3px solid #ff6b35 !important;
+            animation: pulse 1s infinite;
+        }
+
+        .admin-header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+
+    <div class="container">
+        <!-- Start Screen -->
+        <div class="start-screen active" id="startScreen">
+            <div class="game-header">
+                <div class="logo-container">
+                    <span class="logo-text">M</span>
+                </div>
+                <h1 class="game-title">من سيربح المليون؟</h1>
+                <p class="game-subtitle">النسخة التعليمية التفاعلية</p>
+            </div>
+
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 30px;">
+                <button class="btn btn-secondary btn-icon" onclick="startGame()" id="playBtn" style="min-width: 280px;">
+                    <span>🎮</span> ابدأ اللعب
+                </button>
+                <input type="file" id="startImportInput" accept=".txt,.json" style="display: none;" onchange="handleImportFile(event)">
+                <button class="btn btn-warning btn-icon" onclick="document.getElementById('startImportInput').click()" style="min-width: 280px; background: linear-gradient(135deg, #f59e0b, #d97706); border-color: #f59e0b;">
+                    <span>📥</span> استيراد أسئلة
+                </button>
+                <button class="btn btn-primary btn-icon" onclick="showScreen('adminPanel')" style="min-width: 280px;">
+                    <span>🎓</span> لوحة تحكم المدرس
+                </button>
+                <button class="btn btn-info btn-icon" onclick="openAiPromptGuideModal()" style="min-width: 280px; background: linear-gradient(135deg, #2563eb, #1d4ed8); border-color: #3b82f6; color: #fff;">
+                    <span>🤖</span> دليل إنشاء الأسئلة بالـ AI
+                </button>
+                <button class="btn btn-icon" onclick="openPasteAiModal()" style="min-width: 280px; background: linear-gradient(135deg, #8b5cf6, #6d28d9); border-color: #a78bfa; color: #fff;">
+                    <span>📋</span> لصق أسئلة الـ AI مباشرة
+                </button>
+            </div>
+
+            <div style="margin-top: 40px; padding: 20px; background: rgba(212,175,55,0.1); border-radius: 15px; border: 1px solid rgba(212,175,55,0.3);">
+                <p style="color: #d4af37; font-weight: 700;">💡 نصيحة</p>
+                <p style="color: #aaa; margin-top: 8px;">استخدم لوحة تحكم المدرس لإضافة أسئلتك الخاصة قبل بدء اللعب</p>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div class="admin-panel" id="adminPanel">
+            <div class="panel-card">
+                <div class="admin-header-actions">
+                    <h2 class="panel-title" style="margin-bottom: 0;">🎓 لوحة تحكم المدرس</h2>
+                    <button class="btn btn-secondary btn-sm" onclick="showScreen('startScreen')">
+                        ← الرئيسية
+                    </button>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <div class="form-group">
+                        <label>📝 السؤال</label>
+                        <input type="text" class="form-input" id="questionInput" placeholder="اكتب السؤال هنا..." dir="rtl">
+                    </div>
+
+                    <div class="options-grid">
+                        <div class="form-group">
+                            <label>الإجابة (أ)</label>
+                            <div class="option-input-group">
+                                <div class="radio-custom" id="correct0" onclick="selectCorrect(0)"></div>
+                                <input type="text" class="form-input" id="option0" placeholder="الإجابة الأولى">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>الإجابة (ب)</label>
+                            <div class="option-input-group">
+                                <div class="radio-custom" id="correct1" onclick="selectCorrect(1)"></div>
+                                <input type="text" class="form-input" id="option1" placeholder="الإجابة الثانية">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>الإجابة (ج)</label>
+                            <div class="option-input-group">
+                                <div class="radio-custom" id="correct2" onclick="selectCorrect(2)"></div>
+                                <input type="text" class="form-input" id="option2" placeholder="الإجابة الثالثة">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>الإجابة (د)</label>
+                            <div class="option-input-group">
+                                <div class="radio-custom" id="correct3" onclick="selectCorrect(3)"></div>
+                                <input type="text" class="form-input" id="option3" placeholder="الإجابة الرابعة">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 10px;">
+                        <small style="color: #d4af37;">اضغط على الدائرة بجانب الإجابة لتحديد الإجابة الصحيحة ✅</small>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn btn-success btn-icon" onclick="addQuestion()">
+                            <span>➕</span> إضافة السؤال
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-card">
+                <div class="question-count">
+                    عدد الأسئلة المضافة: <span id="questionCount">0</span>
+                </div>
+
+                <div class="questions-list" id="questionsList">
+                    <!-- Questions will be listed here -->
+                </div>
+
+                <div class="admin-actions">
+                    <button class="btn btn-primary btn-icon" onclick="saveQuestions()">
+                        <span>💾</span> حفظ الأسئلة
+                    </button>
+                    <button class="btn btn-secondary btn-icon" onclick="loadQuestions()">
+                        <span>📂</span> استرجاع الأسئلة
+                    </button>
+                    <button class="btn btn-danger btn-icon" onclick="clearAllQuestions()">
+                        <span>🗑️</span> مسح الكل
+                    </button>
+                </div>
+
+                <div class="admin-actions" style="margin-top: 15px;">
+                    <button class="btn btn-success btn-icon" onclick="loadSampleQuestions()" style="font-size: 0.95em;">
+                        <span>📋</span> أسئلة نموذجية
+                    </button>
+                    <button class="btn btn-primary btn-icon" onclick="exportQuestions()">
+                        <span>📤</span> تصدير الأسئلة
+                    </button>
+                    <input type="file" id="importFileInput" accept=".txt,.json" style="display: none;" onchange="handleImportFile(event)">
+                    <button class="btn btn-warning btn-icon" onclick="importQuestions()" style="background: linear-gradient(135deg, #f59e0b, #d97706); border-color: #f59e0b;">
+                        <span>📥</span> استيراد ملف
+                    </button>
+                    <button class="btn btn-info btn-icon" onclick="openAiPromptGuideModal()" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border-color: #3b82f6; color: #fff;">
+                        <span>🤖</span> دليل إنشاء الأسئلة بالـ AI
+                    </button>
+                    <button class="btn btn-icon" onclick="openPasteAiModal()" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); border-color: #a78bfa; color: #fff;">
+                        <span>📋</span> لصق أسئلة الـ AI
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel-card" style="text-align: center;">
+                <button class="btn btn-primary btn-icon" onclick="startGame()" style="min-width: 300px;">
+                    <span>🎮</span> ابدأ اللعبة بـ <span id="startCount">0</span> أسئلة
+                </button>
+            </div>
+        </div>
+
+        <!-- Intro Screen -->
+        <div class="intro-screen" id="introScreen" style="display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; background: radial-gradient(circle, #1a1a5c 0%, #0a0a2e 100%); padding: 20px;">
+            <div style="animation: pulse 1.8s infinite; margin-bottom: 20px;">
+                <div style="font-size: 75px; filter: drop-shadow(0 0 25px rgba(251,191,36,0.8));">💰</div>
+            </div>
+            <h1 style="font-size: 3.2em; color: #fbbf24; text-shadow: 0 0 35px rgba(251,191,36,0.9); margin-bottom: 15px; font-weight: 900;">من سيربح المليون</h1>
+            <div style="font-size: 1.4em; color: #cbd5e1; margin-bottom: 35px; font-weight: 700;">جاري تجهيز الأسئلة... استعد للتحدي والإثارة!</div>
+            <div style="width: 320px; height: 10px; background: rgba(255,255,255,0.12); border-radius: 10px; overflow: hidden; border: 1.5px solid rgba(251,191,36,0.5); box-shadow: 0 0 20px rgba(251,191,36,0.3);">
+                <div class="loading-bar-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b); transition: width 4.1s linear;"></div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="game-screen" id="gameScreen">
+            <div class="game-layout">
+                <div class="game-main">
+                    <!-- Timer -->
+                    <div class="timer-container">
+                        <div class="timer" id="timer">30</div>
+                        <div class="timer-bar">
+                            <div class="timer-fill" id="timerFill" style="width: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Current Prize -->
+                    <div class="current-prize">
+                        <div class="current-prize-label">المبلغ الحالي</div>
+                        <div class="current-prize-amount" id="currentPrizeAmount">0</div>
+                    </div>
+
+                    <!-- Question Display -->
+                    <div class="question-display">
+                        <div class="question-number-display" id="questionNumDisplay">السؤال 1 من 15</div>
+                        <div class="question-text-display" id="questionTextDisplay">...</div>
+                    </div>
+
+                    <!-- Answers -->
+                    <div class="answers-grid" id="answersGrid">
+                        <!-- Answers will be generated here -->
+                    </div>
+
+                    <!-- Lifelines -->
+                    <div class="lifelines-container">
+                        <button class="lifeline-btn" id="lifeline5050" onclick="useFiftyFifty()" title="نص النصف">
+                            50:50
+                        </button>
+                        <button class="lifeline-btn" id="lifelinePhone" onclick="usePhone()" title="الاتصال بصديق">
+                            📞
+                        </button>
+                        <button class="lifeline-btn" id="lifelineAudience" onclick="useAudience()" title="المساعدة من الجمهور">
+                            👥
+                        </button>
+                    </div>
+
+                    <!-- Walk Away -->
+                    <div class="walk-away-container">
+                        <button class="walk-away-btn" onclick="walkAway()">
+                            🚶 مغادرة اللعبة
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Prize Ladder -->
+                <div class="prize-ladder" id="prizeLadder">
+                    <!-- Prize ladder items will be generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modalContent">
+            <!-- Modal content will be dynamically generated -->
+        </div>
+    </div>
+
+    <!-- Confetti Container -->
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <script>
+        // ============= Audio System =============
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioCtx();
+            }
+        }
+
+        function playSound(type) {
+            initAudio();
+            const now = audioCtx.currentTime;
+
+            switch(type) {
+                case 'correct':
+                    playTone(523.25, 0.1, 'sine', now);
+                    playTone(659.25, 0.1, 'sine', now + 0.1);
+                    playTone(783.99, 0.2, 'sine', now + 0.2);
+                    break;
+                case 'wrong':
+                    playTone(200, 0.2, 'sawtooth', now);
+                    playTone(150, 0.3, 'sawtooth', now + 0.2);
+                    break;
+                case 'tick':
+                    playTone(800, 0.05, 'sine', now);
+                    break;
+                case 'select':
+                    playTone(600, 0.08, 'sine', now);
+                    break;
+                case 'lifeline':
+                    playTone(440, 0.1, 'triangle', now);
+                    playTone(554.37, 0.1, 'triangle', now + 0.1);
+                    break;
+                case 'win':
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                        playTone(freq, 0.2, 'sine', now + i * 0.15);
+                    });
+                    break;
+                case 'lose':
+                    playTone(300, 0.3, 'sawtooth', now);
+                    playTone(250, 0.3, 'sawtooth', now + 0.3);
+                    playTone(200, 0.5, 'sawtooth', now + 0.6);
+                    break;
+                case 'million':
+                    [523.25, 659.25, 783.99, 880, 1046.50].forEach((freq, i) => {
+                        playTone(freq, 0.3, 'sine', now + i * 0.1);
+                        playTone(freq * 1.5, 0.3, 'sine', now + i * 0.1);
+                    });
+                    break;
+            }
+        }
+
+        function playTone(freq, duration, type, startTime) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = type;
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.15, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+        }
+
+        const SAH_AUDIO_FILES = [
+            'sah/sah1.MP3',
+            'sah/sah2.MP3',
+            'sah/sah3.MP3',
+            'sah/sah4.MP3',
+            'sah/sah5.MP3',
+            'sah/sah6.MP3'
+        ];
+
+        const KHAT_AUDIO_FILES = [
+            'khat/kht1.MP3',
+            'khat/kht2.MP3',
+            'khat/kht3.MP3',
+            'khat/kht4.MP3',
+            'khat/kht5.MP3'
+        ];
+
+        let activeAudioPool = [];
+        let lastPlayedAudioFile = '';
+        let lastPlayedAudioTime = 0;
+
+        // Unlock Web Audio for Student Browser Autoplay Policies
+        function unlockAudioContext() {
+            try {
+                const dummy = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+                const p = dummy.play();
+                if (p !== undefined) {
+                    p.catch(() => {});
+                }
+            } catch(e) {}
+        }
+        document.addEventListener('click', unlockAudioContext);
+        document.addEventListener('touchstart', unlockAudioContext);
+        document.addEventListener('pointerdown', unlockAudioContext);
+
+        function playAudioFile(filename, onended) {
+            if (!filename) return null;
+
+            // Deduplicate identical audio triggers within 400ms to prevent snippets/overlaps
+            const now = Date.now();
+            if (lastPlayedAudioFile === filename && (now - lastPlayedAudioTime) < 400) {
+                return activeAudioPool[activeAudioPool.length - 1] || null;
+            }
+
+            try {
+                lastPlayedAudioFile = filename;
+                lastPlayedAudioTime = now;
+
+                // Broadcast audio play event to parent (which syncs to Firebase & student devices)
+                if (!isSyncingRemoteState && window.parent && window.parent !== window) {
+                    window.parent.postMessage({
+                        type: 'millionaire_play_audio',
+                        filename: filename
+                    }, '*');
+                }
+
+                const sound = new Audio(filename);
+                sound.volume = 0.95;
+                activeAudioPool.push(sound);
+
+                const cleanup = () => {
+                    activeAudioPool = activeAudioPool.filter(s => s !== sound);
+                    if (onended) onended();
+                };
+
+                sound.onended = cleanup;
+
+                const promise = sound.play();
+                if (promise !== undefined) {
+                    promise.catch(e => {
+                        console.warn("Audio playback note:", e);
+                        cleanup();
+                    });
+                }
+                return sound;
+            } catch(e) {
+                if (onended) onended();
+                return null;
+            }
+        }
+
+        let sahAudioIndex = 0;
+        let khatAudioIndex = 0;
+
+        function getNextSahAudio() {
+            const file = SAH_AUDIO_FILES[sahAudioIndex % SAH_AUDIO_FILES.length];
+            sahAudioIndex++;
+            return file;
+        }
+
+        function getNextKhatAudio() {
+            const file = KHAT_AUDIO_FILES[khatAudioIndex % KHAT_AUDIO_FILES.length];
+            khatAudioIndex++;
+            return file;
+        }
+
+        // ============= Stars Background =============
+        function createStars() {
+            const container = document.getElementById('stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 2 + 's';
+                star.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                container.appendChild(star);
+            }
+        }
+        createStars();
+
+        // ============= Game State =============
+        let questions = [];
+        let currentScreen = 'startScreen';
+        let currentQuestionIndex = 0;
+        let currentCorrectIndex = -1;
+        let selectedCorrectIndex = -1;
+        let timerInterval = null;
+        let timeLeft = 30;
+        let gameActive = false;
+        let lifelines = { fiftyFifty: true, phone: true, audience: true };
+        let currentPrize = 0;
+
+        const PRIZES = [
+            '100', '200', '500', '1,000', '2,000', '3,000', '5,000',
+            '10,000', '20,000', '35,000', '75,000', '150,000', '300,000', '750,000', '1,000,000'
+        ];
+
+        const PRIZE_VALUES = [100, 200, 500, 1000, 2000, 3000, 5000, 10000, 20000, 35000, 75000, 150000, 300000, 750000, 1000000];
+
+        const LETTERS = ['أ', 'ب', 'ج', 'د'];
+
+        // ============= Screen Navigation =============
+        function showScreen(screenId) {
+            currentScreen = screenId;
+            document.querySelectorAll('.start-screen, .admin-panel, .game-screen, .intro-screen').forEach(s => s.classList.remove('active'));
+            const target = document.getElementById(screenId);
+            if (target) target.classList.add('active');
+
+            if (screenId === 'adminPanel') {
+                updateQuestionsList();
+                document.getElementById('startCount').textContent = questions.length;
+            }
+            if (typeof broadcastMillionaireState === 'function') broadcastMillionaireState();
+        }
+
+        // ============= Admin Functions =============
+        function selectCorrect(index) {
+            selectedCorrectIndex = index;
+            for (let i = 0; i < 4; i++) {
+                document.getElementById('correct' + i).classList.remove('selected');
+            }
+            document.getElementById('correct' + index).classList.add('selected');
+            playSound('select');
+        }
+
+        function addQuestion() {
+            const questionText = document.getElementById('questionInput').value.trim();
+            const options = [];
+            for (let i = 0; i < 4; i++) {
+                options.push(document.getElementById('option' + i).value.trim());
+            }
+
+            if (!questionText) {
+                showToast('⚠️ اكتب السؤال أولاً');
+                return;
+            }
+
+            if (options.some(o => !o)) {
+                showToast('⚠️ اكتب جميع الإجابات الأربع');
+                return;
+            }
+
+            if (selectedCorrectIndex === -1) {
+                showToast('⚠️ حدد الإجابة الصحيحة');
+                return;
+            }
+
+            const question = {
+                question: questionText,
+                options: options,
+                correctIndex: selectedCorrectIndex
+            };
+
+            questions.push(question);
+            playSound('correct');
+
+            // Clear form
+            document.getElementById('questionInput').value = '';
+            for (let i = 0; i < 4; i++) {
+                document.getElementById('option' + i).value = '';
+                document.getElementById('correct' + i).classList.remove('selected');
+            }
+            selectedCorrectIndex = -1;
+
+            updateQuestionsList();
+            document.getElementById('startCount').textContent = questions.length;
+            showToast('✅ تمت إضافة السؤال بنجاح');
+        }
+
+        function updateQuestionsList() {
+            const list = document.getElementById('questionsList');
+            document.getElementById('questionCount').textContent = questions.length;
+
+            if (questions.length === 0) {
+                list.innerHTML = '<p style="text-align:center;color:#666;padding:20px;">لا توجد أسئلة بعد</p>';
+                return;
+            }
+
+            list.innerHTML = questions.map((q, i) => `
+                <div class="question-item">
+                    <div class="question-number">${i + 1}</div>
+                    <div class="question-text">
+                        <strong>${q.question}</strong>
+                        <br>
+                        <small style="color:#aaa;">
+                            ${q.options.map((o, j) => `
+                                <span style="color:${j === q.correctIndex ? '#2ecc40' : '#aaa'}">
+                                    ${LETTERS[j]}: ${o} ${j === q.correctIndex ? '✅' : ''}
+                                </span>
+                            `).join(' | ')}
+                        </small>
+                    </div>
+                    <div class="question-actions">
+                        <button class="btn btn-delete btn-sm" onclick="deleteQuestion(${i})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteQuestion(index) {
+            questions.splice(index, 1);
+            updateQuestionsList();
+            document.getElementById('startCount').textContent = questions.length;
+            playSound('wrong');
+            showToast('🗑️ تم حذف السؤال');
+        }
+
+        function clearAllQuestions() {
+            if (questions.length === 0) return;
+            if (confirm('هل تريد مسح جميع الأسئلة؟')) {
+                questions = [];
+                updateQuestionsList();
+                document.getElementById('startCount').textContent = 0;
+                playSound('wrong');
+                showToast('🗑️ تم مسح جميع الأسئلة');
+            }
+        }
+
+        function saveQuestions() {
+            if (questions.length === 0) {
+                showToast('⚠️ لا توجد أسئلة للحفظ');
+                return;
+            }
+            localStorage.setItem('millionaire_questions', JSON.stringify(questions));
+            playSound('correct');
+            showToast('💾 تم حفظ ' + questions.length + ' أسئلة بنجاح');
+        }
+
+        function loadQuestions() {
+            const saved = localStorage.getItem('millionaire_questions');
+            if (saved) {
+                questions = JSON.parse(saved);
+                updateQuestionsList();
+                document.getElementById('startCount').textContent = questions.length;
+                playSound('correct');
+                showToast('📂 تم استرجاع ' + questions.length + ' أسئلة');
+            } else {
+                showToast('⚠️ لا توجد أسئلة محفوظة');
+            }
+        }
+
+        function parseQuestionsFromText(text) {
+            if (!text || typeof text !== 'string') return [];
+            
+            const trimmed = text.trim();
+            
+            // 1. Check if it's a JSON string / array
+            if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+                try {
+                    const parsed = JSON.parse(trimmed);
+                    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].question) {
+                        return parsed;
+                    }
+                } catch (e) {
+                    // Fallback to TXT parser
+                }
+            }
+
+            // 2. TXT block parser
+            const lines = text.split(/\r?\n/);
+            const parsedQuestions = [];
+            const labelToIndexMap = {
+                'أ': 0, 'ب': 1, 'ج': 2, 'د': 3,
+                'a': 0, 'b': 1, 'c': 2, 'd': 3,
+                '1': 0, '2': 1, '3': 2, '4': 3
+            };
+            
+            let currentQuestion = null;
+            let currentOptions = [];
+            let correctIndex = 0;
+
+            const finalizeCurrent = () => {
+                if (currentQuestion && currentOptions.length > 0) {
+                    while (currentOptions.length < 4) {
+                        currentOptions.push('');
+                    }
+                    parsedQuestions.push({
+                        question: currentQuestion.trim(),
+                        options: currentOptions.slice(0, 4).map(o => o.trim()),
+                        correctIndex: Math.min(Math.max(0, correctIndex), 3)
+                    });
+                }
+                currentQuestion = null;
+                currentOptions = [];
+                correctIndex = 0;
+            };
+
+            lines.forEach(line => {
+                const lineTrimmed = line.trim();
+                if (!lineTrimmed) return;
+
+                const qMatch = lineTrimmed.match(/^(?:السؤال\s*[\:\-]?|س\s*[\:\-]?|\d+[\.\-\)]\s*)(.+)/i);
+                const ansMatch = lineTrimmed.match(/^(?:الإجابة\s*الصحيحة|الإجابة|الجواب|Correct\s*Answer|Answer|Correct)\s*[\:\-]?\s*(.+)/i);
+                const optMatch = lineTrimmed.match(/^(?:([أبجدa-dA-D1-4])[\)\.\-]\s*)(.+)/i);
+
+                if (ansMatch) {
+                    const ansVal = ansMatch[1].trim().toLowerCase();
+                    const firstChar = ansVal.charAt(0);
+                    if (labelToIndexMap[firstChar] !== undefined) {
+                        correctIndex = labelToIndexMap[firstChar];
+                    } else {
+                        const foundIdx = currentOptions.findIndex(o => o.trim().toLowerCase() === ansVal);
+                        if (foundIdx !== -1) {
+                            correctIndex = foundIdx;
+                        }
+                    }
+                } else if (optMatch && currentQuestion) {
+                    let optText = optMatch[2] ? optMatch[2].trim() : lineTrimmed;
+                    if (optText.endsWith('*') || optText.startsWith('*')) {
+                        correctIndex = currentOptions.length;
+                        optText = optText.replace(/\*/g, '').trim();
+                    }
+                    if (optText) {
+                        currentOptions.push(optText);
+                    }
+                } else if (qMatch) {
+                    if (currentQuestion && currentOptions.length >= 2) {
+                        finalizeCurrent();
+                    }
+                    currentQuestion = qMatch[1].trim();
+                } else {
+                    if (!currentQuestion) {
+                        currentQuestion = lineTrimmed;
+                    } else if (currentOptions.length < 4) {
+                        let optText = lineTrimmed;
+                        if (optText.endsWith('*') || optText.startsWith('*')) {
+                            correctIndex = currentOptions.length;
+                            optText = optText.replace(/\*/g, '').trim();
+                        }
+                        currentOptions.push(optText);
+                    }
+                }
+            });
+
+            finalizeCurrent();
+            return parsedQuestions;
+        }
+
+        function exportQuestions() {
+            if (questions.length === 0) {
+                showToast('⚠️ لا توجد أسئلة للتصدير');
+                return;
+            }
+            const optionLabels = ['أ', 'ب', 'ج', 'د'];
+            let textContent = '';
+
+            questions.forEach((q) => {
+                textContent += `السؤال: ${q.question}\n`;
+                if (Array.isArray(q.options)) {
+                    q.options.forEach((opt, optIdx) => {
+                        const label = optionLabels[optIdx] || (optIdx + 1);
+                        textContent += `${label}) ${opt}\n`;
+                    });
+                }
+                const correctLabel = optionLabels[q.correctIndex] || (q.correctIndex !== undefined ? q.correctIndex + 1 : 'أ');
+                textContent += `الإجابة الصحيحة: ${correctLabel}\n\n`;
+            });
+
+            const filename = `millionaire_questions_${Date.now()}.txt`;
+            const saver = (typeof window.parent !== 'undefined' && window.parent && window.parent.saveOrDownloadFile) || window.saveOrDownloadFile;
+            if (typeof saver === 'function') {
+                saver(textContent.trim(), filename, 'text/plain;charset=utf-8');
+            } else {
+                const blob = new Blob([textContent.trim()], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 3000);
+            }
+            showToast('📤 تم تصدير الأسئلة بملف نصي TXT');
+        }
+
+        function importQuestions() {
+            const input = document.getElementById('importFileInput');
+            if (input) input.click();
+        }
+
+        function handleImportFile(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = parseQuestionsFromText(e.target.result);
+                    if (Array.isArray(imported) && imported.length > 0) {
+                        questions = imported;
+                        updateQuestionsList();
+                        document.getElementById('startCount').textContent = questions.length;
+                        saveQuestions();
+                        showToast('📥 تم استيراد ' + questions.length + ' سؤال بنجاح!');
+                    } else {
+                        showToast('⚠️ الملف لا يحتوي على أسئلة صالحة');
+                    }
+                } catch (err) {
+                    console.error("Import error:", err);
+                    showToast('⚠️ خطأ في قراءة ملف الأسئلة');
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+            event.target.value = '';
+        }
+
+        function loadSampleQuestions() {
+            const sampleQuestions = [
+                {
+                    question: "ما هي عاصمة فرنسا؟",
+                    options: ["لندن", "برلين", "باريس", "روما"],
+                    correctIndex: 2
+                },
+                {
+                    question: "كم عدد أضلاع المثلث؟",
+                    options: ["2", "3", "4", "5"],
+                    correctIndex: 1
+                },
+                {
+                    question: "من هو مخترع المصباح الكهربائي؟",
+                    options: ["ألبرت أينشتاين", "نيكولا تسلا", "توماس إديسون", "غراهام بيل"],
+                    correctIndex: 2
+                },
+                {
+                    question: "ما هو أكبر كوكب في المجموعة الشمسية؟",
+                    options: ["الأرض", "المشتري", "زحل", "نبتون"],
+                    correctIndex: 1
+                },
+                {
+                    question: "كم عدد أيام السنة؟",
+                    options: ["360", "365", "370", "300"],
+                    correctIndex: 1
+                },
+                {
+                    question: "ما هو المعدن الأكثر وفرة في القشرة الأرضية؟",
+                    options: ["الذهب", "الحديد", "الألومنيوم (الألومنيوم)", "النحاس"],
+                    correctIndex: 2
+                },
+                {
+                    question: "في أي قارة تقع مصر؟",
+                    options: ["آسيا", "أوروبا", "أفريقيا", "أمريكا الجنوبية"],
+                    correctIndex: 2
+                },
+                {
+                    question: "ما هو العنصر الكيميائي الذي رمزه O؟",
+                    options: ["الذهب", "الأكسجين", "الفضة", "النحاس"],
+                    correctIndex: 1
+                },
+                {
+                    question: "كم عدد أضلاع المكعب؟",
+                    options: ["6", "8", "12", "4"],
+                    correctIndex: 2
+                },
+                {
+                    question: "من كتب مسرحية هاملت؟",
+                    options: ["تشارلز ديكنز", "وليام شكسبير", "مارك توين", "جين أوستن"],
+                    correctIndex: 1
+                },
+                {
+                    question: "ما هي وحدة قياس القوة؟",
+                    options: ["متر", "كيلوجرام", "نيوتن", "واط"],
+                    correctIndex: 2
+                },
+                {
+                    question: "أين يقع برج إيفل؟",
+                    options: ["لندن", "نيويورك", "باريس", "طوكيو"],
+                    correctIndex: 2
+                },
+                {
+                    question: "كم عدد ألوان قوس قزح؟",
+                    options: ["5", "6", "7", "8"],
+                    correctIndex: 2
+                },
+                {
+                    question: "ما هو أكبر محيط في العالم؟",
+                    options: ["المحيط الأطلسي", "المحيط الهندي", "المحيط المتجمد", "المحيط الهادئ"],
+                    correctIndex: 3
+                },
+                {
+                    question: "ما هي اللغة الأكثر تحدثاً في العالم؟",
+                    options: ["الإنجليزية", "الإسبانية", "الماندرين الصينية", "العربية"],
+                    correctIndex: 2
+                }
+            ];
+
+            questions = [...sampleQuestions];
+            updateQuestionsList();
+            document.getElementById('startCount').textContent = questions.length;
+            playSound('correct');
+            showToast('📋 تم تحميل ' + questions.length + ' أسئلة نموذجية');
+        }
+
+        function generateDynamicPrizes(count) {
+            if (count <= 0) return [];
+            if (count === 1) {
+                return [{ text: "1,000,000 💰 🏆", value: 1000000 }];
+            }
+            if (count === 2) {
+                return [
+                    { text: "500,000 💰", value: 500000 },
+                    { text: "1,000,000 💰 🏆", value: 1000000 }
+                ];
+            }
+            const presetValues = [100, 200, 300, 500, 1000, 2000, 4000, 8000, 16000, 32000, 64000, 125000, 250000, 500000, 1000000];
+            if (count === 15) {
+                return presetValues.map((val, idx) => ({
+                    text: val.toLocaleString() + ' 💰' + (idx === 14 ? ' 🏆' : (idx === 4 || idx === 9 ? ' 🔒' : '')),
+                    value: val
+                }));
+            }
+
+            const prizes = [];
+            for (let i = 0; i < count; i++) {
+                let val;
+                if (i === count - 1) {
+                    val = 1000000;
+                } else {
+                    const ratio = i / (count - 1);
+                    val = Math.round(100 * Math.pow(10000, ratio));
+                    if (val > 10000) val = Math.round(val / 5000) * 5000;
+                    else if (val > 1000) val = Math.round(val / 500) * 500;
+                    else if (val > 100) val = Math.round(val / 50) * 50;
+                }
+                const isWin = (i === count - 1);
+                prizes.push({
+                    text: val.toLocaleString() + ' 💰' + (isWin ? ' 🏆' : ''),
+                    value: val
+                });
+            }
+            return prizes;
+        }
+
+        // ============= Game Functions =============
+        let isGameWon = false;
+
+        function startGame() {
+            if (questions.length === 0) {
+                const sampleQuestions = [
+                    { question: "ما هي عاصمة فرنسا؟", options: ["لندن", "برلين", "باريس", "روما"], correctIndex: 2 },
+                    { question: "كم عدد أضلاع المثلث؟", options: ["2", "3", "4", "5"], correctIndex: 1 },
+                    { question: "من هو مخترع المصباح الكهربائي؟", options: ["ألبرت أينشتاين", "نيكولا تسلا", "توماس إديسون", "غراهام بيل"], correctIndex: 2 },
+                    { question: "ما هو أكبر كوكب في المجموعة الشمسية؟", options: ["الأرض", "المشتري", "زحل", "نبتون"], correctIndex: 1 },
+                    { question: "في أي قارة تقع مصر؟", options: ["آسيا", "أوروبا", "أفريقيا", "أمريكا الجنوبية"], correctIndex: 2 }
+                ];
+                questions = [...sampleQuestions];
+            }
+
+            // Only Host shuffles questions so questions array order is identical on student & teacher
+            if (window.isHost !== false) {
+                questions = shuffleArray([...questions]).slice(0, Math.min(questions.length, 15));
+                broadcastMillionaireState('start_game', { questions: questions }, true);
+            }
+
+            executeStartGame();
+        }
+
+        function executeStartGame() {
+            isGameWon = false;
+            currentQuestionIndex = 0;
+            currentPrize = 0;
+            lifelines = { fiftyFifty: true, phone: true, audience: true };
+            gameActive = true;
+            lastRenderedQuestionKey = '';
+
+            // Reset lifeline buttons
+            const b50 = document.getElementById('lifeline5050');
+            if (b50) b50.classList.remove('disabled');
+            const bPhone = document.getElementById('lifelinePhone');
+            if (bPhone) bPhone.classList.remove('disabled');
+            const bAud = document.getElementById('lifelineAudience');
+            if (bAud) bAud.classList.remove('disabled');
+
+            // Play intro audio on BOTH devices!
+            playAudioFile('ezan.MP3');
+
+            // Show Intro Screen
+            showScreen('introScreen');
+            
+            const fill = document.querySelector('.loading-bar-fill');
+            if (fill) {
+                fill.style.width = '0%';
+                setTimeout(() => { fill.style.width = '100%'; }, 50);
+            }
+
+            setTimeout(() => {
+                buildPrizeLadder();
+                showScreen('gameScreen');
+                loadQuestion();
+            }, 4150);
+        }
+
+        function buildPrizeLadder() {
+            const ladder = document.getElementById('prizeLadder');
+            const dynamicPrizes = generateDynamicPrizes(questions.length);
+            ladder.innerHTML = '';
+
+            for (let i = dynamicPrizes.length - 1; i >= 0; i--) {
+                const item = document.createElement('div');
+                item.className = 'prize-item';
+                item.id = 'prize' + i;
+
+                if (i === dynamicPrizes.length - 1) item.classList.add('milestone');
+
+                item.innerHTML = `
+                    <span style="font-size:0.85em;">${dynamicPrizes[i].text}</span>
+                    <span style="font-size:0.7em;color:#888;">${i + 1}</span>
+                `;
+
+                ladder.appendChild(item);
+            }
+        }
+
+        function updatePrizeLadder() {
+            const dynamicPrizes = generateDynamicPrizes(questions.length);
+            for (let i = 0; i < dynamicPrizes.length; i++) {
+                const item = document.getElementById('prize' + i);
+                if (!item) continue;
+                item.className = 'prize-item';
+
+                if (i === currentQuestionIndex) {
+                    item.classList.add('current');
+                } else if (i < currentQuestionIndex) {
+                    item.classList.add('past');
+                }
+            }
+        }
+
+        let lastRenderedQuestionKey = '';
+        function renderQuestionOnly() {
+            if (!questions || questions.length === 0) return;
+            const idx = Math.min(Math.max(0, currentQuestionIndex), questions.length - 1);
+            const q = questions[idx];
+            if (!q) return;
+
+            currentCorrectIndex = q.correctIndex;
+
+            const numDisplay = document.getElementById('questionNumDisplay');
+            if (numDisplay) numDisplay.textContent = `السؤال ${idx + 1} من ${questions.length}`;
+
+            const textDisplay = document.getElementById('questionTextDisplay');
+            if (textDisplay && q.question) textDisplay.textContent = q.question;
+
+            // Update prize display
+            const dynamicPrizes = generateDynamicPrizes(questions.length);
+            if (dynamicPrizes && dynamicPrizes.length > 0) {
+                const prizeObj = dynamicPrizes[Math.min(idx, dynamicPrizes.length - 1)];
+                const prizeAmountEl = document.getElementById('currentPrizeAmount');
+                if (prizeAmountEl && prizeObj) prizeAmountEl.textContent = prizeObj.text;
+                if (prizeObj) currentPrize = prizeObj.value;
+            }
+
+            updatePrizeLadder();
+
+            // Build answers only if question changed or grid is empty to prevent looping animation
+            const currentKey = idx + '_' + (q.question || '');
+            const grid = document.getElementById('answersGrid');
+            if (grid && q.options && Array.isArray(q.options)) {
+                if (lastRenderedQuestionKey !== currentKey || grid.children.length === 0) {
+                    lastRenderedQuestionKey = currentKey;
+                    grid.innerHTML = q.options.map((opt, i) => `
+                        <button class="answer-btn" id="answer${i}" onclick="selectAnswer(${i})" style="animation: slideUp 0.3s ease ${i * 0.1}s both;">
+                            <div class="answer-letter">${LETTERS[i]}</div>
+                            <span>${opt}</span>
+                        </button>
+                    `).join('');
+                }
+            }
+            if (typeof updateMillionaireControlUI === 'function') {
+                updateMillionaireControlUI();
+            }
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                winGame();
+                return;
+            }
+
+            // Overwrite stale lastAction in Firebase with clean new_question action
+            broadcastMillionaireState('next_question', { questionIndex: currentQuestionIndex }, true);
+
+            if (currentQuestionIndex === 0) {
+                playAudioFile('ooal.MP3');
+            }
+
+            lastRenderedQuestionKey = '';
+            renderQuestionOnly();
+
+            if (!isSyncingRemoteState && window.isHost !== false) {
+                startTimer();
+            }
+        }
+
+        function selectAnswer(index) {
+            if (!gameActive) return;
+            if (window.isHost === false && !window.controlEnabled) {
+                showToast('🔒 وضع المشاهدة: بانتظار إعطائك التحكم من قِبل المعلم');
+                return;
+            }
+
+            // Highlight selected on local device immediately
+            document.querySelectorAll('.answer-btn').forEach(btn => btn.classList.remove('selected'));
+            const targetBtn = document.getElementById('answer' + index);
+            if (targetBtn) targetBtn.classList.add('selected');
+
+            // Broadcast action to remote peer with questionIndex
+            broadcastMillionaireState('select_answer', { index: index, questionIndex: currentQuestionIndex }, true);
+
+            // ONLY Host confirms answer to avoid race conditions!
+            if (window.isHost !== false) {
+                setTimeout(() => {
+                    confirmAnswer(index);
+                }, 500);
+            }
+        }
+
+        function confirmAnswer(index) {
+            stopTimer();
+            gameActive = false;
+
+            const correctIndex = questions[currentQuestionIndex].correctIndex;
+            const isCorrect = (index === correctIndex);
+
+            if (isCorrect) {
+                const sahFile = getNextSahAudio();
+                currentQuestionIndex++;
+
+                // Broadcast correct answer result with exact sequential audio file name
+                broadcastMillionaireState('answer_result', {
+                    correct: true,
+                    index: index,
+                    questionIndex: currentQuestionIndex - 1,
+                    nextIndex: currentQuestionIndex,
+                    audioFile: sahFile
+                }, true);
+
+                applyAnswerResultUI({
+                    correct: true,
+                    index: index,
+                    nextIndex: currentQuestionIndex,
+                    audioFile: sahFile
+                });
+
+            } else {
+                const khatFile = getNextKhatAudio();
+
+                // Broadcast wrong answer result with exact sequential audio file name
+                broadcastMillionaireState('answer_result', {
+                    correct: false,
+                    index: index,
+                    questionIndex: currentQuestionIndex,
+                    audioFile: khatFile
+                }, true);
+
+                applyAnswerResultUI({
+                    correct: false,
+                    index: index,
+                    audioFile: khatFile
+                });
+            }
+        }
+
+        function applyAnswerResultUI(act) {
+            const targetIdx = act.index;
+            const btn = document.getElementById('answer' + targetIdx);
+
+            if (act.correct) {
+                document.querySelectorAll('.answer-btn').forEach(b => b.classList.add('disabled'));
+                if (btn) {
+                    btn.classList.remove('selected');
+                    btn.classList.add('correct');
+                }
+
+                let transitioned = false;
+                const advanceToNextStep = () => {
+                    if (transitioned) return;
+                    transitioned = true;
+                    if (typeof act.nextIndex === 'number') {
+                        currentQuestionIndex = act.nextIndex;
+                    }
+                    if (currentQuestionIndex >= questions.length) {
+                        winGame();
+                    } else {
+                        gameActive = true;
+                        loadQuestion();
+                    }
+                };
+
+                const audioFile = act.audioFile || SAH_AUDIO_FILES[0];
+                playAudioFile(audioFile, advanceToNextStep);
+                setTimeout(advanceToNextStep, 2500);
+
+            } else {
+                if (btn) {
+                    btn.classList.remove('selected');
+                    btn.classList.add('wrong', 'disabled');
+                    btn.style.pointerEvents = 'none';
+                }
+
+                const audioFile = act.audioFile || KHAT_AUDIO_FILES[0];
+                playAudioFile(audioFile);
+
+                setTimeout(() => {
+                    showSecondChanceModal("❌ إجابة خاطئة!");
+                }, 600);
+            }
+        }
+
+        function showSecondChanceModal(customTitle = "❌ إجابة خاطئة!") {
+            const modal = document.getElementById('modalContent');
+            const isStudent = (window.isHost === false);
+            
+            if (isStudent) {
+                modal.innerHTML = `
+                    <div class="modal-title lose" style="color: #ef4444; font-size: 1.8em;">${customTitle}</div>
+                    <div class="modal-text" style="font-size: 1.2em; margin: 15px 0; color: #f8fafc;">بانتظار المعلم...</div>
+                `;
+            } else {
+                modal.innerHTML = `
+                    <div class="modal-title lose" style="color: #f59e0b; font-size: 2em;">${customTitle}</div>
+                    <div class="modal-text" style="font-size: 1.25em; margin: 15px 0; color: #f8fafc;">حاول مرة أخرى! لديك فرصة ثانية لاختيار الإجابة الصحيحة.</div>
+                    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                        <button class="btn btn-primary" onclick="retryQuestion();" style="background: linear-gradient(135deg, #10b981, #059669); border-color: #10b981; font-size: 1.1em; padding: 10px 24px;">🔄 فرصة ثانية</button>
+                    </div>
+                `;
+            }
+            document.getElementById('modalOverlay').classList.add('active');
+            if (typeof broadcastMillionaireState === 'function') broadcastMillionaireState();
+        }
+
+        function retryQuestion() {
+            playAudioFile('forsa.MP3');
+            closeModal();
+            gameActive = true;
+
+            // Re-enable remaining valid buttons for second chance pick
+            document.querySelectorAll('.answer-btn').forEach(btn => {
+                if (!btn.classList.contains('wrong') && !btn.classList.contains('eliminated')) {
+                    btn.classList.remove('disabled', 'selected');
+                    btn.style.pointerEvents = 'auto';
+                }
+            });
+
+            broadcastMillionaireState('retry_question', {}, true);
+            if (window.isHost !== false) startTimer();
+        }
+
+        function walkAway() {
+            if (!gameActive || currentQuestionIndex === 0) {
+                showToast('⚠️ يجب الإجابة على سؤال واحد على الأقل');
+                return;
+            }
+            stopTimer();
+            gameActive = false;
+            gameOver(true);
+        }
+
+        function gameOver(walkedAway) {
+            const prizeIndex = Math.min(currentQuestionIndex - 1, PRIZE_VALUES.length - 1);
+            const prize = walkedAway ? (currentPrize) : Math.max(0, PRIZE_VALUES[Math.max(0, prizeIndex - 1)]);
+
+            let guaranteed = 0;
+            if (currentQuestionIndex >= 5) guaranteed = PRIZE_VALUES[4]; // 2,000
+            else if (currentQuestionIndex >= 1) guaranteed = 0;
+
+            const finalPrize = Math.max(prize, guaranteed);
+            const isStudent = (window.isHost === false);
+
+            const modal = document.getElementById('modalContent');
+            if (modal) {
+                if (isStudent) {
+                    modal.innerHTML = `
+                        <div class="modal-title lose">${walkedAway ? '🚶 مغادرة اللعبة' : '😢 خسرت اللعبة!'}</div>
+                        <div class="modal-amount">${finalPrize.toLocaleString()} 💰</div>
+                        <div class="modal-text">
+                            ${walkedAway ? 'لقد غادرت اللعبة بمبلغك' : 'الإجابة الصحيحة كانت: ' + (questions[Math.min(currentQuestionIndex, questions.length - 1)] ? questions[Math.min(currentQuestionIndex, questions.length - 1)].options[questions[Math.min(currentQuestionIndex, questions.length - 1)].correctIndex] : '')}
+                        </div>
+                        <div class="modal-text" style="font-size: 1.1em; color: #aaa; margin-top: 10px;">بانتظار المعلم...</div>
+                    `;
+                } else {
+                    modal.innerHTML = `
+                        <div class="modal-title lose">${walkedAway ? '🚶 مغادرة اللعبة' : '😢 خسرت اللعبة!'}</div>
+                        <div class="modal-amount">${finalPrize.toLocaleString()} 💰</div>
+                        <div class="modal-text">
+                            ${walkedAway ? 'لقد غادرت اللعبة بمبلغك' : 'الإجابة الصحيحة كانت: ' + (questions[Math.min(currentQuestionIndex, questions.length - 1)] ? questions[Math.min(currentQuestionIndex, questions.length - 1)].options[questions[Math.min(currentQuestionIndex, questions.length - 1)].correctIndex] : '')}
+                        </div>
+                        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                            <button class="btn btn-primary" onclick="closeModal(); startGame();">🔄 إعادة اللعب</button>
+                            <button class="btn btn-secondary" onclick="closeModal(); showScreen('startScreen');">🏠 الرئيسية</button>
+                        </div>
+                    `;
+                }
+            }
+            document.getElementById('modalOverlay').classList.add('active');
+            playRandomKhatAudio();
+        }
+
+        function winGame() {
+            if (isGameWon) return;
+            isGameWon = true;
+
+            stopTimer();
+            gameActive = false;
+            playAudioFile('foz.mp3');
+
+            const isStudent = (window.isHost === false);
+            const modal = document.getElementById('modalContent');
+            if (modal) {
+                if (isStudent) {
+                    modal.innerHTML = `
+                        <div class="modal-title win">🎉 مبروك! فزت بالمليون!</div>
+                        <div class="modal-amount">1,000,000 💰</div>
+                        <div class="modal-text">لقد أجبت على جميع الأسئلة بشكل صحيح!</div>
+                        <div class="modal-text" style="font-size: 1.1em; color: #aaa; margin-top: 10px;">بانتظار المعلم...</div>
+                    `;
+                } else {
+                    modal.innerHTML = `
+                        <div class="modal-title win">🎉 مبروك! فزت بالمليون!</div>
+                        <div class="modal-amount">1,000,000 💰</div>
+                        <div class="modal-text">لقد أجبت على جميع الأسئلة بشكل صحيح!</div>
+                        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                            <button class="btn btn-primary" onclick="closeModal(); startGame();">🔄 إعادة اللعب</button>
+                            <button class="btn btn-secondary" onclick="closeModal(); showScreen('startScreen');">🏠 الرئيسية</button>
+                        </div>
+                    `;
+                }
+            }
+            const overlay = document.getElementById('modalOverlay');
+            if (overlay) overlay.classList.add('active');
+
+            if (typeof launchConfetti === 'function') launchConfetti();
+
+            broadcastMillionaireState('win_game', {}, true);
+        }
+
+        // ============= Timer =============
+        function startTimer() {
+            stopTimer();
+            timeLeft = 30;
+            updateTimerDisplay();
+            if (typeof broadcastMillionaireState === 'function') broadcastMillionaireState();
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+
+                if (timeLeft % 2 === 0 && typeof broadcastMillionaireState === 'function') {
+                    broadcastMillionaireState();
+                }
+
+                if (timeLeft <= 5) {
+                    playSound('tick');
+                }
+
+                if (timeLeft <= 0) {
+                    stopTimer();
+                    if (gameActive) {
+                        gameActive = false;
+                        playAudioFile('time.MP3');
+                        setTimeout(() => {
+                            showSecondChanceModal("⏰ انتهى الوقت!");
+                        }, 500);
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            document.getElementById('timer').textContent = timeLeft;
+            const fill = (timeLeft / 30) * 100;
+            document.getElementById('timerFill').style.width = fill + '%';
+
+            const timerEl = document.getElementById('timer');
+            if (timeLeft <= 10) {
+                timerEl.classList.add('warning');
+            } else {
+                timerEl.classList.remove('warning');
+            }
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        // ============= Lifelines =============
+        function useFiftyFifty(isRemote = false) {
+            if (!lifelines.fiftyFifty || !gameActive) return;
+
+            lifelines.fiftyFifty = false;
+            document.getElementById('lifeline5050').classList.add('disabled');
+
+            if (!isRemote) {
+                const correctIndex = questions[currentQuestionIndex].correctIndex;
+                let wrongIndices = [0, 1, 2, 3].filter(i => i !== correctIndex);
+                wrongIndices = shuffleArray(wrongIndices).slice(0, 2);
+
+                broadcastMillionaireState('use_5050', { wrongIndices: wrongIndices }, true);
+                applyFiftyFiftyUI(wrongIndices);
+            }
+        }
+
+        function applyFiftyFiftyUI(wrongIndices) {
+            let executed = false;
+            const executeAction = () => {
+                if (executed) return;
+                executed = true;
+                if (Array.isArray(wrongIndices)) {
+                    wrongIndices.forEach(i => {
+                        const btn = document.getElementById('answer' + i);
+                        if (btn) btn.classList.add('eliminated');
+                    });
+                }
+                showToast('50:50 - تمت إزالة إجابتين');
+            };
+
+            const audio = playAudioFile('two.mp3', executeAction);
+            if (!audio) executeAction();
+            setTimeout(executeAction, 3000);
+        }
+
+        function usePhone(isRemote = false) {
+            if (!lifelines.phone || !gameActive) return;
+
+            lifelines.phone = false;
+            document.getElementById('lifelinePhone').classList.add('disabled');
+
+            if (!isRemote) {
+                const correctIndex = questions[currentQuestionIndex].correctIndex;
+                const correctLetter = LETTERS[correctIndex];
+
+                const randomPhrases = [
+                    `أعتقد أن الإجابة هي ${correctLetter}`,
+                    `أنا متأكد أن الصواب ${correctLetter}`,
+                    `سأقول ${correctLetter} بثقة`,
+                    `بعد التفكير، أرى أن ${correctLetter} هي الصحيحة`
+                ];
+
+                const phrase = randomPhrases[Math.floor(Math.random() * randomPhrases.length)];
+                broadcastMillionaireState('use_phone', { phrase: phrase }, true);
+                applyPhoneUI(phrase);
+            }
+        }
+
+        function applyPhoneUI(phrase) {
+            let executed = false;
+            const executeAction = () => {
+                if (executed) return;
+                executed = true;
+                const modal = document.getElementById('modalContent');
+                if (modal) {
+                    modal.innerHTML = `
+                        <div style="font-size:4em;">📞</div>
+                        <div class="modal-title" style="color:#d4af37;">الاتصال بصديق</div>
+                        <div class="phone-content">
+                            <p class="phone-text">${phrase}</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="closeModal()">حسناً</button>
+                    `;
+                }
+                document.getElementById('modalOverlay').classList.add('active');
+            };
+
+            const audio = playAudioFile('frind.mp3', executeAction);
+            if (!audio) executeAction();
+            setTimeout(executeAction, 3000);
+        }
+
+        function useAudience(isRemote = false) {
+            if (!lifelines.audience || !gameActive) return;
+
+            lifelines.audience = false;
+            document.getElementById('lifelineAudience').classList.add('disabled');
+
+            if (!isRemote) {
+                const correctIndex = questions[currentQuestionIndex].correctIndex;
+                let percentages = [0, 0, 0, 0];
+
+                percentages[correctIndex] = Math.floor(Math.random() * 30) + 50;
+                let remaining = 100 - percentages[correctIndex];
+                for (let i = 0; i < 4; i++) {
+                    if (i !== correctIndex) {
+                        percentages[i] = Math.floor(Math.random() * remaining);
+                        remaining -= percentages[i];
+                    }
+                }
+                percentages[correctIndex] += remaining;
+
+                broadcastMillionaireState('use_audience', { percentages: percentages }, true);
+                applyAudienceUI(percentages);
+            }
+        }
+
+        function applyAudienceUI(percentages) {
+            let executed = false;
+            const executeAction = () => {
+                if (executed) return;
+                executed = true;
+                const modal = document.getElementById('modalContent');
+                const maxPercent = Math.max(...percentages);
+
+                if (modal) {
+                    modal.innerHTML = `
+                        <div style="font-size:3em;">👥</div>
+                        <div class="modal-title" style="color:#d4af37;">مساعدة الجمهور</div>
+                        <div class="audience-bars">
+                            ${percentages.map((p, i) => `
+                                <div class="audience-bar-container">
+                                    <div class="audience-bar-percent">${p}%</div>
+                                    <div class="audience-bar" style="height:${(p / maxPercent) * 140}px;"></div>
+                                    <div class="audience-letter">${LETTERS[i]}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="btn btn-primary" onclick="closeModal()">حسناً</button>
+                    `;
+                }
+                document.getElementById('modalOverlay').classList.add('active');
+            };
+
+            const audio = playAudioFile('jumhor.mp3', executeAction);
+            if (!audio) executeAction();
+            setTimeout(executeAction, 3000);
+        }
+
+        // ============= Modal =============
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        const AI_PROMPT_GUIDE_TEXT = `أنت مساعد تعليمي متخصص في توليد أسئلة الألعاب التعليمية. أريدك أن تتهيأ لتوليد أسئلة بناءً على نصوص أو موضوعات سأرسلها لك في الرسائل القادمة.
+
+قواعد التوليد والإخراج:
+1. الإخراج يكون **حصرياً** بصيغة نصية بسيطة (TXT) بدون أي مقدمات، خاتمة، أو شروحات جانبية.
+2. كل سؤال يتكون من البنية التالية بالترتيب:
+   - سطر السؤال يبدأ بـ "السؤال: "
+   - 4 أسطر للخيارات: أ) ... ، ب) ... ، ج) ... ، د) ...
+   - سطر الإجابة الصحيحة يبدأ بـ "الإجابة الصحيحة: " متبوعاً بحرف الإجابة (أ أو ب أو ج أو د).
+3. اترك سطراً فارغاً بين كل سؤال والذي يليه.
+
+البنية المطلوبة للأسئلة:
+السؤال: ما هي عاصمة مصر؟
+أ) القاهرة
+ب) الإسكندرية
+ج) الجيزة
+د) أسوان
+الإجابة الصحيحة: أ
+
+السؤال: كم عدد أضلاع المثلث؟
+أ) 2
+ب) 3
+ج) 4
+د) 5
+الإجابة الصحيحة: ب
+
+الآن: لا تقم بتوليد أي أسئلة مطلقاً! فقط أكد لي أنك فهمت التعليمات والصيغة المطلوبة، وأخبرني أنك جاهز لاستقبال الدرس أو الموضوع وعدد الأسئلة المطلوبة.`;
+
+        function openAiPromptGuideModal() {
+            const modal = document.getElementById('modalContent');
+            if (!modal) return;
+
+            modal.innerHTML = `
+                <div class="modal-title" style="color: #60a5fa; font-size: 1.5em; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    🤖 دليل إنشاء الأسئلة بالـ AI
+                </div>
+                <div style="margin: 15px 0; text-align: center; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+                    <button id="btnCopyAiPrompt" class="btn" style="padding: 12px 24px; font-size: 1.05em; font-weight: 700; background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; border-radius: 30px; box-shadow: 0 4px 15px rgba(16,185,129,0.4); cursor: pointer; transition: all 0.2s;" onclick="copyAiPromptText()">
+                        📋 1. نسخ نص المساعد الذكي
+                    </button>
+                    <button class="btn" style="padding: 12px 24px; font-size: 1.05em; font-weight: 700; background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; border: none; border-radius: 30px; box-shadow: 0 4px 15px rgba(139,92,246,0.4); cursor: pointer; transition: all 0.2s;" onclick="openPasteAiModal()">
+                        📥 2. لصق الأسئلة الناتجة فوراً
+                    </button>
+                </div>
+                <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(96, 165, 250, 0.3); border-radius: 12px; padding: 16px; max-height: 300px; overflow-y: auto; text-align: right; font-family: 'Cairo', sans-serif; font-size: 0.95em; color: #e2e8f0; line-height: 1.8; white-space: pre-wrap; user-select: text; direction: rtl;" id="aiPromptTextContent">` + AI_PROMPT_GUIDE_TEXT.replace(/</g, "&lt;").replace(/>/g, "&gt;") + `</div>
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="btn btn-secondary" onclick="closeModal()" style="min-width: 140px; border-radius: 30px;">إغلاق</button>
+                </div>
+            `;
+
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        function openPasteAiModal() {
+            const modal = document.getElementById('modalContent');
+            if (!modal) return;
+
+            modal.innerHTML = `
+                <div class="modal-title" style="color: #a78bfa; font-size: 1.5em; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    🤖 لصق واستيراد أسئلة الذكاء الاصطناعي
+                </div>
+                <p style="color: #cbd5e1; margin-bottom: 12px; font-size: 0.95em; text-align: center;">
+                    إلصق النص الذي قمت بنسخه من الذكاء الاصطناعي (مثل ChatGPT أو Gemini) هنا مباشرة:
+                </p>
+                <textarea id="pastedAiQuestionsInput" class="form-input" style="width: 100%; height: 210px; font-family: 'Cairo', monospace; font-size: 0.9em; line-height: 1.6; background: rgba(15, 23, 42, 0.9); border: 2px solid rgba(167, 139, 250, 0.5); border-radius: 12px; color: #f8fafc; padding: 12px; resize: vertical;" placeholder="إلصق النص الذي كتبه الذكاء الاصطناعي هنا...&#10;&#10;مثال:&#10;السؤال: ما هي عاصمة مصر؟&#10;أ) الإسكندرية&#10;ب) القاهرة&#10;ج) الجيزة&#10;د) أسوان&#10;الإجابة الصحيحة: ب"></textarea>
+                
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 18px;">
+                    <button class="btn btn-success btn-icon" onclick="processPastedAiQuestions(false)" style="padding: 10px 22px; font-size: 0.95em; background: linear-gradient(135deg, #10b981, #059669);">
+                        <span>🚀</span> استيراد الأسئلة للعبة فوراً
+                    </button>
+                    <button class="btn btn-primary btn-icon" onclick="processPastedAiQuestions(true)" style="padding: 10px 22px; font-size: 0.95em; background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                        <span>💾</span> استيراد وحفظ كملف TXT
+                    </button>
+                    <button class="btn btn-secondary" onclick="closeModal()" style="padding: 10px 20px; font-size: 0.95em; border-radius: 30px;">
+                        إلغاء
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        function processPastedAiQuestions(saveToFile = false) {
+            const input = document.getElementById('pastedAiQuestionsInput');
+            if (!input) return;
+            const text = input.value.trim();
+
+            if (!text) {
+                showToast('⚠️ يرجى لصق نص الأسئلة في الصندوق أولاً!');
+                return;
+            }
+
+            const imported = parseQuestionsFromText(text);
+            if (Array.isArray(imported) && imported.length > 0) {
+                questions = imported;
+                updateQuestionsList();
+                const startCount = document.getElementById('startCount');
+                if (startCount) startCount.textContent = questions.length;
+                saveQuestions();
+                playSound('correct');
+                closeModal();
+
+                showToast('✅ تم استيراد ' + questions.length + ' سؤالاً من الذكاء الاصطناعي بنجاح!');
+
+                if (saveToFile) {
+                    exportQuestions();
+                }
+            } else {
+                playSound('wrong');
+                showToast('❌ تعذر التعرف على صيغة الأسئلة، يرجى التأكد من الالتزام بالصيغة!');
+            }
+        }
+
+        function copyAiPromptText() {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(AI_PROMPT_GUIDE_TEXT).then(onSuccess, fallbackCopy);
+            } else {
+                fallbackCopy();
+            }
+
+            function onSuccess() {
+                const btn = document.getElementById('btnCopyAiPrompt');
+                if (btn) {
+                    btn.innerHTML = '✅ تم النسخ بنجاح!';
+                    btn.style.background = 'linear-gradient(135deg, #059669, #047857)';
+                    setTimeout(() => {
+                        btn.innerHTML = '📋 نسخ نص المساعد الذكي';
+                        btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                    }, 2500);
+                }
+                showToast("✨ تم نسخ نص المساعد الذكي إلى الحافظة!");
+            }
+
+            function fallbackCopy() {
+                const ta = document.createElement('textarea');
+                ta.value = AI_PROMPT_GUIDE_TEXT;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                onSuccess();
+            }
+        }
+
+        // Close modal on overlay click
+        document.getElementById('modalOverlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('modalOverlay')) {
+                closeModal();
+            }
+        });
+
+        // ============= Toast =============
+        function showToast(message) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // ============= Confetti =============
+        function launchConfetti() {
+            const container = document.getElementById('confettiContainer');
+            const colors = ['#d4af37', '#f4e17e', '#2ecc40', '#3498db', '#e74c3c', '#9b59b6', '#f1c40f'];
+
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = Math.random() * 10 + 5 + 'px';
+                confetti.style.height = Math.random() * 10 + 5 + 'px';
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(confetti);
+            }
+
+            setTimeout(() => container.innerHTML = '', 5000);
+        }
+
+        // ============= Utilities =============
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // ============= Load saved questions on startup =============
+        window.addEventListener('load', () => {
+            const saved = localStorage.getItem('millionaire_questions');
+            if (saved) {
+                questions = JSON.parse(saved);
+            }
+        });
+
+        // ============= Live Share State Sync (Juz Amma Pattern) =============
+        let isSyncingRemoteState = false;
+        window.isHost = true;
+        window.mySenderId = window.mySenderId || ('sender_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now());
+        let lastProcessedActionTime = 0;
+
+        function broadcastMillionaireState(actionType = null, extraData = {}, force = false) {
+            if (isSyncingRemoteState && !force && !actionType) return;
+
+            const stateObj = {
+                screen: typeof currentScreen !== 'undefined' ? currentScreen : 'startScreen',
+                currentQuestionIndex: typeof currentQuestionIndex !== 'undefined' ? currentQuestionIndex : 0,
+                questions: typeof questions !== 'undefined' ? questions : [],
+                used5050: typeof used5050 !== 'undefined' ? used5050 : false,
+                usedPhone: typeof usedPhone !== 'undefined' ? usedPhone : false,
+                usedAudience: typeof usedAudience !== 'undefined' ? usedAudience : false,
+                gameActive: typeof gameActive !== 'undefined' ? gameActive : true,
+                timeLeft: typeof timeLeft !== 'undefined' ? timeLeft : 30,
+                timerRunning: !!timerInterval,
+                modalActive: document.getElementById('modalOverlay') ? document.getElementById('modalOverlay').classList.contains('active') : false,
+                _senderId: window.mySenderId,
+                timestamp: Date.now()
+            };
+
+            if (actionType) {
+                stateObj.lastAction = Object.assign({
+                    type: actionType,
+                    _senderId: window.mySenderId,
+                    timestamp: Date.now()
+                }, extraData);
+            }
+
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'millionaire_state_update',
+                    state: stateObj
+                }, '*');
+            }
+        }
+
+        // Request initial state on load
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'request_millionaire_state' }, '*');
+        }
+
+        window.controlEnabled = true;
+        function updateMillionaireControlUI() {
+            if (window.isHost !== false) return;
+            let banner = document.getElementById('millionaireControlBanner');
+            if (!banner && document.body) {
+                banner = document.createElement('div');
+                banner.id = 'millionaireControlBanner';
+                banner.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:99999;padding:6px 18px;border-radius:20px;font-size:13px;font-weight:bold;direction:rtl;text-align:center;box-shadow:0 4px 15px rgba(0,0,0,0.5);transition:all 0.3s;pointer-events:none;';
+                document.body.appendChild(banner);
+            }
+            if (banner) {
+                if (window.controlEnabled) {
+                    banner.style.background = 'rgba(16, 185, 129, 0.9)';
+                    banner.style.color = '#ffffff';
+                    banner.style.border = '1.5px solid #10b981';
+                    banner.innerHTML = '🟢 مسموح لك بالإجابة! اضغط على الإجابة الصحيحة';
+                } else {
+                    banner.style.background = 'rgba(239, 68, 68, 0.9)';
+                    banner.style.color = '#ffffff';
+                    banner.style.border = '1.5px solid #ef4444';
+                    banner.innerHTML = '🔒 وضع المشاهدة (التحكم مغلق من قِبل المعلم)';
+                }
+            }
+            document.querySelectorAll('.answer-btn').forEach(b => {
+                if (!b.classList.contains('disabled') && !b.classList.contains('eliminated')) {
+                    b.style.pointerEvents = window.controlEnabled ? 'auto' : 'none';
+                    b.style.opacity = window.controlEnabled ? '1' : '0.65';
+                }
+            });
+        }
+
+        window.addEventListener('message', (e) => {
+            if (!e.data) return;
+
+            if (e.data.type === 'set_student_control' || e.data.type === 'update_control_permission') {
+                window.controlEnabled = !!e.data.controlEnabled;
+                updateMillionaireControlUI();
+                return;
+            }
+
+            if (e.data.type === 'init_player_id') {
+                if (typeof e.data.isHost === 'boolean') {
+                    window.isHost = e.data.isHost;
+                    window.controlEnabled = window.isHost ? true : !!e.data.controlEnabled;
+                    if (document.body) {
+                        document.body.classList.toggle('student-device', window.isHost === false);
+                    }
+                    const walkAwayEl = document.querySelector('.walk-away-container');
+                    if (walkAwayEl && window.isHost === false) {
+                        walkAwayEl.style.display = 'none';
+                    }
+                    if (window.isHost === false) {
+                        const startBtn = document.querySelector('.start-screen .btn-primary');
+                        if (startBtn) startBtn.style.display = 'none';
+                        const adminBtn = document.querySelector('.start-screen .btn-secondary');
+                        if (adminBtn) adminBtn.style.display = 'none';
+
+                        let waitNotice = document.getElementById('studentWaitNotice');
+                        if (!waitNotice && document.querySelector('.start-screen')) {
+                            waitNotice = document.createElement('div');
+                            waitNotice.id = 'studentWaitNotice';
+                            waitNotice.style.cssText = 'font-size: 1.3em; color: #f4e17e; margin-top: 20px; font-weight: bold; text-align: center;';
+                            waitNotice.textContent = '⏳ بانتظار المعلم لبدء اللعبة...';
+                            document.querySelector('.start-screen').appendChild(waitNotice);
+                        }
+                    }
+                    updateMillionaireControlUI();
+                }
+                return;
+            }
+
+            if (e.data.type === 'play_millionaire_audio' && e.data.filename) {
+                const prevSync = isSyncingRemoteState;
+                isSyncingRemoteState = true;
+                try {
+                    playAudioFile(e.data.filename);
+                } finally {
+                    isSyncingRemoteState = prevSync;
+                }
+                return;
+            }
+
+            if (e.data.type === 'sync_millionaire_state' || e.data.type === 'apply_millionaire_state') {
+                const state = e.data.state || e.data;
+                if (!state) return;
+
+                // Ignore echo-back from myself EXCEPT when it's an action response (check actionSender)
+                const actionSender = (state.lastAction && state.lastAction._senderId) ? state.lastAction._senderId : state._senderId;
+                if (actionSender === window.mySenderId && (!state.lastAction || (state.lastAction.type !== 'answer_result' && state.lastAction.type !== 'retry_question'))) return;
+
+                isSyncingRemoteState = true;
+                try {
+                    if (state.questions && Array.isArray(state.questions) && state.questions.length > 0) {
+                        if (JSON.stringify(questions) !== JSON.stringify(state.questions)) {
+                            questions = state.questions;
+                            lastRenderedQuestionKey = '';
+                        }
+                    }
+                    const hasPendingAnswerResult = (state.lastAction && state.lastAction.type === 'answer_result' && state.lastAction.timestamp > lastProcessedActionTime);
+
+                    if (!hasPendingAnswerResult) {
+                        if (typeof state.currentQuestionIndex === 'number') {
+                            currentQuestionIndex = state.currentQuestionIndex;
+                        }
+                    }
+                    if (state.screen && state.screen !== currentScreen) {
+                        showScreen(state.screen);
+                    }
+                    if (!hasPendingAnswerResult) {
+                        const expectedKey = currentQuestionIndex + '_' + (questions[currentQuestionIndex] ? questions[currentQuestionIndex].question : '');
+                        if (lastRenderedQuestionKey !== expectedKey && (currentScreen === 'gameScreen' || currentScreen === 'playing')) {
+                            buildPrizeLadder();
+                            renderQuestionOnly();
+                        }
+                    }
+                    if (typeof state.timeLeft === 'number') {
+                        timeLeft = state.timeLeft;
+                        if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
+                    }
+                    if (state.used5050 && typeof useFiftyFifty === 'function') {
+                        useFiftyFifty(true);
+                    }
+                    if (state.gameActive && !gameActive && currentScreen === 'startScreen' && typeof startGame === 'function') {
+                        startGame();
+                    }
+                    if (typeof state.modalActive === 'boolean') {
+                        const modalEl = document.getElementById('modalOverlay');
+                        if (modalEl) {
+                            if (!state.modalActive) modalEl.classList.remove('active');
+                        }
+                    }
+
+                    // Process incoming remote action
+                    if (state.lastAction && state.lastAction.timestamp && state.lastAction.timestamp > lastProcessedActionTime) {
+                        lastProcessedActionTime = state.lastAction.timestamp;
+                        const act = state.lastAction;
+
+                        if (act.type === 'start_game') {
+                            if (act.questions && Array.isArray(act.questions)) {
+                                questions = act.questions;
+                            }
+                            executeStartGame();
+                        } else if (act.type === 'next_question') {
+                            if (typeof act.questionIndex === 'number') {
+                                currentQuestionIndex = act.questionIndex;
+                            }
+                            gameActive = true;
+                            lastRenderedQuestionKey = '';
+                            renderQuestionOnly();
+                            if (window.isHost !== false) startTimer();
+                        } else if (act.type === 'select_answer' && typeof act.index === 'number') {
+                            if (typeof act.questionIndex === 'number' && act.questionIndex !== currentQuestionIndex) return;
+                            document.querySelectorAll('.answer-btn').forEach(btn => btn.classList.remove('selected'));
+                            const btn = document.getElementById('answer' + act.index);
+                            if (btn) btn.classList.add('selected');
+
+                            // ONLY Host confirms answer on behalf of student to avoid race conditions
+                            if (window.isHost !== false) {
+                                setTimeout(() => {
+                                    confirmAnswer(act.index);
+                                }, 500);
+                            }
+                        } else if (act.type === 'answer_result') {
+                            applyAnswerResultUI(act);
+                        } else if (act.type === 'use_5050' && Array.isArray(act.wrongIndices)) {
+                            lifelines.fiftyFifty = false;
+                            document.getElementById('lifeline5050').classList.add('disabled');
+                            applyFiftyFiftyUI(act.wrongIndices);
+                        } else if (act.type === 'use_phone' && act.phrase) {
+                            lifelines.phone = false;
+                            document.getElementById('lifelinePhone').classList.add('disabled');
+                            applyPhoneUI(act.phrase);
+                        } else if (act.type === 'use_audience' && Array.isArray(act.percentages)) {
+                            lifelines.audience = false;
+                            document.getElementById('lifelineAudience').classList.add('disabled');
+                            applyAudienceUI(act.percentages);
+                        } else if (act.type === 'retry_question') {
+                            playAudioFile('forsa.MP3');
+                            closeModal();
+                            gameActive = true;
+                            document.querySelectorAll('.answer-btn').forEach(btn => {
+                                if (!btn.classList.contains('wrong') && !btn.classList.contains('eliminated')) {
+                                    btn.classList.remove('disabled', 'selected');
+                                    btn.style.pointerEvents = 'auto';
+                                }
+                            });
+                            if (window.isHost !== false) startTimer();
+                        } else if (act.type === 'win_game') {
+                            winGame();
+                        }
+                    }
+                } finally {
+                    isSyncingRemoteState = false;
+                }
+            }
+        });
+
+        // ============= Keyboard shortcuts =============
+        document.addEventListener('keydown', (e) => {
+            if (!gameActive) return;
+
+            const keyMap = { '1': 0, '2': 1, '3': 2, '4': 3, 'a': 0, 'b': 1, 'c': 2, 'd': 3 };
+            const key = e.key.toLowerCase();
+
+            if (key in keyMap) {
+                selectAnswer(keyMap[key]);
+            }
+        });
+    </script>
+</body>
+</html>

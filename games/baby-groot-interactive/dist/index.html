@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Baby Groot (Interactive)</title>
+    <link rel="stylesheet" href="./style.css">
+    <script>
+      (function() {
+        var originalGetContext = HTMLCanvasElement.prototype.getContext;
+        HTMLCanvasElement.prototype.getContext = function(type, attributes) {
+          if (type === '2d') {
+            if (!attributes) attributes = {};
+            attributes.willReadFrequently = true;
+          }
+          return originalGetContext.call(this, type, attributes);
+        };
+
+        var origAppend = document.head.appendChild;
+        document.head.appendChild = function(el) {
+          if (el && el.tagName === 'STYLE' && el.innerHTML && el.innerHTML.indexOf('PjsEmptyFont') !== -1) {
+            el.innerHTML = '@font-face {\n  font-family: "PjsEmptyFont";\n  src: local("Arial");\n}';
+          }
+          return origAppend.call(this, el);
+        };
+      })();
+    </script>
+  </head>
+    
+  <body>
+  <canvas id="canvas"></canvas>
+<script src="./processing.min.js"></script>
+    <script  src="./script.js"></script>
+
+  </body>
+  
+</html>

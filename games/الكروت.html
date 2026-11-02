@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لعبة الكروت والمطابقة</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+    height: 100vh;
+    overflow: hidden;
+    color: #fff;
+  }
+  #canvas-container {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+  }
+  .ui {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    justify-content: space-between;
+    align-items: center;
+  }
+  h1 {
+    font-size: 2.2em;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    text-shadow: 0 0 20px #4ecca3, 0 0 40px #4ecca3;
+    background: linear-gradient(90deg, #4ecca3, #45b7d1, #f9a826);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin: 5px 0;
+  }
+  .stat-box {
+    background: rgba(78, 204, 163, 0.15);
+    border: 2px solid #4ecca3;
+    border-radius: 12px;
+    padding: 8px 20px;
+    font-size: 1.1em;
+    box-shadow: 0 0 15px rgba(78, 204, 163, 0.4);
+    backdrop-filter: blur(5px);
+  }
+  .controls {
+    margin: 5px 0;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  button {
+    font-family: inherit;
+    font-size: 1em;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #f9a826, #f76b1c);
+    color: #fff;
+    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(249, 168, 38, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(249, 168, 38, 0.6);
+  }
+  select {
+    font-family: inherit;
+    font-size: 1em;
+    padding: 8px 20px;
+    border: 2px solid #45b7d1;
+    border-radius: 12px;
+    cursor: pointer;
+    background: #0f2744;
+    color: #e0f7ff;
+    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(69, 183, 209, 0.35);
+    transition: transform 0.2s, box-shadow 0.2s;
+    appearance: auto;
+    outline: none;
+  }
+  select:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(69, 183, 209, 0.55);
+    border-color: #4ecca3;
+  }
+  select option {
+    background: #0f2744;
+    color: #e0f7ff;
+    font-weight: bold;
+  }
+  #sound-toggle {
+    background: rgba(78,204,163,0.15);
+    border: 2px solid #4ecca3;
+    color: #4ecca3;
+    font-size: 1.1em;
+    padding: 6px 12px;
+    border-radius: 12px;
+  }
+  #board {
+    display: grid;
+    gap: 10px;
+    width: 95%;
+    max-width: min(500px, 58vh);
+    aspect-ratio: 1;
+    margin: 5px auto;
+    perspective: 1000px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+  }
+  .card.flipped { transform: rotateY(180deg); }
+  .card.matched { transform: rotateY(180deg) scale(0.95); }
+  .card.matched .face-front {
+    box-shadow: 0 0 20px #4ecca3, 0 0 35px #4ecca3;
+    animation: matchPulse 0.6s ease;
+  }
+  @keyframes matchPulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+  .card.wrong .face-back {
+    animation: wrongShake 0.4s ease;
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 20px #ef4444 !important;
+  }
+  @keyframes wrongShake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+  .face {
+    position: absolute;
+    width: 100%; height: 100%;
+    backface-visibility: hidden;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2em;
+    font-weight: bold;
+    user-select: none;
+  }
+  .face-back {
+    background: linear-gradient(135deg, #533483, #7b4bb5);
+    border: 3px solid #9b6dff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.4), inset 0 0 20px rgba(155,109,255,0.3);
+    color: #d4b3ff;
+  }
+  .face-front {
+    background: linear-gradient(135deg, #16213e, #0f3460);
+    border: 3px solid #4ecca3;
+    transform: rotateY(180deg);
+    color: #fff;
+    text-align: center;
+    padding: 3px;
+    font-size: 1.4em;
+    line-height: 1.1;
+  }
+  .win-msg {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: rgba(15, 52, 96, 0.95);
+    border: 3px solid #4ecca3;
+    border-radius: 25px;
+    padding: 30px 50px;
+    z-index: 10;
+    text-align: center;
+    box-shadow: 0 0 50px #4ecca3;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .win-msg.show { transform: translate(-50%, -50%) scale(1); }
+  .win-msg h2 { font-size: 2.2em; margin-bottom: 10px; color: #f9a826; }
+  .win-msg p { font-size: 1.2em; margin-bottom: 15px; }
+  @media (max-width: 500px) {
+    h1 { font-size: 1.6em; }
+    .face { font-size: 1.6em; }
+    .face-front { font-size: 1.1em; }
+    #board { gap: 6px; }
+  }
+</style>
+</head>
+<body>
+<div id="canvas-container"></div>
+<div class="ui">
+  <h1>لعبة الكروت والمطابقة 🎴</h1>
+  <div class="stats">
+    <div class="stat-box">المحاولات: <span id="moves">0</span></div>
+    <div class="stat-box">المطابقات: <span id="matches">0</span></div>
+    <div class="stat-box">الوقت: <span id="time">0</span> ث</div>
+  </div>
+  <div class="controls">
+    <select id="category">
+      <option value="animals">الحيوانات 🐾</option>
+      <option value="fruits">الفواكه 🍎</option>
+      <option value="numbers">الأرقام 🔢</option>
+      <option value="colors">الألوان 🎨</option>
+    </select>
+    <button id="restart">🔄 لعبة جديدة</button>
+    <button id="sound-toggle" title="تشغيل/كتم الصوت">🔊</button>
+  </div>
+  <div id="board"></div>
+</div>
+<div class="win-msg" id="winMsg">
+  <h2>🎉 أحسنت! 🎉</h2>
+  <p id="winText"></p>
+  <button onclick="document.getElementById('restart').click()">العب مرة أخرى</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ===== Three.js Background =====
+const container = document.getElementById('canvas-container');
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x0f3460, 0.035);
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100);
+camera.position.z = 20;
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+container.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0x404060, 1.5));
+const light1 = new THREE.PointLight(0x4ecca3, 2, 60);
+light1.position.set(10, 10, 10);
+scene.add(light1);
+const light2 = new THREE.PointLight(0xf9a826, 2, 60);
+light2.position.set(-10, -8, 15);
+scene.add(light2);
+
+const shapes = [];
+const geometries = [
+  new THREE.IcosahedronGeometry(1, 0),
+  new THREE.TorusGeometry(0.8, 0.3, 16, 40),
+  new THREE.OctahedronGeometry(1, 0),
+  new THREE.BoxGeometry(1.2, 1.2, 1.2),
+  new THREE.TorusKnotGeometry(0.6, 0.2, 64, 8)
+];
+const bgColors = [0x4ecca3, 0x45b7d1, 0xf9a826, 0x9b6dff, 0xf76b1c];
+for (let i = 0; i < 40; i++) {
+  const geo = geometries[Math.floor(Math.random()*geometries.length)];
+  const mat = new THREE.MeshPhongMaterial({
+    color: bgColors[Math.floor(Math.random()*bgColors.length)],
+    shininess: 80, transparent: true, opacity: 0.7,
+    wireframe: Math.random() > 0.6
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set((Math.random()-0.5)*50, (Math.random()-0.5)*40, (Math.random()-0.5)*40 - 10);
+  const s = 0.4 + Math.random()*1.2;
+  mesh.scale.set(s, s, s);
+  mesh.userData = { rx:(Math.random()-0.5)*0.02, ry:(Math.random()-0.5)*0.02, fs:0.3+Math.random()*0.5, fo:Math.random()*Math.PI*2 };
+  scene.add(mesh);
+  shapes.push(mesh);
+}
+
+let mouseX = 0, mouseY = 0;
+document.addEventListener('mousemove', e => {
+  mouseX = (e.clientX/window.innerWidth - 0.5);
+  mouseY = (e.clientY/window.innerHeight - 0.5);
+});
+
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+  shapes.forEach(m => {
+    m.rotation.x += m.userData.rx;
+    m.rotation.y += m.userData.ry;
+    m.position.y += Math.sin(t*m.userData.fs + m.userData.fo)*0.01;
+  });
+  light1.position.x = Math.sin(t*0.5)*15;
+  light1.position.y = Math.cos(t*0.5)*15;
+  camera.position.x += (mouseX*6 - camera.position.x)*0.05;
+  camera.position.y += (-mouseY*6 - camera.position.y)*0.05;
+  camera.lookAt(scene.position);
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ===== Web Audio Sound Engine =====
+let audioCtx = null;
+let soundEnabled = true;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playTone(freq, type, duration, volume = 0.4, delay = 0) {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+    gain.gain.setValueAtTime(volume, ctx.currentTime + delay);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration);
+    osc.start(ctx.currentTime + delay);
+    osc.stop(ctx.currentTime + delay + duration);
+  } catch(e) {}
+}
+
+// Card flip — short soft click
+function soundFlip() {
+  playTone(900, 'sine', 0.08, 0.25);
+  playTone(600, 'sine', 0.06, 0.1, 0.06);
+}
+
+// Match success — bright ascending arpeggio
+function soundMatch() {
+  const notes = [523, 659, 784, 1047];
+  notes.forEach((f, i) => playTone(f, 'sine', 0.3, 0.35, i * 0.08));
+}
+
+// Wrong — low dull buzz
+function soundWrong() {
+  playTone(220, 'sawtooth', 0.12, 0.3);
+  playTone(180, 'sawtooth', 0.1, 0.2, 0.1);
+}
+
+// Win fanfare — celebratory multi-note chord
+function soundWin() {
+  const fanfare = [
+    {f:523, d:0.25, v:0.4, t:0},
+    {f:659, d:0.25, v:0.4, t:0.15},
+    {f:784, d:0.25, v:0.4, t:0.30},
+    {f:1047,d:0.5,  v:0.5, t:0.45},
+    {f:784, d:0.15, v:0.3, t:0.65},
+    {f:1047,d:0.6,  v:0.5, t:0.80},
+  ];
+  fanfare.forEach(n => playTone(n.f, 'sine', n.d, n.v, n.t));
+}
+
+// Sound toggle button
+const soundToggle = document.getElementById('sound-toggle');
+soundToggle.addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  soundToggle.textContent = soundEnabled ? '🔊' : '🔇';
+  soundToggle.classList.toggle('muted', !soundEnabled);
+  if (soundEnabled) playTone(880, 'sine', 0.12, 0.3);
+});
+
+// ===== Memory Game Logic =====
+const categoriesData = {
+  animals: ['🦁','🐘','🦒','🐬','🦜','🐢','🦋','🐝'],
+  fruits:  ['🍎','🍌','🍇','🍓','🍊','🍉','🍑','🥝'],
+  numbers: ['١','٢','٣','٤','٥','٦','٧','٨'],
+  colors:  ['أحمر','أزرق','أخضر','أصفر','بنفسجي','برتقالي','وردي','بني']
+};
+const colorMap = {
+  'أحمر':'#e74c3c','أزرق':'#3498db','أخضر':'#2ecc71',
+  'أصفر':'#f1c40f','بنفسجي':'#9b59b6','برتقالي':'#e67e22',
+  'وردي':'#ff69b4','بني':'#8b5a2b'
+};
+
+const board = document.getElementById('board');
+const movesEl   = document.getElementById('moves');
+const matchesEl = document.getElementById('matches');
+const timeEl    = document.getElementById('time');
+const winMsg    = document.getElementById('winMsg');
+const winText   = document.getElementById('winText');
+
+let firstCard = null, secondCard = null, lockBoard = false;
+let moves = 0, matches = 0, totalPairs = 8;
+let timer = 0, timerInterval = null, started = false;
+let localDeck = [];
+let isApplyingSync = false;
+
+function shuffle(arr) {
+  for (let i = arr.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function sendGameState() {
+  if (isApplyingSync) return;
+  if (window.parent && window.parent !== window) {
+    const cardStates = [];
+    const cardElements = board.querySelectorAll('.card');
+    cardElements.forEach(c => {
+      cardStates.push({
+        flipped: c.classList.contains('flipped'),
+        matched: c.classList.contains('matched'),
+        wrong: c.classList.contains('wrong')
+      });
+    });
+    
+    window.parent.postMessage({
+      type: 'cards_game_state_update',
+      category: document.getElementById('category').value,
+      deck: localDeck,
+      cardStates: cardStates,
+      moves: moves,
+      matches: matches,
+      timer: timer,
+      started: started
+    }, '*');
+  }
+}
+
+function startGame(syncDeck = null) {
+  const cat   = document.getElementById('category').value;
+  const items = categoriesData[cat];
+  totalPairs  = items.length;
+  
+  if (syncDeck) {
+    localDeck = syncDeck;
+  } else {
+    localDeck = shuffle([...items, ...items]);
+  }
+  
+  board.innerHTML = '';
+  const cols = Math.ceil(Math.sqrt(localDeck.length));
+  board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  moves = 0; matches = 0; timer = 0; started = false;
+  movesEl.textContent = 0; matchesEl.textContent = 0; timeEl.textContent = 0;
+  clearInterval(timerInterval);
+  firstCard = secondCard = null; lockBoard = false;
+  winMsg.classList.remove('show');
+
+  localDeck.forEach((value, index) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.value = value;
+    card.dataset.index = index;
+    const isColor  = colorMap[value];
+    const frontStyle = isColor ? `background:${colorMap[value]};` : '';
+    card.innerHTML = `
+      <div class="face face-back">❓</div>
+      <div class="face face-front" style="${frontStyle}">${value}</div>
+    `;
+    card.addEventListener('click', () => {
+      flipCard(card);
+      sendGameState();
+    });
+    board.appendChild(card);
+  });
+  
+  if (!syncDeck) {
+    sendGameState();
+  }
+}
+
+function flipCard(card) {
+  if (lockBoard || card === firstCard || card.classList.contains('matched')) return;
+
+  if (!started) {
+    started = true;
+    timerInterval = setInterval(() => { timer++; timeEl.textContent = timer; }, 1000);
+  }
+
+  soundFlip();
+  card.classList.add('flipped');
+
+  if (!firstCard) { firstCard = card; return; }
+
+  secondCard = card;
+  moves++; movesEl.textContent = moves;
+  lockBoard = true;
+
+  if (firstCard.dataset.value === secondCard.dataset.value) {
+    // ✅ Match
+    setTimeout(() => soundMatch(), 200);
+    firstCard.classList.add('matched');
+    secondCard.classList.add('matched');
+    matches++; matchesEl.textContent = matches;
+    resetTurn();
+    if (matches === totalPairs) endGame();
+  } else {
+    // ❌ No match
+    setTimeout(() => {
+      soundWrong();
+      firstCard.classList.add('wrong');
+      secondCard.classList.add('wrong');
+      setTimeout(() => {
+        firstCard.classList.remove('flipped', 'wrong');
+        secondCard.classList.remove('flipped', 'wrong');
+        resetTurn();
+        sendGameState();
+      }, 500);
+    }, 400);
+  }
+}
+
+function resetTurn() {
+  [firstCard, secondCard] = [null, null];
+  lockBoard = false;
+}
+
+function endGame() {
+  clearInterval(timerInterval);
+  winText.textContent = `أكملت اللعبة في ${moves} محاولة و ${timer} ثانية!`;
+  setTimeout(() => {
+    soundWin();
+    winMsg.classList.add('show');
+  }, 400);
+}
+
+document.getElementById('restart').addEventListener('click', () => {
+  startGame();
+});
+document.getElementById('category').addEventListener('change', () => {
+  startGame();
+});
+
+// Listen to state changes from parent
+let isHost = true;
+let myId = 'teacher';
+
+window.addEventListener('message', (e) => {
+  const data = e.data;
+  if (!data) return;
+
+  if (data.type === 'init_player_id') {
+    isHost = data.isHost;
+    myId = data.userId;
+    if (!isHost) {
+      // Clear local board and ask parent for current synced game state
+      board.innerHTML = '<div style="color:white; font-size:1.5rem; text-align:center; width:100%; grid-column: 1/-1;">بانتظار المعلم لبدء اللعبة...</div>';
+      
+      // Request state and retry every 1.5 seconds until we receive a game state
+      const requestInterval = setInterval(() => {
+        if (localDeck && localDeck.length > 0) {
+          clearInterval(requestInterval);
+        } else {
+          window.parent.postMessage({ type: 'request_cards_game_state' }, '*');
+        }
+      }, 1500);
+      window.parent.postMessage({ type: 'request_cards_game_state' }, '*');
+    }
+    return;
+  }
+  
+  if (data.type !== 'apply_cards_game_state') return;
+  
+  isApplyingSync = true;
+  
+  const catSelect = document.getElementById('category');
+  if (catSelect.value !== data.category) {
+    catSelect.value = data.category;
+  }
+  
+  const deckStr = JSON.stringify(data.deck);
+  const localDeckStr = JSON.stringify(localDeck);
+  if (deckStr !== localDeckStr) {
+    startGame(data.deck);
+  }
+  
+  const cardElements = board.querySelectorAll('.card');
+  data.cardStates.forEach((state, idx) => {
+    const c = cardElements[idx];
+    if (c) {
+      if (state.flipped) {
+        if (!c.classList.contains('flipped')) {
+          c.classList.add('flipped');
+          soundFlip();
+        }
+      } else {
+        c.classList.remove('flipped');
+      }
+      
+      if (state.matched) {
+        if (!c.classList.contains('matched')) {
+          c.classList.add('matched');
+          soundMatch();
+        }
+      } else {
+        c.classList.remove('matched');
+      }
+      
+      if (state.wrong) {
+        c.classList.add('wrong');
+      } else {
+        c.classList.remove('wrong');
+      }
+    }
+  });
+  
+  moves = data.moves;
+  matches = data.matches;
+  timer = data.timer;
+  started = data.started;
+  movesEl.textContent = moves;
+  matchesEl.textContent = matches;
+  timeEl.textContent = timer;
+  
+  if (matches === totalPairs && !winMsg.classList.contains('show')) {
+    endGame();
+  }
+  
+  isApplyingSync = false;
+});
+
+// Start initial game only for standalone/host environments. Student will load via postMessage request.
+setTimeout(() => {
+  if (isHost) {
+    startGame();
+  }
+}, 100);
+</script>
+</body>
+</html>

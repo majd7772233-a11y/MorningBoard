@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>مسدس الطلقات 3D - دقة التصويب الاحترافية</title>
+<style>
+  body { 
+    margin: 0; overflow: hidden; 
+    background-color: #040c04; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    touch-action: none; direction: rtl;
+    cursor: none; 
+  }
+  #birdsCanvas {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; opacity: 0.7;
+  }
+  #info {
+    position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+    color: white; background: rgba(0,0,0,0.6); padding: 10px 25px;
+    border-radius: 30px; font-size: 14px; z-index: 10; text-align: center;
+    backdrop-filter: blur(5px); pointer-events: none; border: 1px solid rgba(255,255,255,0.2);
+  }
+  #stats-container {
+    position: absolute; top: 80px; left: 15px; right: 15px;
+    display: flex; justify-content: space-between; pointer-events: none; z-index: 10;
+  }
+  .stat-box {
+    color: white; padding: 10px 20px; border-radius: 20px; font-size: 16px; font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8); box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  }
+  #score { background: linear-gradient(45deg, #e74c3c, #c0392b); }
+  #coins { background: linear-gradient(45deg, #f1c40f, #f39c12); border: 2px solid #fff; }
+  
+  #bottom-ui {
+    position: absolute; bottom: 15px; left: 15px; right: 15px;
+    display: flex; justify-content: space-between; align-items: flex-end; pointer-events: none; z-index: 10;
+  }
+  .weapon-info {
+    background: rgba(0, 0, 0, 0.7); color: white; padding: 10px 20px; border-radius: 15px;
+    display: flex; flex-direction: column; gap: 5px; font-size: 14px; border: 1px solid #555;
+  }
+  #ammo { font-size: 20px; font-weight: bold; color: #2ecc71; }
+  
+  #shopBtn {
+    background: linear-gradient(45deg, #2ecc71, #27ae60); color: white; padding: 12px 25px;
+    border-radius: 25px; font-size: 18px; font-weight: bold; cursor: pointer; border: none; 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.4); pointer-events: auto; transition: 0.2s;
+  }
+  #shopBtn:active { transform: scale(0.95); }
+
+  #shopModal {
+    display: none; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(20, 25, 35, 0.95); padding: 25px;
+    border-radius: 20px; text-align: center; z-index: 20;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.9);
+    color: white; width: 440px; max-height: 85vh; overflow: hidden;
+    border: 1px solid #444; backdrop-filter: blur(10px);
+  }
+  h2 { margin: 0 0 15px 0; color: #f1c40f; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+  
+  .tabs { display: flex; justify-content: space-around; margin-bottom: 15px; background: rgba(0,0,0,0.5); border-radius: 10px; padding: 5px; }
+  .tab-btn {
+    flex: 1; background: transparent; color: #aaa; border: none; padding: 10px; font-size: 13px; font-weight: bold;
+    cursor: pointer; border-radius: 8px; transition: 0.3s;
+  }
+  .tab-btn.active { background: #3498db; color: white; }
+  
+  .tab-content { display: none; max-height: 50vh; overflow-y: auto; padding-right: 5px; }
+  .tab-content::-webkit-scrollbar { width: 6px; }
+  .tab-content::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+
+  .shop-item {
+    margin: 10px 0; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 12px;
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    border: 1px solid rgba(255,255,255,0.1); text-align: right;
+  }
+  .shop-item .details { display: flex; flex-direction: column; flex: 1; text-align: right; padding-left: 10px; }
+  .shop-item .details .name { font-size: 15px; font-weight: bold; color: #fff; }
+  .shop-item .details .desc { font-size: 11px; color: #bdc3c7; margin-top: 3px; }
+  .shop-item button {
+    background: linear-gradient(45deg, #f1c40f, #f39c12); border: none; padding: 8px 15px; border-radius: 8px;
+    cursor: pointer; font-weight: bold; font-size: 13px; min-width: 90px; color: #333; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  }
+  .shop-item button.unlocked { background: linear-gradient(45deg, #3498db, #2980b9); color: white; }
+  .shop-item button.equipped { background: linear-gradient(45deg, #e74c3c, #c0392b); color: white; }
+  
+  #closeShop {
+    margin-top: 20px; background: linear-gradient(45deg, #e74c3c, #c0392b); color: white; border: none;
+    padding: 12px; border-radius: 10px; cursor: pointer; font-size: 16px; width: 100%; font-weight: bold;
+  }
+
+  #crosshair {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 24px; height: 24px; border: 2px solid rgba(255, 255, 255, 0.9); border-radius: 50%;
+    pointer-events: none; z-index: 100; box-shadow: 0 0 5px rgba(0,0,0,0.5);
+  }
+  #crosshair::before { content: ''; position: absolute; background: white; top: 50%; left: -6px; width: 36px; height: 2px; transform: translateY(-50%); box-shadow: 0 0 5px rgba(0,0,0,0.5);}
+  #crosshair::after { content: ''; position: absolute; background: white; left: 50%; top: -6px; height: 36px; width: 2px; transform: translateX(-50%); box-shadow: 0 0 5px rgba(0,0,0,0.5);}
+
+  #sniper-overlay {
+    display: none; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+    z-index: 95; pointer-events: none;
+  }
+  .sniper-line-h { 
+    position: absolute; top: 50%; left: 0; width: 100vw; height: 1px; 
+    background: rgba(0, 255, 0, 0.7); box-shadow: 0 0 5px rgba(0,255,0,0.5); 
+  }
+  .sniper-line-v { 
+    position: absolute; top: 0; left: 50%; width: 1px; height: 100vh; 
+    background: rgba(0, 255, 0, 0.7); box-shadow: 0 0 5px rgba(0,255,0,0.5); 
+  }
+  .sniper-dot { 
+    position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; 
+    background: red; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 10px red; 
+  }
+
+  .floating-text {
+    position: absolute; pointer-events: none; z-index: 50; font-weight: bold; font-size: 22px;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+    animation: floatUp 1.2s ease-out forwards;
+  }
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+    20% { transform: translate(-50%, -100%) scale(1.2); }
+    100% { opacity: 0; transform: translate(-50%, -250%) scale(1); }
+  }
+
+  @media (max-width: 768px) {
+    #info { font-size: 11px; padding: 6px 15px; top: 10px; }
+    #stats-container { top: 55px; left: 10px; right: 10px; }
+    .stat-box { padding: 6px 12px; font-size: 12px; }
+    #shopBtn { padding: 8px 15px; font-size: 13px; }
+    .weapon-info { padding: 6px 12px; font-size: 11px; }
+    #ammo { font-size: 15px; }
+    #shopModal { width: 92%; max-width: 330px; padding: 15px; }
+    .shop-item { padding: 8px; margin: 6px 0; }
+    .shop-item .details .name { font-size: 12px; }
+    .shop-item .details .desc { font-size: 10px; }
+    .shop-item button { padding: 6px 10px; font-size: 10px; min-width: 65px; }
+    #closeShop { margin-top: 15px; padding: 10px; font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- كانفاس الطيور -->
+<canvas id="birdsCanvas"></canvas>
+
+<div id="info">اضغط كلك يمين للزوم / جميع العناصر في المتجر بـ 5 دراهم!</div>
+
+<div id="stats-container">
+  <div class="stat-box" id="score">النقاط: 0</div>
+  <div class="stat-box" id="coins">الدراهم: 0</div>
+</div>
+
+<div id="bottom-ui">
+  <button id="shopBtn">🛒 المتجر</button>
+  <div class="weapon-info">
+    <span id="weaponName">السلاح: المسدس العادي</span>
+    <span id="accName">الإكسسوار: لا يوجد</span>
+    <span id="ammo">الطلقات: ∞ (غير محدودة)</span>
+  </div>
+</div>
+
+<div id="crosshair"></div>
+
+<!-- زر إطلاق النار المخصص للأجهزة اللمسية والهواتف (يظهر فقط فوق زر المتجر بالجهة اليمنى لتجنب التداخل) -->
+<button id="mobile-shoot-btn" style="position: fixed; bottom: 130px; right: 35px; width: 85px; height: 85px; background: radial-gradient(circle, #ff4757 0%, #ff6b81 100%); border: 4.5px solid rgba(255, 255, 255, 0.45); border-radius: 50%; box-shadow: 0 10px 25px rgba(255, 71, 87, 0.6); z-index: 1000; color: white; font-size: 32px; display: none; align-items: center; justify-content: center; user-select: none; -webkit-user-select: none; touch-action: none; outline: none; transition: transform 0.1s; cursor: pointer;">🎯</button>
+
+<div id="sniper-overlay">
+  <div class="sniper-line-h"></div>
+  <div class="sniper-line-v"></div>
+  <div class="sniper-dot"></div>
+</div>
+
+<div id="shopModal">
+  <h2>المتجر الشامل (كل شيء بـ 5 دراهم)</h2>
+  
+  <div class="tabs">
+    <button class="tab-btn active" onclick="openTab('weapons')">الأسلحة</button>
+    <button class="tab-btn" onclick="openTab('accs')">الإكسسوار</button>
+    <button id="tab-btn-envs" class="tab-btn" onclick="openTab('envs')">البيئات</button>
+  </div>
+
+  <div id="tab-weapons" class="tab-content" style="display: block;">
+    <div class="shop-item"><div class="details"><span class="name">المسدس العادي</span><span class="desc">متوازن ومجاني</span></div><button id="btn-wpn-pistol" onclick="equipWeapon('pistol')">مجهّز</button></div>
+    <div class="shop-item"><div class="details"><span class="name">مسدس النيون الفضائي</span><span class="desc">شعاع ليزر سريع</span></div><button id="btn-wpn-laser" onclick="buyOrEquipWpn('laser')">5 دراهم</button></div>
+    <div class="shop-item"><div class="details"><span class="name">بندقية الخرطوش</span><span class="desc">5 طلقات متناثرة</span></div><button id="btn-wpn-shotgun" onclick="buyOrEquipWpn('shotgun')">5 دراهم</button></div>
+    <div class="shop-item"><div class="details"><span class="name">الرشاش الذهبي</span><span class="desc">+5 نقاط، إطلاق مستمر</span></div><button id="btn-wpn-smg" onclick="buyOrEquipWpn('smg')">5 دراهم</button></div>
+    <div class="shop-item"><div class="details"><span class="name">القناصة (Sniper)</span><span class="desc">+20 نقطة، زوم احترافي</span></div><button id="btn-wpn-sniper" onclick="buyOrEquipWpn('sniper')">5 دراهم</button></div>
+  </div>
+
+  <div id="tab-accs" class="tab-content">
+    <div class="shop-item"><div class="details"><span class="name">بدون إكسسوار</span></div><button id="btn-acc-none" onclick="buyOrEquipAcc('none')">مجهّز</button></div>
+    <div class="shop-item"><div class="details"><span class="name">كشاف ضوئي</span><span class="desc">للرؤية الواضحة</span></div><button id="btn-acc-flashlight" onclick="buyOrEquipAcc('flashlight')">5 دراهم</button></div>
+    <div class="shop-item"><div class="details"><span class="name">مؤشر ليزر أحمر</span><span class="desc">دقة تصويب فائقة</span></div><button id="btn-acc-redLaser" onclick="buyOrEquipAcc('redLaser')">5 دراهم</button></div>
+    <div class="shop-item"><div class="details"><span class="name">مؤشر ليزر أخضر</span><span class="desc">دقة تصويب فائقة</span></div><button id="btn-acc-greenLaser" onclick="buyOrEquipAcc('greenLaser')">5 دراهم</button></div>
+    <div class="shop-item"><div class="details"><span class="name">عدسة مكبرة (سكوب)</span><span class="desc">زوم بضغطة كلك يمين</span></div><button id="btn-acc-scope" onclick="buyOrEquipAcc('scope')">5 دراهم</button></div>
+    <div class="shop-item"><div class="details"><span class="name">كشاف + ليزر أحمر</span><span class="desc">مجموعة تكتيكية متكاملة</span></div><button id="btn-acc-flashRed" onclick="buyOrEquipAcc('flashRed')">5 دراهم</button></div>
+    <div class="shop-item"><div class="details"><span class="name">كشاف + أخضر</span><span class="desc">مجموعة تكتيكية متكاملة</span></div><button id="btn-acc-flashGreen" onclick="buyOrEquipAcc('flashGreen')">5 دراهم</button></div>
+  </div>
+
+  <div id="tab-envs" class="tab-content">
+    <div class="shop-item"><div class="details"><span class="name">البيئة الطبيعية (النهارية)</span><span class="desc">أشجار خضراء ونهار مشمس مبهج</span></div><button id="btn-env-daylight" onclick="buyOrEquipEnv('daylight')">مجهّز</button></div>
+    <div class="shop-item"><div class="details"><span class="name">البيئة الليلية (ليلية)</span><span class="desc">غابة هادئة مع يراعات مضيئة</span></div><button id="btn-env-forest" onclick="buyOrEquipEnv('forest')">تجهيز</button></div>
+    <div class="shop-item"><div class="details"><span class="name">الصحراء المشمسة</span><span class="desc">كثبان رملية ذهبية تحت شمس مشرقة</span></div><button id="btn-env-desert" onclick="buyOrEquipEnv('desert')">تجهيز</button></div>
+    <div class="shop-item"><div class="details"><span class="name">الجليد القطبي المضيء</span><span class="desc">ثلوج نقية وأضواء شفق قطبي</span></div><button id="btn-env-arctic" onclick="buyOrEquipEnv('arctic')">تجهيز</button></div>
+    <div class="shop-item"><div class="details"><span class="name">الأرض البركانية الثائرة</span><span class="desc">صخور بركانية وحمم متوهجة</span></div><button id="btn-env-volcanic" onclick="buyOrEquipEnv('volcanic')">تجهيز</button></div>
+    <div class="shop-item"><div class="details"><span class="name">ساحل المحيط المشمس</span><span class="desc">شاطئ مشرق ومياه فيروزية صافية</span></div><button id="btn-env-ocean" onclick="buyOrEquipEnv('ocean')">تجهيز</button></div>
+  </div>
+
+  <button id="closeShop">إغلاق وتكملة اللعب</button>
+</div>
+
+<!-- مكتبة Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<!-- 
+  كود الطيور مقتبس من "Flock of Seagulls" للحفاظ على حقوق الملكية[cite: 2].
+-->
+<script>
+const bCanvas = document.getElementById("birdsCanvas");
+const bCtx = bCanvas.getContext("2d");
+
+function resizeBirds(){
+    bCanvas.width = innerWidth * devicePixelRatio;
+    bCanvas.height = innerHeight * devicePixelRatio;
+    bCtx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+}
+resizeBirds();
+window.addEventListener("resize", resizeBirds);
+
+const bgBirds = [];
+const BIRDS_COUNT = 28;
+
+for(let i=0; i<BIRDS_COUNT; i++){
+    bgBirds.push({
+        x: Math.random() * innerWidth,
+        y: 80 + Math.random() * 220,
+        size: 1.2 + Math.random() * 3.2,
+        speed: 1.5 + Math.random() * .45, 
+        flap: Math.random() * Math.PI * 2,
+        flapSpeed: .08 + Math.random() * .15,
+        driftSeed: Math.random() * 5000,
+        turnSeed: Math.random() * 5000,
+        opacity: .25 + Math.random() * .6
+    });
+}
+
+function drawBird(b, time){
+    const wing = Math.sin(b.flap) * b.size * .9;
+    bCtx.save();
+    bCtx.translate(b.x, b.y);
+    const heading = Math.sin(time*.00012 + b.turnSeed) * 0.25;
+    bCtx.rotate(heading);
+    bCtx.strokeStyle = `rgba(25,25,25,${b.opacity})`;
+    bCtx.lineWidth = 1.2;
+    bCtx.lineCap = "round";
+    bCtx.beginPath();
+    bCtx.moveTo(-b.size, wing);
+    bCtx.lineTo(0,0);
+    bCtx.lineTo(b.size, wing);
+    bCtx.stroke();
+    bCtx.restore();
+}
+
+let isBirdsEnv = true; 
+
+function animateBirds(time){
+    bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height);
+    if(isBirdsEnv) {
+      bgBirds.forEach(b => {
+          b.flap += b.flapSpeed;
+          b.x += b.speed;
+          b.y += Math.sin(time*.0006 + b.driftSeed) * .18;
+          if(b.x > innerWidth + 20){
+              b.x = -20;
+              b.y = 80 + Math.random() * 250;
+              b.speed = 1.5 + Math.random() * .45;
+          }
+          drawBird(b, time);
+      });
+    }
+    requestAnimationFrame(animateBirds);
+}
+requestAnimationFrame(animateBirds);
+</script>
+
+<script>
+let score = 0, totalCoins = 50, ammo = Infinity, isShopOpen = false; // ذخيرة لا نهائية ورصيد 50 درهم لتجربة المتجر
+let isFiring = false; 
+let lastFireTime = 0; 
+let isZooming = false; 
+let isSniperScoped = false; 
+let targetFov = 70; 
+
+let mouseX = 0, mouseY = 0; 
+let aimX = 0, aimY = 0; 
+let lastClientX = window.innerWidth / 2;
+let lastClientY = window.innerHeight / 2;
+let isTouchDevice = false;
+let lastTouchX = 0;
+let lastTouchY = 0;
+let activeAimPointerId = null;
+let pointerSensitivity = 0.0055;
+
+// --- إعدادات اللعبة وكل شيء بـ 5 دراهم ---
+const weaponTypes = {
+  pistol: { name: "المسدس العادي", color: 0xcccccc, barrel: 0x0088ff, bullet: 0xffdd00, speed: 1.5, radius: 0.04, len: 0.6, bonus: 0, price: 0, unlocked: true, shotgun: false, bWidth: 0.15, auto: false },
+  laser: { name: "مسدس النيون", color: 0x111111, barrel: 0x00ff55, bullet: 0x00ff00, speed: 4.0, radius: 0.08, len: 3.5, bonus: 0, price: 5, unlocked: false, shotgun: false, bWidth: 0.12, auto: false },
+  shotgun: { name: "الخرطوش", color: 0x444444, barrel: 0x222222, bullet: 0xff8800, speed: 1.8, radius: 0.03, len: 0.4, bonus: 0, price: 5, unlocked: false, shotgun: true, bWidth: 0.28, auto: false },
+  smg: { name: "الرشاش الذهبي", color: 0xffd700, barrel: 0xaa8800, bullet: 0xff2200, speed: 2.2, radius: 0.05, len: 0.8, bonus: 5, price: 5, unlocked: false, shotgun: false, bWidth: 0.18, auto: true, fireRate: 120 },
+  sniper: { name: "القناصة", color: 0x2b2b2b, barrel: 0x111111, bullet: 0xffffff, speed: 8.0, radius: 0.03, len: 2.0, bonus: 20, price: 5, unlocked: false, shotgun: false, bWidth: 0.10, auto: false }
+};
+let currentWeapon = 'pistol';
+
+const accTypes = {
+  none: { name: "لا يوجد", price: 0, unlocked: true, hasLaser: false, hasLight: false, hasScope: false },
+  flashlight: { name: "كشاف", price: 5, unlocked: false, hasLaser: false, hasLight: true, hasScope: false },
+  redLaser: { name: "ليزر أحمر", color: 0xff0000, price: 5, unlocked: false, hasLaser: true, hasLight: false, hasScope: false },
+  greenLaser: { name: "ليزر أخضر", color: 0x00ff00, price: 5, unlocked: false, hasLaser: true, hasLight: false, hasScope: false },
+  scope: { name: "عدسة مكبرة", price: 5, unlocked: false, hasLaser: false, hasLight: false, hasScope: true },
+  flashRed: { name: "كشاف + أحمر", color: 0xff0000, price: 5, unlocked: false, hasLaser: true, hasLight: true, hasScope: false },
+  flashGreen: { name: "كشاف + أخضر", color: 0x00ff00, price: 5, unlocked: false, hasLaser: true, hasLight: true, hasScope: false }
+};
+let currentAcc = 'none';
+
+// --- بيانات البيئات الطبيعية والألوان المتناسقة المريحة للعين ---
+const envTypes = {
+  daylight: { name: "البيئة الطبيعية (النهارية)", price: 0, unlocked: true, birds: true, fogColor: 0x93c5fd, fogDensity: 0.0035, bgColor: 0x60a5fa, ambientColor: 0xffffff, ambientIntensity: 0.65, sunColor: 0xfffcf0, sunIntensity: 1.25, groundColor: 0x4e8035, particleColor: 0xfff9c4, hasParticles: false },
+  forest: { name: "البيئة الليلية (ليلية)", price: 0, unlocked: true, birds: false, fogColor: 0x0a1424, fogDensity: 0.012, bgColor: 0x070d18, ambientColor: 0x1e293b, ambientIntensity: 0.4, sunColor: 0x93c5fd, sunIntensity: 0.75, groundColor: 0x142817, particleColor: 0x6ee7b7, hasParticles: true },
+  desert: { name: "الصحراء المشمسة", price: 0, unlocked: true, birds: true, fogColor: 0xfbd09f, fogDensity: 0.0035, bgColor: 0xf8b768, ambientColor: 0xffedd5, ambientIntensity: 0.7, sunColor: 0xfff3d6, sunIntensity: 1.35, groundColor: 0xd98e48, particleColor: 0xfde047, hasParticles: true },
+  arctic: { name: "الجليد القطبي المضيء", price: 0, unlocked: true, birds: false, fogColor: 0x0e2038, fogDensity: 0.005, bgColor: 0x091424, ambientColor: 0x213a57, ambientIntensity: 0.6, sunColor: 0x38bdf8, sunIntensity: 1.2, groundColor: 0xdbeafe, particleColor: 0xffffff, hasParticles: true },
+  volcanic: { name: "الأرض البركانية الثائرة", price: 0, unlocked: true, birds: false, fogColor: 0x200c0c, fogDensity: 0.014, bgColor: 0x140606, ambientColor: 0x3b1818, ambientIntensity: 0.5, sunColor: 0xf97316, sunIntensity: 1.3, groundColor: 0x222224, particleColor: 0xf97316, hasParticles: true },
+  ocean: { name: "ساحل المحيط المشمس", price: 0, unlocked: true, birds: true, fogColor: 0x93c5fd, fogDensity: 0.003, bgColor: 0x60a5fa, ambientColor: 0xf0fdf4, ambientIntensity: 0.75, sunColor: 0xfffbeb, sunIntensity: 1.3, groundColor: 0xebd0a4, particleColor: 0xbae6fd, hasParticles: true }
+};
+let currentEnvKey = 'daylight';
+
+const accKeys = ['none', 'flashlight', 'redLaser', 'greenLaser', 'scope', 'flashRed', 'flashGreen']; 
+const envKeys = ['daylight', 'forest', 'desert', 'arctic', 'volcanic', 'ocean'];
+
+// --- محرك اللعبة Three.js ---
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.1, 500);
+camera.position.set(0, 2, 8);
+scene.add(camera); 
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+let targetClearColor = new THREE.Color(envTypes.daylight.bgColor);
+let targetFogColor = new THREE.Color(envTypes.daylight.fogColor);
+
+renderer.setClearColor(targetClearColor, 1);
+scene.fog = new THREE.FogExp2(targetFogColor, envTypes.daylight.fogDensity);
+
+const ambientLight = new THREE.AmbientLight(envTypes.daylight.ambientColor, envTypes.daylight.ambientIntensity);
+scene.add(ambientLight);
+
+const sun = new THREE.DirectionalLight(envTypes.daylight.sunColor, envTypes.daylight.sunIntensity);
+sun.position.set(15, 25, 10);
+sun.castShadow = true;
+scene.add(sun);
+
+const flashLight = new THREE.PointLight(0xffffff, 0.8, 10);
+flashLight.position.set(0, 0, 0);
+camera.add(flashLight);
+
+// --- نظام بناء البيئات (مقتبس ومعدل من[cite: 3]) ---
+let envGroup = new THREE.Group();
+scene.add(envGroup);
+
+let envAnimData = {
+  particles: null, particlePos: null, particleVel: null,
+  oceanWater: null, lavaPools: [], trees: [], crystals: []
+};
+
+function createParticleTexture() {
+  const c = document.createElement('canvas'); c.width = 64; c.height = 64;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(32,32,0,32,32,32);
+  g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.15, 'rgba(255,255,255,0.9)');
+  g.addColorStop(0.5, 'rgba(255,255,255,0.3)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+  x.fillStyle = g; x.fillRect(0,0,64,64);
+  return new THREE.CanvasTexture(c);
+}
+const particleTex = createParticleTexture();
+
+function buildEnvironment(key) {
+  scene.remove(envGroup);
+  envGroup = new THREE.Group();
+  scene.add(envGroup);
+  
+  envAnimData.lavaPools = []; envAnimData.trees = []; envAnimData.crystals = []; envAnimData.oceanWater = null;
+  const cfg = envTypes[key];
+
+  // بناء الأرضية
+  let groundGeo, groundMat;
+  if(key === 'ocean') {
+    groundGeo = new THREE.PlaneGeometry(200, 200, 100, 100); groundGeo.rotateX(-Math.PI/2);
+    groundMat = new THREE.MeshStandardMaterial({color:0x00b4d8, roughness:0.1, metalness:0.1, transparent:true, opacity:0.75}); // Transparent blue-green water
+    envAnimData.oceanWater = new THREE.Mesh(groundGeo, groundMat);
+    envAnimData.oceanWater.position.y = -3;
+    envGroup.add(envAnimData.oceanWater);
+    
+    // شاطئ رملي
+    const bG = new THREE.PlaneGeometry(200,80); bG.rotateX(-Math.PI/2);
+    const bM = new THREE.MeshStandardMaterial({color:cfg.groundColor, roughness:1.0, metalness:0.0}); // Matte sand
+    const beach = new THREE.Mesh(bG,bM); beach.position.set(0,-2.8,35); beach.receiveShadow = true; // Raised to -2.8 for beautiful dry sand shoreline
+    envGroup.add(beach);
+  } else {
+    groundGeo = new THREE.PlaneGeometry(200, 200, 60, 60); groundGeo.rotateX(-Math.PI/2);
+    const pos = groundGeo.attributes.position;
+    for(let i=0; i<pos.count; i++) {
+      const x = pos.getX(i), z = pos.getZ(i);
+      let y = 0;
+      if(key === 'forest' || key === 'daylight') y = Math.sin(x*0.08)*0.5 + Math.cos(z*0.06)*0.3; // Beautiful rolling hills for daylight too
+      if(key === 'desert') y = Math.max(0, Math.sin(x*0.04)*2 + Math.sin(z*0.06)*1.5);
+      if(key === 'arctic') y = (Math.sin(x*0.03)+Math.cos(z*0.04))*1.2;
+      if(key === 'volcanic') y = (Math.random()-0.5)*1.5 + Math.sin(x*0.12)*1.2;
+      pos.setY(i, y);
+    }
+    groundGeo.computeVertexNormals();
+    groundMat = new THREE.MeshStandardMaterial({color: cfg.groundColor, roughness: 1.0, metalness: 0.0}); // Completely matte ground (non-shiny)
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.position.y = -3; ground.receiveShadow = true;
+    envGroup.add(ground);
+  }
+
+  // بناء المعالم البارزة (تجنب منطقة المنتصف حيث تتواجد البالونات)
+  function isClearArea(x, z) { return !(Math.abs(x) < 25 && z < 10 && z > -50); }
+
+  if(key === 'forest' || key === 'daylight') {
+    for(let i=0; i<40; i++) {
+      const x=(Math.random()-0.5)*180, z=(Math.random()-0.5)*180;
+      if(!isClearArea(x, z)) continue;
+      const s = 0.8+Math.random()*1.5;
+      const g = new THREE.Group();
+      const tM = new THREE.MeshStandardMaterial({color:0x543d2b, roughness:1.0, metalness:0.0}); // Natural tree bark
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2*s, 0.3*s, 3*s, 8), tM);
+      trunk.position.y = 1.5*s; trunk.castShadow = true; trunk.userData.phase = Math.random()*Math.PI*2;
+      g.add(trunk); envAnimData.trees.push(trunk);
+      for(let j=0; j<3; j++) {
+        // Natural rich pine greens
+        const baseLeafColor = key === 'daylight' ? 0x2e6629 : 0x0f2414;
+        const colorVar = 0.85 + Math.random() * 0.3;
+        const fM = new THREE.MeshStandardMaterial({
+            color: new THREE.Color(baseLeafColor).multiplyScalar(colorVar),
+            roughness: 0.95,
+            metalness: 0.0
+        });
+        const fol = new THREE.Mesh(new THREE.ConeGeometry((1.5-j*0.3)*s, 2*s, 8), fM);
+        fol.position.y = (3+j*1.2)*s; fol.castShadow = true; g.add(fol);
+      }
+      g.position.set(x, -3, z); envGroup.add(g);
+    }
+
+    // Build Volumetric 3D Clouds for Daylight
+    if (key === 'daylight') {
+      envAnimData.clouds = [];
+      const cloudMat = new THREE.MeshLambertMaterial({color: 0xffffff, transparent: true, opacity: 0.85, depthWrite: false});
+      for (let i = 0; i < 6; i++) {
+          const cloud = new THREE.Group();
+          const numSpheres = 3 + Math.floor(Math.random() * 3);
+          for (let j = 0; j < numSpheres; j++) {
+              const size = 3 + Math.random() * 4;
+              const sphere = new THREE.Mesh(new THREE.SphereGeometry(size, 8, 8), cloudMat);
+              sphere.position.set((j - numSpheres/2) * 3.5, (Math.random() - 0.5) * 1.5, (Math.random() - 0.5) * 2.0);
+              cloud.add(sphere);
+          }
+          cloud.position.set((Math.random() - 0.5) * 140, 16 + Math.random() * 8, -60 - Math.random() * 60);
+          cloud.userData = { speed: 0.015 + Math.random() * 0.02 };
+          envGroup.add(cloud);
+          envAnimData.clouds.push(cloud);
+      }
+    }
+  } 
+  else if(key === 'desert') {
+    for(let i=0; i<25; i++) {
+      const x=(Math.random()-0.5)*160, z=(Math.random()-0.5)*160;
+      if(!isClearArea(x, z)) continue;
+      const h = 2+Math.random()*3;
+      const g = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.3,h,8), new THREE.MeshStandardMaterial({color:0x3d6b38, roughness:0.85})); // Natural cactus green
+      body.position.y = h/2; body.castShadow = true; g.add(body);
+      if(Math.random()>0.4) {
+        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.2,1,8), new THREE.MeshStandardMaterial({color:0x3d6b38, roughness:0.85}));
+        arm.position.set(0.3, h*0.6, 0); arm.rotation.z = -Math.PI/2+0.2; arm.castShadow = true; g.add(arm);
+      }
+      g.position.set(x, -3, z); envGroup.add(g);
+    }
+  }
+  else if(key === 'arctic') {
+    for(let i=0; i<30; i++) {
+      const x=(Math.random()-0.5)*160, z=(Math.random()-0.5)*160;
+      if(!isClearArea(x, z)) continue;
+      const h = 2+Math.random()*5;
+      const m = new THREE.MeshStandardMaterial({color:0x93c5fd, roughness:0.1, metalness:0.8, emissive:0x0284c7, transparent: true, opacity: 0.9}); // Glowing crystal ice
+      const mesh = new THREE.Mesh(new THREE.ConeGeometry(0.5+Math.random()*0.5, h, 6), m);
+      mesh.position.set(x, -3+h/2, z); mesh.castShadow = true;
+      envGroup.add(mesh); envAnimData.crystals.push(mesh);
+    }
+  }
+  else if(key === 'volcanic') {
+    for(let i=0; i<15; i++) {
+      const x=(Math.random()-0.5)*150, z=(Math.random()-0.5)*150;
+      if(!isClearArea(x, z)) continue;
+      const r = 2+Math.random()*4;
+      const m = new THREE.MeshStandardMaterial({color:0xef4444, emissive:0xd97706, emissiveIntensity:2});
+      const mesh = new THREE.Mesh(new THREE.CircleGeometry(r, 16), m);
+      mesh.rotation.x = -Math.PI/2; mesh.position.set(x, -2.9, z);
+      mesh.userData.phase = Math.random()*Math.PI*2;
+      envGroup.add(mesh); envAnimData.lavaPools.push(mesh);
+    }
+    for(let i=0; i<20; i++) {
+      const x=(Math.random()-0.5)*150, z=(Math.random()-0.5)*150;
+      if(!isClearArea(x, z)) continue;
+      const mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(1+Math.random()*2), new THREE.MeshStandardMaterial({color:0x1c1917, roughness:0.95}));
+      mesh.position.set(x, -2, z); mesh.castShadow = true; envGroup.add(mesh);
+    }
+  }
+
+  // الجسيمات (Particles) لكل بيئة
+  if (cfg.hasParticles) {
+    const pCount = key === 'arctic' ? 400 : 250;
+    const pGeo = new THREE.BufferGeometry();
+    const pPos = new Float32Array(pCount * 3);
+    envAnimData.particleVel = new Float32Array(pCount * 3);
+    for(let i=0; i<pCount; i++) {
+      pPos[i*3] = (Math.random()-0.5)*120;
+      pPos[i*3+1] = key==='arctic'? 5+Math.random()*20 : (Math.random()*15 - 2);
+      pPos[i*3+2] = (Math.random()-0.5)*120;
+      envAnimData.particleVel[i*3+1] = key==='arctic'? -0.05 : (key==='volcanic'? 0.03 : 0);
+    }
+    pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+    const pMat = new THREE.PointsMaterial({size: 0.25, map: particleTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, color: cfg.particleColor});
+    envAnimData.particles = new THREE.Points(pGeo, pMat);
+    envAnimData.particlePos = pPos;
+    envGroup.add(envAnimData.particles);
+  }
+}
+
+// البناء الأولي للبيئة
+buildEnvironment('daylight');
+
+// --- نظام الأهداف (البالونات) ---
+const targets = [];
+let targetIdCounter = 0;
+const targetRegistry = {}; // id -> balloon group
+
+function createBalloonMesh(targetData) {
+  const colors = [0xff4488, 0x44ff88, 0xffff44, 0xff8844, 0x8844ff, 0x00ffff];
+  const balloon = new THREE.Group();
+  
+  const colorIdx = targetData.colorIdx !== undefined ? targetData.colorIdx : Math.floor(Math.random()*colors.length);
+  const body = new THREE.Mesh(
+    new THREE.SphereGeometry(0.8, 16, 16),
+    new THREE.MeshStandardMaterial({ color: colors[colorIdx], roughness: 0.2, metalness: 0.2 })
+  );
+  body.scale.y = 1.2;
+  balloon.add(body);
+  
+  const knot = new THREE.Mesh(
+    new THREE.ConeGeometry(0.15, 0.3, 8),
+    new THREE.MeshStandardMaterial({ color: 0x333333 })
+  );
+  knot.position.y = -1;
+  balloon.add(knot);
+  
+  balloon.position.set(targetData.x, targetData.y, targetData.z);
+  balloon.userData = { 
+    velocity: new THREE.Vector3(targetData.vx || 0, targetData.vy || 0.015, 0),
+    id: targetData.id,
+    colorIdx: colorIdx
+  };
+  return balloon;
+}
+
+function spawnTarget(broadcast = true) {
+  const colors = [0xff4488, 0x44ff88, 0xffff44, 0xff8844, 0x8844ff, 0x00ffff];
+  const colorIdx = Math.floor(Math.random()*colors.length);
+  const x = (Math.random()-0.5)*40;
+  const y = Math.random()*8;
+  const z = -10 - Math.random()*30;
+  const vx = (Math.random()-0.5)*0.04;
+  const vy = 0.01 + Math.random()*0.02;
+  const id = myId + '_t' + (++targetIdCounter);
+  
+  const targetData = { id, colorIdx, x, y, z, vx, vy };
+  const balloon = createBalloonMesh(targetData);
+  scene.add(balloon);
+  targets.push(balloon);
+  targetRegistry[id] = balloon;
+  
+  // Only host broadcasts spawn events
+  if (broadcast && isHost && window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: 'balloon_spawn_target', target: targetData }, '*');
+  }
+}
+
+// Only host spawns initially; students get targets from Firebase sync
+let myId = 'teacher';
+let myName = 'المعلم';
+let isHost = true;
+let controlEnabled = true;
+window.playerNames = {};
+
+const gunGroup = new THREE.Group(); 
+const gunModelGroup = new THREE.Group(); 
+gunGroup.add(gunModelGroup);
+camera.add(gunGroup);
+
+function updateControlUI() {
+  if (isHost) return;
+  const isAllowed = !!controlEnabled;
+  gunGroup.visible = isAllowed;
+  const crosshair = document.getElementById('crosshair');
+  if (crosshair) crosshair.style.display = isAllowed ? 'block' : 'none';
+  const shootBtn = document.getElementById('mobile-shoot-btn');
+  if (shootBtn) shootBtn.style.display = isAllowed ? 'flex' : 'none';
+  
+  let spectatorBanner = document.getElementById('balloonSpectatorBanner');
+  if (!spectatorBanner && document.body) {
+    spectatorBanner = document.createElement('div');
+    spectatorBanner.id = 'balloonSpectatorBanner';
+    spectatorBanner.style.cssText = 'position:fixed;top:15px;left:50%;transform:translateX(-50%);z-index:999999;padding:7px 20px;border-radius:20px;font-size:13px;font-weight:bold;direction:rtl;text-align:center;box-shadow:0 4px 15px rgba(0,0,0,0.6);transition:all 0.3s;pointer-events:none;font-family:sans-serif;';
+    document.body.appendChild(spectatorBanner);
+  }
+  if (spectatorBanner) {
+    if (isAllowed) {
+      spectatorBanner.style.display = 'block';
+      spectatorBanner.style.background = 'rgba(16, 185, 129, 0.9)';
+      spectatorBanner.style.color = '#ffffff';
+      spectatorBanner.style.border = '1.5px solid #10b981';
+      spectatorBanner.innerHTML = '🟢 مسموح لك باللعب! صوّب واضرب البالونات';
+      setTimeout(() => {
+        if (controlEnabled && spectatorBanner) spectatorBanner.style.display = 'none';
+      }, 2500);
+    } else {
+      spectatorBanner.style.display = 'block';
+      spectatorBanner.style.background = 'rgba(239, 68, 68, 0.9)';
+      spectatorBanner.style.color = '#ffffff';
+      spectatorBanner.style.border = '1.5px solid #ef4444';
+      spectatorBanner.innerHTML = '🔒 وضع المشاهدة (التحكم بالمسدس مغلق من قِبل المعلم)';
+    }
+  }
+
+  if (!isAllowed) {
+    // Notify parent to remove player from Firebase
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'balloon_leave' }, '*');
+    }
+  } else {
+    // Send initial aim state right away
+    if (typeof sendAimState === 'function') sendAimState();
+  }
+}
+
+function updateGunTransform() {
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    gunGroup.position.set(0.18, -0.26, -0.45);
+    gunModelGroup.scale.set(0.28, 0.28, 0.28);
+  } else {
+    gunGroup.position.set(0.40, -0.32, -0.45);
+    gunModelGroup.scale.set(0.50, 0.50, 0.50);
+  }
+}
+updateGunTransform();
+window.addEventListener('resize', updateGunTransform);
+
+let gunTip;
+
+function updateGunMesh() {
+  while(gunModelGroup.children.length > 0) { gunModelGroup.remove(gunModelGroup.children[0]); }
+  const wp = weaponTypes[currentWeapon];
+
+  const gunBody = new THREE.Mesh(
+    new THREE.BoxGeometry(0.4, 0.4, 1.2),
+    new THREE.MeshStandardMaterial({ color: wp.color, metalness: 0.8, roughness: 0.2 })
+  );
+  gunModelGroup.add(gunBody);
+
+  let barrelLength = currentWeapon === 'sniper' ? 1.8 : 0.9;
+  const barrel = new THREE.Mesh(
+    new THREE.CylinderGeometry(wp.bWidth, wp.bWidth + 0.02, barrelLength, 16),
+    new THREE.MeshStandardMaterial({ color: wp.barrel, metalness: 0.9, roughness: 0.1 })
+  );
+  barrel.rotation.x = Math.PI/2;
+  barrel.position.z = currentWeapon === 'sniper' ? -1.2 : -0.8;
+  gunModelGroup.add(barrel);
+
+  gunTip = new THREE.Mesh(
+    new THREE.TorusGeometry(wp.bWidth + 0.05, 0.05, 8, 16),
+    new THREE.MeshStandardMaterial({ color: wp.bullet, emissive: wp.bullet, emissiveIntensity: 2 })
+  );
+  gunTip.position.z = currentWeapon === 'sniper' ? -2.1 : -1.25;
+  gunModelGroup.add(gunTip);
+
+  const handle = new THREE.Mesh(
+    new THREE.BoxGeometry(0.3, 0.6, 0.3),
+    new THREE.MeshStandardMaterial({ color: 0x5c2e16, roughness: 0.9 })
+  );
+  handle.position.set(0, -0.4, 0.3);
+  gunModelGroup.add(handle);
+
+  if (currentWeapon === 'sniper') {
+    const sniperScope = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.08, 0.08, 1.0, 16),
+      new THREE.MeshStandardMaterial({color: 0x111111})
+    );
+    sniperScope.rotation.x = Math.PI / 2;
+    sniperScope.position.set(0, 0.3, -0.5);
+    gunModelGroup.add(sniperScope);
+  }
+
+  const acc = accTypes[currentAcc];
+  if (acc.hasLaser) {
+    const laserDevice = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.12, 0.3), new THREE.MeshStandardMaterial({color: 0x222222}));
+    laserDevice.position.set(0, 0.28, -0.2); gunModelGroup.add(laserDevice);
+    const laserGlow = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.04, 0.04, 100, 8),
+      new THREE.MeshBasicMaterial({ color: acc.color, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false })
+    );
+    laserGlow.rotation.x = Math.PI/2; laserGlow.position.z = -50; laserDevice.add(laserGlow);
+  }
+
+  if (acc.hasLight) {
+    const flashMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.3, 16), new THREE.MeshStandardMaterial({color: 0x111111}));
+    flashMesh.rotation.x = Math.PI/2; flashMesh.position.set(0, -0.25, -0.6); gunModelGroup.add(flashMesh);
+    const spotLight = new THREE.SpotLight(0xffffee, 5, 120, Math.PI/6, 0.5, 1);
+    spotLight.position.set(0, -0.25, -0.7);
+    const lightTarget = new THREE.Object3D(); lightTarget.position.set(0, -0.25, -50); 
+    gunModelGroup.add(spotLight); gunModelGroup.add(lightTarget); spotLight.target = lightTarget;
+  }
+  
+  if (acc.hasScope && currentWeapon !== 'sniper') {
+    const scopeMount = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.15, 0.3), new THREE.MeshStandardMaterial({color: 0x111111}));
+    scopeMount.position.set(0, 0.25, -0.2); gunModelGroup.add(scopeMount);
+    const scopeTube = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.6, 16), new THREE.MeshStandardMaterial({color: 0x333333, metalness: 0.7}));
+    scopeTube.rotation.x = Math.PI / 2; scopeTube.position.set(0, 0.35, -0.2); gunModelGroup.add(scopeTube);
+  }
+}
+updateGunMesh();
+
+// Spawn initial balloons by default on startup for offline play
+for (let i = 0; i < 20; i++) {
+  spawnTarget(false);
+}
+
+// --- MULTI-PLAYER GUN DRAWING ---
+const otherGuns = {}; // playerId -> Group
+
+function buildPlayerGunMesh(group, weapon, acc, playerId) {
+  while(group.children.length > 0) { group.remove(group.children[0]); }
+  const wp = weaponTypes[weapon] || weaponTypes.pistol;
+  const accInfo = accTypes[acc] || accTypes.none;
+
+  const gunBody = new THREE.Mesh(
+    new THREE.BoxGeometry(0.35, 0.35, 1.1),
+    new THREE.MeshStandardMaterial({ color: wp.color, metalness: 0.8, roughness: 0.2 })
+  );
+  group.add(gunBody);
+
+  let barrelLength = weapon === 'sniper' ? 1.6 : 0.8;
+  const barrel = new THREE.Mesh(
+    new THREE.CylinderGeometry(wp.bWidth, wp.bWidth + 0.02, barrelLength, 16),
+    new THREE.MeshStandardMaterial({ color: wp.barrel, metalness: 0.9, roughness: 0.1 })
+  );
+  barrel.rotation.x = Math.PI/2;
+  barrel.position.z = weapon === 'sniper' ? -1.0 : -0.7;
+  group.add(barrel);
+
+  const handle = new THREE.Mesh(
+    new THREE.BoxGeometry(0.25, 0.5, 0.25),
+    new THREE.MeshStandardMaterial({ color: 0x5c2e16, roughness: 0.9 })
+  );
+  handle.position.set(0, -0.35, 0.25);
+  group.add(handle);
+
+  // Floating Name Canvas above student guns
+  const nameCanvas = document.createElement('canvas');
+  nameCanvas.width = 256;
+  nameCanvas.height = 64;
+  const nameCtx = nameCanvas.getContext('2d');
+  nameCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  nameCtx.fillRect(0, 0, 256, 64);
+  nameCtx.strokeStyle = '#3498db';
+  nameCtx.lineWidth = 4;
+  nameCtx.strokeRect(2, 2, 252, 60);
+  nameCtx.fillStyle = '#ffffff';
+  nameCtx.font = 'bold 22px Arial';
+  nameCtx.textAlign = 'center';
+  nameCtx.textBaseline = 'middle';
+  
+  const displayName = playerId === 'teacher' ? 'المعلم' : (playerId === myId ? myName : (window.playerNames[playerId] || 'طالب'));
+  nameCtx.fillText(displayName, 128, 32);
+  
+  const nameTex = new THREE.CanvasTexture(nameCanvas);
+  const nameSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: nameTex }));
+  nameSprite.scale.set(0.2, 0.05, 1);
+  nameSprite.position.set(0, 0.25, 0);
+  group.add(nameSprite);
+
+  if (accInfo.hasLaser) {
+    const laserGlow = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.015, 0.015, 100, 8),
+      new THREE.MeshBasicMaterial({ color: accInfo.color || 0xff0000, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false })
+    );
+    laserGlow.rotation.x = Math.PI/2;
+    laserGlow.position.z = -50;
+    group.add(laserGlow);
+  }
+}
+
+function updateOtherPlayersGuns(players) {
+  if (!players) return;
+  
+  // If we are student, automatically sync environment when teacher selects a new environment
+  if (!isHost && players['teacher'] && players['teacher'].env && players['teacher'].env !== currentEnvKey) {
+    equipEnv(players['teacher'].env);
+  }
+
+  // Remove players that left
+  for (const id in otherGuns) {
+    if (!players[id] || id === myId) {
+      camera.remove(otherGuns[id]);
+      delete otherGuns[id];
+    }
+  }
+
+  // Add or update active players - position others to the left of local gun
+  const otherIds = Object.keys(players).filter(id => id !== myId).sort();
+  otherIds.forEach((id, slotIdx) => {
+    const p = players[id];
+    let gGroup = otherGuns[id];
+    if (!gGroup) {
+      gGroup = new THREE.Group();
+      camera.add(gGroup);
+      otherGuns[id] = gGroup;
+    }
+    
+    // Scale the other guns to match the scaled down local gun
+    gGroup.scale.set(0.50, 0.50, 0.50);
+    
+    // Always build/update mesh in case they swap weapons or accessories
+    buildPlayerGunMesh(gGroup, p.weapon, p.acc, id);
+
+    // Position other guns to the LEFT of the local gun (local gun is at x=0.40)
+    // Slot 0 → x=0.12, Slot 1 → x=-0.16, Slot 2 → x=-0.44, etc. (perfectly spaced by 0.28)
+    const ox = 0.12 - slotIdx * 0.28;
+    const oy = -0.32;
+    gGroup.position.set(ox, oy, -0.45);
+
+    // Aim the gun towards their target coordinates
+    const targetPoint = new THREE.Vector3();
+    const tempRaycaster = new THREE.Raycaster();
+    tempRaycaster.setFromCamera(new THREE.Vector2(p.aimX || 0, p.aimY || 0), camera);
+    tempRaycaster.ray.at(40, targetPoint);
+    const gunEye = new THREE.Vector3();
+    gGroup.getWorldPosition(gunEye);
+    const dirToTarget = new THREE.Vector3().subVectors(gunEye, targetPoint);
+    gGroup.lookAt(gunEye.clone().add(dirToTarget));
+  });
+}
+
+let audioCtx;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+
+function playShoot() {
+  initAudio();
+  const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  
+  if (currentWeapon === 'laser') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(1200, audioCtx.currentTime); }
+  else if (currentWeapon === 'shotgun') { osc.type = 'square'; osc.frequency.setValueAtTime(300, audioCtx.currentTime); }
+  else if (currentWeapon === 'sniper') { 
+    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, audioCtx.currentTime); 
+    osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.8, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.3); return;
+  }
+  else { osc.type = 'square'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); }
+  
+  osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
+  gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+  osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+}
+
+function playShootExternal(weapon) {
+  initAudio();
+  try {
+    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    
+    if (weapon === 'laser') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(1000, audioCtx.currentTime); }
+    else if (weapon === 'shotgun') { osc.type = 'square'; osc.frequency.setValueAtTime(250, audioCtx.currentTime); }
+    else if (weapon === 'sniper') { 
+      osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, audioCtx.currentTime); 
+      osc.frequency.exponentialRampToValueAtTime(45, audioCtx.currentTime + 0.3);
+      gain.gain.setValueAtTime(0.6, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.3); return;
+    }
+    else { osc.type = 'square'; osc.frequency.setValueAtTime(700, audioCtx.currentTime); }
+    
+    osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+  } catch(e) {}
+}
+
+function playPop() {
+  initAudio();
+  const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.type = 'triangle'; osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.1);
+  gain.gain.setValueAtTime(0.4, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+  osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+}
+
+const bullets = [];
+function shoot(pos, dir, weaponOverride = null) {
+  const activeWpn = weaponOverride || currentWeapon;
+  const wp = weaponTypes[activeWpn];
+  function spawnBullet(p, d) {
+    const b = new THREE.Mesh(new THREE.CylinderGeometry(wp.radius, wp.radius, wp.len, 8), new THREE.MeshStandardMaterial({ color: wp.bullet, emissive: wp.bullet, emissiveIntensity: 3 }));
+    b.position.copy(p); b.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.clone().normalize());
+    b.userData = { velocity: d.clone().multiplyScalar(wp.speed), life: 100, prevPos: p.clone(), shooter: weaponOverride ? 'other' : 'me' };
+    scene.add(b); bullets.push(b);
+  }
+  if (wp.shotgun) {
+    for (let i = -2; i <= 2; i++) {
+      let spread = dir.clone(); spread.x += i * 0.08; spread.y += (Math.random() - 0.5) * 0.06; spawnBullet(pos, spread.normalize());
+    }
+  } else { spawnBullet(pos, dir); }
+}
+
+const fallingCoins = [];
+function spawnCoins(pos, count) {
+  for (let i = 0; i < count; i++) {
+    const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.08, 16), new THREE.MeshPhongMaterial({ color: 0xffd700, emissive: 0xaa7700, shininess: 100 }));
+    coin.rotation.x = Math.PI / 2; coin.position.copy(pos); coin.position.x += (Math.random() - 0.5);
+    coin.userData = { velocity: new THREE.Vector3((Math.random()-0.5)*0.2, 0.3, (Math.random()-0.5)*0.2), life: 60 };
+    scene.add(coin); fallingCoins.push(coin);
+  }
+}
+
+function enableTouchControls() {
+  if (isTouchDevice) return;
+  isTouchDevice = true;
+  const shootBtn = document.getElementById('mobile-shoot-btn');
+  if (shootBtn) {
+    shootBtn.style.display = 'flex';
+  }
+}
+
+window.addEventListener('touchstart', () => {
+  enableTouchControls();
+}, { once: true });
+
+document.addEventListener('pointermove', (e) => {
+  if(!isShopOpen) {
+    lastClientX = e.clientX; lastClientY = e.clientY;
+    
+    if (isTouchDevice && e.pointerType === 'touch') {
+      // فصل تام بين أصبع التصويب وأصبع الإطلاق (زر الضرب)
+      if (e.target.closest('#mobile-shoot-btn') || e.target.closest('#shopBtn') || e.target.closest('#shopModal')) {
+        return;
+      }
+      if (activeAimPointerId !== null && e.pointerId !== activeAimPointerId) {
+        return;
+      }
+      
+      const dx = e.clientX - lastTouchX;
+      const dy = e.clientY - lastTouchY;
+      lastTouchX = e.clientX;
+      lastTouchY = e.clientY;
+      
+      // حركة الإصبع كـ Trackpad
+      mouseX += dx * pointerSensitivity;
+      mouseY += dy * pointerSensitivity;
+      
+      // حدود حركة المسدس
+      mouseX = Math.max(-1.5, Math.min(1.5, mouseX));
+      mouseY = Math.max(-0.8, Math.min(0.8, mouseY));
+      
+      // النشان في المنتصف تماماً لسهولة التحكم
+      crosshair.style.transform = 'translate(-50%, -50%)';
+      crosshair.style.left = '50%';
+      crosshair.style.top = '50%';
+      aimX = 0;
+      aimY = 0;
+    } else {
+      crosshair.style.transform = 'none';
+      crosshair.style.left = e.clientX + 'px'; 
+      crosshair.style.top = e.clientY + 'px';
+      if (isSniperScoped) updateSniperOverlayPosition(e.clientX, e.clientY);
+      aimX = (e.clientX / window.innerWidth) * 2 - 1; 
+      aimY = -(e.clientY / window.innerHeight) * 2 + 1;
+      mouseX = (e.clientX / window.innerWidth - 0.5) * 2; 
+      mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+    }
+  }
+});
+
+function showFloatingText(msg, pos3D, color) {
+  const div = document.createElement('div'); div.className = 'floating-text'; div.textContent = msg; div.style.color = color;
+  const proj = pos3D.clone().project(camera);
+  const x = (proj.x * 0.5 + 0.5) * window.innerWidth, y = (-(proj.y * 0.5) + 0.5) * window.innerHeight;
+  div.style.left = x + 'px'; div.style.top = y + 'px'; document.body.appendChild(div);
+  setTimeout(() => div.remove(), 1200);
+}
+
+const particles = [];
+function popEffect(pos, color) {
+  for (let i = 0; i < 15; i++) {
+    const p = new THREE.Mesh(new THREE.SphereGeometry(0.15, 6, 6), new THREE.MeshBasicMaterial({ color: color }));
+    p.position.copy(pos); p.userData = { velocity: new THREE.Vector3((Math.random()-0.5)*0.6, (Math.random()-0.5)*0.6, (Math.random()-0.5)*0.6), life: 20 };
+    scene.add(p); particles.push(p);
+  }
+}
+
+const crosshair = document.getElementById('crosshair');
+const sniperOverlay = document.getElementById('sniper-overlay');
+const raycaster = new THREE.Raycaster();
+
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+function updateSniperOverlayPosition(x, y) {
+  sniperOverlay.style.background = `radial-gradient(circle at ${x}px ${y}px, transparent 8%, rgba(0,0,0,0.95) 22%, #000 100%)`;
+  document.querySelector('.sniper-line-h').style.top = y + 'px';
+  document.querySelector('.sniper-line-v').style.left = x + 'px';
+  document.querySelector('.sniper-dot').style.left = x + 'px'; document.querySelector('.sniper-dot').style.top = y + 'px';
+}
+
+function sendAimState() {
+  if (!isHost && !controlEnabled) return;
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({
+      type: 'balloon_aim_update',
+      aimX: aimX,
+      aimY: aimY,
+      weapon: currentWeapon,
+      acc: currentAcc,
+      env: currentEnvKey
+    }, '*');
+  }
+}
+
+function attemptFire() {
+  if (!isHost && !controlEnabled) return;
+  initAudio(); playShoot();
+  const pos = new THREE.Vector3(); gunTip.getWorldPosition(pos);
+  raycaster.setFromCamera(new THREE.Vector2(aimX, aimY), camera);
+  const targetPoint = new THREE.Vector3();
+  const balloonMeshes = targets.map(t => t.children[0]);
+  const intersects = raycaster.intersectObjects(balloonMeshes);
+  if (intersects.length > 0) targetPoint.copy(intersects[0].point);
+  else raycaster.ray.at(100, targetPoint);
+  const shootDir = targetPoint.clone().sub(pos).normalize();
+  shoot(pos, shootDir);
+  gunModelGroup.position.z = 0.6; gunModelGroup.rotation.x = 0.2;
+  
+  // Broadcast shoot event to parent (multi-player)
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({
+      type: 'balloon_shoot_event',
+      aimX: aimX,
+      aimY: aimY,
+      weapon: currentWeapon
+    }, '*');
+  }
+}
+
+document.addEventListener('pointerdown', (e) => {
+  if (isShopOpen || e.target.closest('#shopModal') || e.target.closest('#shopBtn')) return;
+  if (!isHost && !controlEnabled) return;
+  
+  if (e.pointerType === 'touch') {
+    enableTouchControls();
+    
+    // إذا ضغط على زر الضرب، لا نبدأ تصويباً جديداً بل نطلق النار مباشرة
+    if (e.target.closest('#mobile-shoot-btn')) {
+      e.preventDefault();
+      const shootBtn = document.getElementById('mobile-shoot-btn');
+      if (shootBtn) shootBtn.style.transform = 'scale(0.85)';
+      
+      if (weaponTypes[currentWeapon].auto) isFiring = true;
+      else attemptFire();
+      return;
+    }
+    
+    // إذا ضغط في أي مكان آخر ولم نكن نسحب حالياً، نثبّت هذا الإصبع للتصويب
+    if (activeAimPointerId === null) {
+      activeAimPointerId = e.pointerId;
+      lastTouchX = e.clientX;
+      lastTouchY = e.clientY;
+    }
+    return;
+  }
+  
+  if (e.button === 2) {
+    if (currentWeapon === 'sniper') {
+      isSniperScoped = !isSniperScoped; sniperOverlay.style.display = isSniperScoped ? 'block' : 'none';
+      crosshair.style.opacity = isSniperScoped ? '0' : '1'; gunModelGroup.visible = !isSniperScoped; 
+      if (isSniperScoped) updateSniperOverlayPosition(lastClientX, lastClientY);
+    } else if (accTypes[currentAcc].hasScope) {
+      isZooming = !isZooming; 
+    }
+    return;
+  }
+  if (e.button === 0) {
+    if (weaponTypes[currentWeapon].auto) isFiring = true;
+    else attemptFire();
+  }
+});
+
+document.addEventListener('pointerup', (e) => {
+  if (e.pointerType === 'touch') {
+    if (e.target.closest('#mobile-shoot-btn')) {
+      const shootBtn = document.getElementById('mobile-shoot-btn');
+      if (shootBtn) shootBtn.style.transform = 'scale(1)';
+      isFiring = false;
+    }
+    if (e.pointerId === activeAimPointerId) {
+      activeAimPointerId = null;
+    }
+    return;
+  }
+  if (e.button === 0) isFiring = false;
+});
+document.addEventListener('pointerleave', () => { 
+  isFiring = false;
+  activeAimPointerId = null;
+});
+
+const shopModal = document.getElementById('shopModal');
+
+function openTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  const targetTab = document.getElementById('tab-' + tabId);
+  if (targetTab) targetTab.style.display = 'block';
+  if (event && event.target && event.target.classList) {
+    event.target.classList.add('active');
+  }
+}
+
+document.getElementById('shopBtn').addEventListener('click', (e) => { 
+  e.stopPropagation(); isShopOpen = true; shopModal.style.display = 'block'; document.body.style.cursor = 'default'; crosshair.style.display = 'none';
+  isFiring = false; isZooming = false; isSniperScoped = false; sniperOverlay.style.display = 'none'; crosshair.style.opacity = '1'; gunModelGroup.visible = true;
+  updateShopUI(); 
+});
+document.getElementById('closeShop').addEventListener('click', () => { isShopOpen = false; shopModal.style.display = 'none'; document.body.style.cursor = 'none'; crosshair.style.display = 'block'; });
+
+function buyOrEquipWpn(key) { if(!weaponTypes[key].unlocked) { if(totalCoins >= weaponTypes[key].price) { totalCoins -= weaponTypes[key].price; weaponTypes[key].unlocked = true; equipWeapon(key); } } else { equipWeapon(key); } }
+function equipWeapon(key) { 
+  currentWeapon = key; isSniperScoped = false; isZooming = false;
+  sniperOverlay.style.display = 'none'; crosshair.style.opacity = '1'; gunModelGroup.visible = true;
+  updateGunMesh(); updateShopUI(); updateUI(); sendAimState();
+}
+
+function buyOrEquipAcc(key) { 
+  if (!accTypes[key].unlocked) { 
+    if (totalCoins >= accTypes[key].price) { totalCoins -= accTypes[key].price; accTypes[key].unlocked = true; equipAcc(key); } 
+  } else { 
+    if (currentAcc === key && key !== 'none') equipAcc('none');
+    else equipAcc(key); 
+  } 
+}
+function equipAcc(key) { currentAcc = key; isZooming = false; updateGunMesh(); updateShopUI(); updateUI(); sendAimState(); }
+
+function buyOrEquipEnv(key) {
+  if (isHost) {
+    equipEnv(key);
+    return;
+  }
+  if (!envTypes[key].unlocked) {
+    if (totalCoins >= envTypes[key].price) { totalCoins -= envTypes[key].price; envTypes[key].unlocked = true; equipEnv(key); }
+  } else { equipEnv(key); }
+}
+
+function equipEnv(key) {
+  if (!envTypes[key]) return;
+  currentEnvKey = key; const env = envTypes[key];
+  targetClearColor.setHex(env.bgColor); targetFogColor.setHex(env.fogColor);
+  scene.fog.density = env.fogDensity; ambientLight.color.setHex(env.ambientColor); ambientLight.intensity = env.ambientIntensity;
+  sun.color.setHex(env.sunColor); sun.intensity = env.sunIntensity;
+  isBirdsEnv = env.birds; bCanvas.style.display = env.birds ? 'block' : 'none';
+  buildEnvironment(key); updateShopUI(); updateUI(); sendAimState();
+}
+
+function updateShopUI() {
+  const envTabBtn = document.getElementById('tab-btn-envs');
+  if (envTabBtn) {
+    envTabBtn.style.display = isHost ? 'block' : 'none';
+  }
+
+  ['pistol','laser','smg','shotgun','sniper'].forEach(k => {
+    let b = document.getElementById('btn-wpn-'+k);
+    if(b) {
+      if(currentWeapon === k) { b.textContent = "مجهّز"; b.className = "equipped"; }
+      else if(weaponTypes[k].unlocked) { b.textContent = "تجهيز"; b.className = "unlocked"; }
+      else { b.textContent = weaponTypes[k].price + " درهم"; b.className = ""; }
+    }
+  });
+  accKeys.forEach(k => {
+    let b = document.getElementById('btn-acc-'+k);
+    if(b) {
+      if(currentAcc === k) { b.textContent = k === 'none' ? "مجهّز" : "إلغاء"; b.className = "equipped"; }
+      else if(accTypes[k].unlocked) { b.textContent = "تجهيز"; b.className = "unlocked"; }
+      else { b.textContent = accTypes[k].price + " درهم"; b.className = ""; }
+    }
+  });
+  envKeys.forEach(k => {
+    let b = document.getElementById('btn-env-'+k);
+    if(b) {
+      if(currentEnvKey === k) { b.textContent = "مجهّز"; b.className = "equipped"; }
+      else if(isHost || envTypes[k].unlocked) { b.textContent = "تجهيز"; b.className = "unlocked"; }
+      else { b.textContent = envTypes[k].price + " درهم"; b.className = ""; }
+    }
+  });
+}
+
+function updateUI() {
+  document.getElementById('score').textContent = 'النقاط: ' + score; 
+  document.getElementById('coins').textContent = 'الدراهم: ' + totalCoins;
+  document.getElementById('ammo').textContent = 'الطلقات: ∞ (غير محدودة)';
+  document.getElementById('ammo').style.color = '#2ecc71';
+  document.getElementById('weaponName').textContent = 'السلاح: ' + weaponTypes[currentWeapon].name;
+  document.getElementById('accName').textContent = 'الإكسسوار: ' + accTypes[currentAcc].name;
+}
+updateUI();
+
+// Listen to parent messages
+window.addEventListener('message', (e) => {
+  const data = e.data;
+  if (!data) return;
+
+  if (data.type === 'set_student_control' || data.type === 'update_control_permission') {
+    if (!isHost) {
+      controlEnabled = !!data.controlEnabled;
+      updateControlUI();
+    }
+    return;
+  }
+
+  if (data.type === 'init_player_id') {
+    myId = data.userId;
+    myName = data.userName;
+    isHost = !!data.isHost;
+    controlEnabled = isHost ? true : !!data.controlEnabled;
+    updateControlUI();
+    
+    // Hide environments tab for students completely
+    const envTabBtn = document.getElementById('tab-btn-envs');
+    if (envTabBtn) {
+      envTabBtn.style.display = isHost ? 'block' : 'none';
+    }
+    
+    // Unhide/unlock all environments for teacher
+    if (isHost) {
+      for (const k in envTypes) {
+        envTypes[k].unlocked = true;
+      }
+    }
+    
+    updateShopUI();
+    
+    if (isHost) {
+      // Host: clear existing local targets, then spawn fresh batch
+      targets.forEach(t => scene.remove(t));
+      targets.length = 0;
+      for (const id in targetRegistry) delete targetRegistry[id];
+      // Notify parent to clear Firebase targets
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'balloon_clear_targets' }, '*');
+      }
+      for (let i = 0; i < 20; i++) spawnTarget(true);
+    } else {
+      // Student: clear locally generated targets (they'll get synced via Firebase)
+      targets.forEach(t => scene.remove(t));
+      targets.length = 0;
+      for (const id in targetRegistry) delete targetRegistry[id];
+    }
+  }
+  
+  if (data.type === 'apply_balloon_env' || data.type === 'apply_balloon_environment') {
+    if (!isHost && data.env && data.env !== currentEnvKey) {
+      equipEnv(data.env);
+    }
+  }
+  
+  if (data.type === 'apply_balloon_players') {
+    window.playerNames = data.playerNames || {};
+    updateOtherPlayersGuns(data.players);
+  }
+  
+  if (data.type === 'apply_balloon_shoot') {
+    if (data.playerId === myId) return;
+    
+    // Play audio feedback for others
+    playShootExternal(data.weapon);
+    
+    // Shoot from their gun model
+    const gGroup = otherGuns[data.playerId];
+    if (gGroup) {
+      const pos = new THREE.Vector3();
+      gGroup.getWorldPosition(pos);
+      
+      const targetPoint = new THREE.Vector3();
+      const tempRaycaster = new THREE.Raycaster();
+      tempRaycaster.setFromCamera(new THREE.Vector2(data.aimX, data.aimY), camera);
+      tempRaycaster.ray.at(40, targetPoint);
+      const shootDir = targetPoint.clone().sub(pos).normalize();
+      
+      shoot(pos, shootDir, data.weapon);
+    }
+  }
+  
+  if (data.type === 'apply_balloon_pop') {
+    const bid = data.targetId;
+    if (bid && targetRegistry[bid]) {
+      const balloon = targetRegistry[bid];
+      popEffect(balloon.position, balloon.children[0].material.color);
+      playPop();
+      scene.remove(balloon);
+      const idx = targets.indexOf(balloon);
+      if (idx !== -1) targets.splice(idx, 1);
+      delete targetRegistry[bid];
+    }
+    
+    // Update score/coins synced from host
+    if (!isHost) {
+      score = data.score;
+      totalCoins = data.coins;
+      updateUI();
+    }
+  }
+
+  // ─── Sync balloon targets from Firebase ───
+  if (data.type === 'apply_balloon_targets') {
+    if (isHost) return; // Only students apply this
+    
+    const incoming = data.targets || {};
+    const incomingIds = new Set(Object.keys(incoming));
+    
+    // Remove balloons that no longer exist in Firebase
+    for (const bid in targetRegistry) {
+      if (!incomingIds.has(bid)) {
+        const balloon = targetRegistry[bid];
+        popEffect(balloon.position, balloon.children[0].material.color);
+        playPop();
+        scene.remove(balloon);
+        const idx = targets.indexOf(balloon);
+        if (idx !== -1) targets.splice(idx, 1);
+        delete targetRegistry[bid];
+      }
+    }
+    
+    // Add new balloons that we don't have yet
+    for (const bid in incoming) {
+      if (!targetRegistry[bid]) {
+        const balloon = createBalloonMesh(incoming[bid]);
+        scene.add(balloon);
+        targets.push(balloon);
+        targetRegistry[bid] = balloon;
+      }
+    }
+  }
+});
+
+function sendBalloonsStateToFirebase() {
+  if (window.parent && window.parent !== window) {
+    const state = {};
+    targets.forEach(t => {
+      const bid = t.userData.id;
+      if (bid) {
+        state[bid] = {
+          id: bid,
+          x: t.position.x,
+          y: t.position.y,
+          z: t.position.z,
+          vx: t.userData.velocity.x,
+          vy: t.userData.velocity.y,
+          colorIdx: t.userData.colorIdx
+        };
+      }
+    });
+    window.parent.postMessage({
+      type: 'balloon_sync_all_targets',
+      targets: state
+    }, '*');
+  }
+}
+
+const clock = new THREE.Clock();
+let frameCount = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const now = performance.now();
+  const time = clock.getElapsedTime();
+  
+  frameCount++;
+  if (frameCount % 3 === 0 && !isShopOpen) {
+    sendAimState();
+  }
+  
+  if (isHost) {
+    if (targets.length < 20) {
+      spawnTarget(true);
+    }
+    if (frameCount % 60 === 0) {
+      sendBalloonsStateToFirebase();
+    }
+  }
+  
+  if (isFiring && weaponTypes[currentWeapon].auto) {
+    if (now - lastFireTime > weaponTypes[currentWeapon].fireRate) { attemptFire(); lastFireTime = now; }
+  }
+
+  targetFov = (currentWeapon === 'sniper' && isSniperScoped) ? 15 : (isZooming ? 30 : 70);
+  if (Math.abs(camera.fov - targetFov) > 0.5) { camera.fov += (targetFov - camera.fov) * 0.1; camera.updateProjectionMatrix(); }
+
+  renderer.getClearColor(new THREE.Color()).lerp(targetClearColor, 0.05);
+  renderer.setClearColor(targetClearColor);
+
+  // تحديث حركات البيئة الخاصة
+  if(envAnimData.particles) {
+    const pos = envAnimData.particlePos; const vel = envAnimData.particleVel;
+    for(let i=0; i<pos.length/3; i++) {
+      let idx = i*3;
+      if(currentEnvKey==='arctic'){ pos[idx]+=Math.sin(time+i*0.3)*0.03; pos[idx+1]+=vel[idx+1]; pos[idx+2]+=Math.cos(time+i*0.5)*0.03; if(pos[idx+1]<-3){pos[idx]=(Math.random()-0.5)*120;pos[idx+1]=15+Math.random()*10;pos[idx+2]=(Math.random()-0.5)*120;} }
+      else if(currentEnvKey==='volcanic'){ pos[idx]+=Math.sin(time*2+i*1.7)*0.02; pos[idx+1]+=vel[idx+1]; pos[idx+2]+=Math.cos(time*1.5+i*2.1)*0.02; if(pos[idx+1]>20){pos[idx]=(Math.random()-0.5)*30;pos[idx+1]=-2;pos[idx+2]=(Math.random()-0.5)*30;} }
+      else { pos[idx]+=Math.sin(time*0.5+i*1.3)*0.02; pos[idx+1]+=Math.sin(time*0.8+i)*0.01; pos[idx+2]+=Math.cos(time*0.5+i*0.9)*0.02; if(Math.abs(pos[idx])>60||pos[idx+1]>15||pos[idx+1]<0){pos[idx]=(Math.random()-0.5)*120;pos[idx+1]=Math.random()*10;pos[idx+2]=(Math.random()-0.5)*120;} }
+    }
+    envAnimData.particles.geometry.attributes.position.needsUpdate = true;
+  }
+  if(currentEnvKey==='ocean' && envAnimData.oceanWater) {
+    const pos = envAnimData.oceanWater.geometry.attributes.position;
+    for(let i=0; i<pos.count; i++) {
+      const x=pos.getX(i), z=pos.getZ(i);
+      pos.setY(i, Math.sin(x*0.15+time*1.5)*0.4 + Math.cos(z*0.12+time*1.2)*0.3);
+    }
+    pos.needsUpdate = true;
+  }
+  if(currentEnvKey==='volcanic' && envAnimData.lavaPools.length) {
+    envAnimData.lavaPools.forEach(p => p.material.emissiveIntensity = 1.5 + Math.sin(time*2+p.userData.phase));
+  }
+  if((currentEnvKey==='forest' || currentEnvKey==='daylight') && envAnimData.trees.length) {
+    envAnimData.trees.forEach(t => t.rotation.z = Math.sin(time*0.6+t.userData.phase)*0.015);
+  }
+  if(currentEnvKey==='arctic' && envAnimData.crystals.length) {
+    envAnimData.crystals.forEach((c,i) => c.material.emissiveIntensity = 0.2 + Math.sin(time*1.5+i)*0.2);
+  }
+  if (currentEnvKey === 'daylight' && envAnimData.clouds && envAnimData.clouds.length) {
+    envAnimData.clouds.forEach(c => {
+      c.position.x += c.userData.speed;
+      if (c.position.x > 90) {
+        c.position.x = -90;
+      }
+    });
+  }
+
+  if(!isShopOpen) {
+    const sway = (isSniperScoped || isZooming) ? 0.08 : 0.42;
+    camera.rotation.y = -mouseX * sway; camera.rotation.x = -mouseY * sway;
+    raycaster.setFromCamera(new THREE.Vector2(aimX, aimY), camera);
+    const targetPoint = new THREE.Vector3();
+    const balloonMeshes = targets.map(t => t.children[0]);
+    const intersects = raycaster.intersectObjects(balloonMeshes);
+    if (intersects.length > 0) targetPoint.copy(intersects[0].point); else raycaster.ray.at(40, targetPoint);
+    const gunEye = new THREE.Vector3(); gunGroup.getWorldPosition(gunEye);
+    const dirToTarget = new THREE.Vector3().subVectors(gunEye, targetPoint);
+    gunGroup.lookAt(gunEye.clone().add(dirToTarget)); 
+    gunModelGroup.position.z += (0 - gunModelGroup.position.z) * 0.15; gunModelGroup.rotation.x += (0 - gunModelGroup.rotation.x) * 0.15;
+  }
+  
+  for (let i = bullets.length-1; i >= 0; i--) {
+    const b = bullets[i]; b.userData.prevPos.copy(b.position); b.position.add(b.userData.velocity); b.userData.life--;
+    let hit = false; const steps = Math.ceil(b.userData.velocity.length() / 0.5);
+    for (let j = targets.length-1; j >= 0; j--) {
+      for (let s = 1; s <= steps; s++) {
+        const checkPos = new THREE.Vector3().lerpVectors(b.userData.prevPos, b.position, s/steps);
+        if (checkPos.distanceTo(targets[j].position) < 1.4) {
+          popEffect(targets[j].position, targets[j].children[0].material.color); playPop();
+          
+          if (b.userData.shooter === 'me') {
+            let earnedCoins = 0; let r = Math.random();
+            if(r < 0.5) earnedCoins = 1; else if(r < 0.7) earnedCoins = 2; else if(r < 0.75) earnedCoins = 5;
+            let pts = 10 + weaponTypes[currentWeapon].bonus; score += pts; totalCoins += earnedCoins;
+            showFloatingText(`+${pts} نقطة`, targets[j].position.clone().add(new THREE.Vector3(0,1,0)), '#fff');
+            if(earnedCoins > 0) showFloatingText(`+${earnedCoins} درهم`, targets[j].position.clone().add(new THREE.Vector3(0,-1,0)), '#f1c40f');
+            spawnCoins(targets[j].position, earnedCoins);
+            updateUI();
+            
+            // Broadcast pop event to parent using targetId
+            const poppedId = targets[j].userData.id;
+            if (window.parent && window.parent !== window) {
+              window.parent.postMessage({
+                type: 'balloon_pop_event',
+                targetId: poppedId,
+                score: score,
+                coins: totalCoins
+              }, '*');
+            }
+          }
+          
+          const poppedId = targets[j].userData.id;
+          if (poppedId) delete targetRegistry[poppedId];
+          scene.remove(targets[j]); targets.splice(j, 1);
+          // Only host spawns new targets; students get them from Firebase sync
+          if (isHost) spawnTarget();
+          hit = true; break;
+        }
+      }
+      if(hit) break;
+    }
+    if (hit || b.userData.life <= 0) { scene.remove(b); bullets.splice(i, 1); }
+  }
+  
+  for (let i = fallingCoins.length-1; i >= 0; i--) {
+    const c = fallingCoins[i]; c.position.add(c.userData.velocity); c.userData.velocity.y -= 0.02; c.rotation.z += 0.2; c.userData.life--;
+    if (c.userData.life <= 0) { scene.remove(c); fallingCoins.splice(i, 1); }
+  }
+  
+  targets.forEach(t => {
+    t.position.add(t.userData.velocity); t.rotation.y += 0.01;
+    if (t.position.y > 8) t.userData.velocity.y = -0.01; else if (t.position.y < -2) t.userData.velocity.y = 0.01;
+    if (Math.abs(t.position.x) > 30) t.userData.velocity.x *= -1;
+  });
+  
+  for (let i = particles.length-1; i >= 0; i--) {
+    const p = particles[i]; p.position.add(p.userData.velocity); p.userData.velocity.y -= 0.02; p.userData.life--;
+    if (p.userData.life <= 0) { scene.remove(p); particles.splice(i, 1); }
+  }
+  
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>

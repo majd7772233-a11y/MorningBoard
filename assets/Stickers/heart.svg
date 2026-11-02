@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="heartGlow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#ff758c" />
+      <stop offset="60%" stop-color="#ff1361" />
+      <stop offset="100%" stop-color="#c90048" />
+    </radialGradient>
+    <linearGradient id="heartHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+    <radialGradient id="sparkleGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#800028" flood-opacity="0.45" />
+    </filter>
+  </defs>
+
+  <!-- Golden Ring Aura -->
+  <circle cx="100" cy="100" r="92" fill="none" stroke="#ffd166" stroke-width="3" stroke-dasharray="6,4" opacity="0.8" />
+  <circle cx="100" cy="100" r="86" fill="#fff5f7" />
+
+  <!-- 3D Heart -->
+  <g filter="url(#shadow)">
+    <path d="M100,160 C80,140 32,108 32,68 C32,42 52,24 78,24 C92,24 100,34 100,34 C100,34 108,24 122,24 C148,24 168,42 168,68 C168,108 120,140 100,160 Z"
+          fill="url(#heartGlow)" stroke="#ffffff" stroke-width="5" />
+  </g>
+
+  <!-- Heart Gloss Highlight -->
+  <ellipse cx="68" cy="54" rx="22" ry="14" transform="rotate(-35 68 54)" fill="url(#heartHighlight)" />
+  <ellipse cx="128" cy="48" rx="12" ry="7" transform="rotate(25 128 48)" fill="url(#heartHighlight)" />
+
+  <!-- Sparkles -->
+  <polygon points="100,6 103,18 115,21 103,24 100,36 97,24 85,21 97,18" fill="#ffd166" />
+  <polygon points="168,100 170,108 178,110 170,112 168,120 166,112 158,110 166,108" fill="#ffd166" />
+  <polygon points="34,115 35,121 41,123 35,125 34,131 33,125 27,123 33,121" fill="#ffd166" />
+
+  <!-- Cute mini sparkles inside -->
+  <circle cx="62" cy="72" r="3" fill="#ffffff" opacity="0.9" />
+  <circle cx="132" cy="80" r="2.5" fill="#ffffff" opacity="0.8" />
+</svg>

@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الجدول الدوري العنصري ثلاثي الأبعاد</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg-primary: #050508;
+    --bg-panel: rgba(10, 10, 15, 0.92);
+    --text-primary: #f0f0f5;
+    --text-secondary: #8c8cba;
+    --accent: #00e5a0;
+    --accent-dim: rgba(0, 229, 160, 0.15);
+    --border: rgba(255, 255, 255, 0.1);
+    --glass: rgba(10, 10, 15, 0.8);
+    --radius: 12px;
+    --font: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg-primary);color:var(--text-primary);font-family:var(--font);overflow:hidden;width:100vw;height:100vh;}
+#canvas-container{position:fixed;inset:0;z-index:0;}
+canvas{display:block; outline:none;}
+
+/* Loading */
+.loading-screen{position:fixed;inset:0;z-index:1000;background:var(--bg-primary);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s ease;}
+.loading-screen.hidden{opacity:0;pointer-events:none;}
+.loading-spinner{width:50px;height:50px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{margin-top:16px;color:var(--accent);font-size:15px;font-weight:700;letter-spacing:1px;}
+
+/* WebGL Error */
+.webgl-error{position:fixed;inset:0;z-index:2000;background:var(--bg-primary);display:none;flex-direction:column;align-items:center;justify-content:center;color:var(--text-primary);text-align:center;padding:40px;}
+.webgl-error.visible{display:flex;}
+.webgl-error h2{color:#ff5050;margin-bottom:12px;font-size:24px;}
+.webgl-error p{color:var(--text-secondary);max-width:400px;line-height:1.7;}
+
+/* Top Bar */
+.top-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; justify-content: space-between;
+    align-items: center; padding: 14px 24px 14px 90px;
+    background: linear-gradient(180deg, rgba(5,5,8,.95) 0%, rgba(5,5,8,0) 100%);
+    pointer-events: none;
+}
+.top-bar-title-container {
+    text-align: right;
+    display: flex; flex-direction: column; align-items: flex-end;
+}
+#btnLangToggle {
+    pointer-events: auto;
+    margin-left: 15px;
+}
+.top-bar > * { pointer-events: auto; }
+.title-main{font-size:22px;font-weight:900;color:var(--text-primary);letter-spacing:.5px; text-shadow: 0 2px 10px rgba(0,229,160,0.3);}
+.title-main span{color:var(--accent);}
+
+/* Category Filter */
+.category-filter{position:fixed;top:85px;left:20px;z-index:100;display:flex;flex-direction:column;gap:5px;max-height:calc(100vh - 180px);overflow-y:auto;padding:10px;background:var(--glass);border:1px solid var(--border);border-radius:var(--radius);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow: 0 10px 30px rgba(0,0,0,0.5);}
+.category-filter::-webkit-scrollbar{width:4px;}
+.category-filter::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px;}
+.cat-btn{display:flex;align-items:center;gap:10px;padding:8px 14px;background:transparent;border:1px solid transparent;border-radius:8px;color:var(--text-secondary);font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;transition:all .3s ease;direction:rtl;}
+.cat-btn:hover{background:var(--accent-dim);border-color:rgba(0,229,160,.3);color:var(--text-primary);transform:translateX(-3px);}
+.cat-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);box-shadow: 0 0 15px rgba(0,229,160,0.1);}
+.cat-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow: 0 0 8px currentColor;}
+.cat-count{margin-right:auto;font-size:11px;color:var(--text-secondary);opacity:.7; background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px;}
+
+/* Info Panel */
+.info-panel{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.9);z-index:200;width:340px;background:var(--bg-panel);border:1px solid var(--accent);border-radius:16px;backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);padding:26px;opacity:0;pointer-events:none;transition:all .4s cubic-bezier(0.175, 0.885, 0.32, 1.1); box-shadow: 0 20px 50px rgba(0,0,0,0.7), 0 0 30px rgba(0,229,160,0.1);}
+.info-panel.visible{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1);}
+.info-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;}
+.info-symbol{font-size:42px;font-weight:900;color:var(--text-primary);line-height:1;text-shadow: 0 0 20px rgba(255,255,255,0.2);}
+.info-number{font-size:14px;color:var(--accent);font-weight:700;margin-top:4px;}
+.info-close{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:rgba(255,255,255,0.05);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;}
+.info-close:hover{background:rgba(255,80,80,.2);border-color:#ff5050;color:#ff5050;transform:rotate(90deg);}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;}
+.info-row:last-child{border-bottom:none;}
+.info-label{color:var(--text-secondary);}
+.info-value{font-weight:700; text-align:left; direction:ltr;}
+.info-state-badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:900;letter-spacing:1px;}
+.info-desc{margin-top:15px; font-size:13px; color:var(--text-secondary); line-height:1.6; padding-top:15px; border-top:1px solid rgba(255,255,255,0.05);}
+
+/* Bottom Controls */
+.bottom-controls{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:100;display:flex;gap:12px;align-items:center;}
+.ctrl-btn{padding:10px 20px;border-radius:10px;border:1px solid var(--border);background:var(--glass);color:var(--text-primary);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .3s;backdrop-filter:blur(10px);direction:rtl;display:flex;align-items:center;gap:8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);}
+.ctrl-btn:hover{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);transform:translateY(-2px);}
+.ctrl-btn.active{background:var(--accent);color:var(--bg-primary);border-color:var(--accent);box-shadow: 0 0 20px rgba(0,229,160,0.4);}
+.ctrl-btn svg{width:18px;height:18px;fill:currentColor;}
+
+/* Tooltip */
+.tooltip{position:fixed;z-index:300;padding:6px 12px;background:var(--bg-primary);border:1px solid var(--accent);border-radius:8px;color:var(--text-primary);font-size:13px;font-weight:700;pointer-events:none;opacity:0;transition:opacity .2s;box-shadow:0 5px 15px rgba(0,0,0,0.5);white-space:nowrap; transform: translate(-50%, -150%);}
+.tooltip.show{opacity:1;}
+
+/* Responsive */
+@media(max-width:768px){
+    .top-bar { padding: 8px 12px 8px 75px; }
+    #btnLangToggle { padding: 6px 10px !important; font-size: 11px !important; margin-left: 10px; }
+    .category-filter{top:55px;bottom:auto;left:6px;right:6px;flex-direction:row;flex-wrap:wrap;max-height:85px;align-items:center;justify-content:center;}
+    .info-panel{width:calc(100vw - 30px);max-width:340px;}
+    .title-main{font-size:15px;}
+    .bottom-controls{bottom:12px;gap:6px;}
+    .ctrl-btn{padding:6px 10px;font-size:11px;}
+}
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loadingScreen">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">جاري بناء الجدول الدوري...</div>
+</div>
+
+<div class="webgl-error" id="webglError">
+    <h2>خطأ في المتصفح</h2>
+    <p>متصفحك لا يدعم WebGL 2. يرجى استخدام متصفح حديث للتمتع بالتجربة التعليمية الكاملة.</p>
+</div>
+
+<div id="canvas-container"></div>
+
+<header class="top-bar">
+    <div class="top-bar-title-container">
+        <div class="title-main">الجدول <span>الدوري</span> العنصري</div>
+        <div class="title-sub" style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;"></div>
+    </div>
+    <button id="btnLangToggle" style="pointer-events: auto; padding: 8px 16px; border-radius: 12px; border: 1px solid var(--accent); background: rgba(0, 229, 160, 0.1); color: var(--accent); font-family: var(--font); font-size: 13px; font-weight: bold; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);"></button>
+</header>
+
+<nav class="category-filter" id="categoryFilter"></nav>
+
+<div class="info-panel" id="infoPanel">
+    <div class="info-header">
+        <div>
+            <div class="info-symbol" id="infoSymbol">H</div>
+            <div class="info-number" id="infoNumber">العنصر 1</div>
+        </div>
+        <button class="info-close" id="infoClose" aria-label="إغلاق">✕</button>
+    </div>
+    <div id="infoContent"></div>
+</div>
+
+<div class="bottom-controls">
+    <button class="ctrl-btn" id="btnReset" title="إعادة ضبط الكاميرا">
+        <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.42-.49 2.73-1.31 3.79L17 17c1.39-1.5 2.21-3.54 2.21-5.5 0-4.42-3.58-8-8-8zm-6 4c0 1.93.71 3.66 1.88 4.89L7 14c-.94-1.06-1.5-2.41-1.5-3.84 0-3.31 2.69-6 6-6v3l4-4-4-4v3c-4.42 0-8 3.58-8 8z"/></svg>
+        إعادة ضبط
+    </button>
+    <button class="ctrl-btn" id="btnAutoRotate" title="دوران تلقائي">
+        <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.42-.49 2.73-1.31 3.79L17 17c1.39-1.5 2.21-3.54 2.21-5.5 0-4.42-3.58-8-8-8zm-6 4c0 1.93.71 3.66 1.88 4.89L7 14c-.94-1.06-1.5-2.41-1.5-3.84 0-3.31 2.69-6 6-6v3l4-4-4-4v3c-4.42 0-8 3.58-8 8z"/></svg>
+        دوران تلقائي
+    </button>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script type="importmap">
+{
+    "imports": {
+        "three": "./libs/three/three.module.min.js",
+        "three/addons/controls/OrbitControls.js": "./libs/three/OrbitControls.js"
+    }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ============================
+   DATA: Colors and Categories
+   ============================ */
+const CATEGORY_COLORS = {
+    'alkali-metal':      '#FF4757',
+    'alkaline-earth':    '#FFA502',
+    'transition-metal':  '#1E90FF',
+    'post-transition':   '#2ED573',
+    'metalloid':         '#9C88FF',
+    'nonmetal':          '#FF6B81',
+    'halogen':           '#FF7F50',
+    'noble-gas':         '#70A1FF',
+    'lanthanide':        '#7BED9F',
+    'actinide':          '#ECCC68' 
+};
+
+const CATEGORY_NAMES_AR = {
+    'alkali-metal': 'فلزات قلوية',
+    'alkaline-earth': 'فلزات قلوية ترابية',
+    'transition-metal': 'فلزات انتقالية',
+    'post-transition': 'فلزات ما بعد الانتقالية',
+    'metalloid': 'أشباه الفلزات',
+    'nonmetal': 'لافلزات',
+    'halogen': 'هالوجينات',
+    'noble-gas': 'غازات نبيلة',
+    'lanthanide': 'لانثانيدات',
+    'actinide': 'أكتينيدات'
+};
+
+// تم المراجعة والتأكد من صحة التصنيفات العلمية خاصة للـ Lanthanides والـ Actinides
+const ELEMENTS = [
+    {n:1,s:'H',name:'Hydrogen',ar:'هيدروجين',mass:1.008,cat:'nonmetal',p:1,g:1,cfg:'1s¹',state:'gas'},
+    {n:2,s:'He',name:'Helium',ar:'هيليوم',mass:4.0026,cat:'noble-gas',p:1,g:18,cfg:'1s²',state:'gas'},
+    {n:3,s:'Li',name:'Lithium',ar:'ليثيوم',mass:6.94,cat:'alkali-metal',p:2,g:1,cfg:'[He] 2s¹',state:'solid'},
+    {n:4,s:'Be',name:'Beryllium',ar:'بيريليوم',mass:9.0122,cat:'alkaline-earth',p:2,g:2,cfg:'[He] 2s²',state:'solid'},
+    {n:5,s:'B',name:'Boron',ar:'بورون',mass:10.81,cat:'metalloid',p:2,g:13,cfg:'[He] 2s² 2p¹',state:'solid'},
+    {n:6,s:'C',name:'Carbon',ar:'كربون',mass:12.011,cat:'nonmetal',p:2,g:14,cfg:'[He] 2s² 2p²',state:'solid'},
+    {n:7,s:'N',name:'Nitrogen',ar:'نيتروجين',mass:14.007,cat:'nonmetal',p:2,g:15,cfg:'[He] 2s² 2p³',state:'gas'},
+    {n:8,s:'O',name:'Oxygen',ar:'أكسجين',mass:15.999,cat:'nonmetal',p:2,g:16,cfg:'[He] 2s² 2p⁴',state:'gas'},
+    {n:9,s:'F',name:'Fluorine',ar:'فلور',mass:18.998,cat:'halogen',p:2,g:17,cfg:'[He] 2s² 2p⁵',state:'gas'},
+    {n:10,s:'Ne',name:'Neon',ar:'نيون',mass:20.180,cat:'noble-gas',p:2,g:18,cfg:'[He] 2s² 2p⁶',state:'gas'},
+    {n:11,s:'Na',name:'Sodium',ar:'صوديوم',mass:22.990,cat:'alkali-metal',p:3,g:1,cfg:'[Ne] 3s¹',state:'solid'},
+    {n:12,s:'Mg',name:'Magnesium',ar:'مغنيسيوم',mass:24.305,cat:'alkaline-earth',p:3,g:2,cfg:'[Ne] 3s²',state:'solid'},
+    {n:13,s:'Al',name:'Aluminium',ar:'ألومنيوم',mass:26.982,cat:'post-transition',p:3,g:13,cfg:'[Ne] 3s² 3p¹',state:'solid'},
+    {n:14,s:'Si',name:'Silicon',ar:'سيليكون',mass:28.085,cat:'metalloid',p:3,g:14,cfg:'[Ne] 3s² 3p²',state:'solid'},
+    {n:15,s:'P',name:'Phosphorus',ar:'فوسفور',mass:30.974,cat:'nonmetal',p:3,g:15,cfg:'[Ne] 3s² 3p³',state:'solid'},
+    {n:16,s:'S',name:'Sulfur',ar:'كبريت',mass:32.06,cat:'nonmetal',p:3,g:16,cfg:'[Ne] 3s² 3p⁴',state:'solid'},
+    {n:17,s:'Cl',name:'Chlorine',ar:'كلور',mass:35.45,cat:'halogen',p:3,g:17,cfg:'[Ne] 3s² 3p⁵',state:'gas'},
+    {n:18,s:'Ar',name:'Argon',ar:'أرجون',mass:39.948,cat:'noble-gas',p:3,g:18,cfg:'[Ne] 3s² 3p⁶',state:'gas'},
+    {n:19,s:'K',name:'Potassium',ar:'بوتاسيوم',mass:39.098,cat:'alkali-metal',p:4,g:1,cfg:'[Ar] 4s¹',state:'solid'},
+    {n:20,s:'Ca',name:'Calcium',ar:'كالسيوم',mass:40.078,cat:'alkaline-earth',p:4,g:2,cfg:'[Ar] 4s²',state:'solid'},
+    {n:21,s:'Sc',name:'Scandium',ar:'سكانديوم',mass:44.956,cat:'transition-metal',p:4,g:3,cfg:'[Ar] 3d¹ 4s²',state:'solid'},
+    {n:22,s:'Ti',name:'Titanium',ar:'تيتانيوم',mass:47.867,cat:'transition-metal',p:4,g:4,cfg:'[Ar] 3d² 4s²',state:'solid'},
+    {n:23,s:'V',name:'Vanadium',ar:'فاناديوم',mass:50.942,cat:'transition-metal',p:4,g:5,cfg:'[Ar] 3d³ 4s²',state:'solid'},
+    {n:24,s:'Cr',name:'Chromium',ar:'كروم',mass:51.996,cat:'transition-metal',p:4,g:6,cfg:'[Ar] 3d⁵ 4s¹',state:'solid'},
+    {n:25,s:'Mn',name:'Manganese',ar:'منغنيز',mass:54.938,cat:'transition-metal',p:4,g:7,cfg:'[Ar] 3d⁵ 4s²',state:'solid'},
+    {n:26,s:'Fe',name:'Iron',ar:'حديد',mass:55.845,cat:'transition-metal',p:4,g:8,cfg:'[Ar] 3d⁶ 4s²',state:'solid'},
+    {n:27,s:'Co',name:'Cobalt',ar:'كوبالت',mass:58.933,cat:'transition-metal',p:4,g:9,cfg:'[Ar] 3d⁷ 4s²',state:'solid'},
+    {n:28,s:'Ni',name:'Nickel',ar:'نيكل',mass:58.693,cat:'transition-metal',p:4,g:10,cfg:'[Ar] 3d⁸ 4s²',state:'solid'},
+    {n:29,s:'Cu',name:'Copper',ar:'نحاس',mass:63.546,cat:'transition-metal',p:4,g:11,cfg:'[Ar] 3d¹⁰ 4s¹',state:'solid'},
+    {n:30,s:'Zn',name:'Zinc',ar:'زنك',mass:65.38,cat:'transition-metal',p:4,g:12,cfg:'[Ar] 3d¹⁰ 4s²',state:'solid'},
+    {n:31,s:'Ga',name:'Gallium',ar:'غاليوم',mass:69.723,cat:'post-transition',p:4,g:13,cfg:'[Ar] 3d¹⁰ 4s² 4p¹',state:'solid'},
+    {n:32,s:'Ge',name:'Germanium',ar:'جرمانيوم',mass:72.63,cat:'metalloid',p:4,g:14,cfg:'[Ar] 3d¹⁰ 4s² 4p²',state:'solid'},
+    {n:33,s:'As',name:'Arsenic',ar:'زرنيخ',mass:74.922,cat:'metalloid',p:4,g:15,cfg:'[Ar] 3d¹⁰ 4s² 4p³',state:'solid'},
+    {n:34,s:'Se',name:'Selenium',ar:'سيلينيوم',mass:78.971,cat:'nonmetal',p:4,g:16,cfg:'[Ar] 3d¹⁰ 4s² 4p⁴',state:'solid'},
+    {n:35,s:'Br',name:'Bromine',ar:'بروم',mass:79.904,cat:'halogen',p:4,g:17,cfg:'[Ar] 3d¹⁰ 4s² 4p⁵',state:'liquid'},
+    {n:36,s:'Kr',name:'Krypton',ar:'كريبتون',mass:83.798,cat:'noble-gas',p:4,g:18,cfg:'[Ar] 3d¹⁰ 4s² 4p⁶',state:'gas'},
+    {n:37,s:'Rb',name:'Rubidium',ar:'روبيديوم',mass:85.468,cat:'alkali-metal',p:5,g:1,cfg:'[Kr] 5s¹',state:'solid'},
+    {n:38,s:'Sr',name:'Strontium',ar:'سترونشيوم',mass:87.62,cat:'alkaline-earth',p:5,g:2,cfg:'[Kr] 5s²',state:'solid'},
+    {n:39,s:'Y',name:'Yttrium',ar:'يتريوم',mass:88.906,cat:'transition-metal',p:5,g:3,cfg:'[Kr] 4d¹ 5s²',state:'solid'},
+    {n:40,s:'Zr',name:'Zirconium',ar:'زركونيوم',mass:91.224,cat:'transition-metal',p:5,g:4,cfg:'[Kr] 4d² 5s²',state:'solid'},
+    {n:41,s:'Nb',name:'Niobium',ar:'نيوبيوم',mass:92.906,cat:'transition-metal',p:5,g:5,cfg:'[Kr] 4d⁴ 5s¹',state:'solid'},
+    {n:42,s:'Mo',name:'Molybdenum',ar:'موليبدينوم',mass:95.95,cat:'transition-metal',p:5,g:6,cfg:'[Kr] 4d⁵ 5s¹',state:'solid'},
+    {n:43,s:'Tc',name:'Technetium',ar:'تكنيشيوم',mass:98,cat:'transition-metal',p:5,g:7,cfg:'[Kr] 4d⁵ 5s²',state:'solid'},
+    {n:44,s:'Ru',name:'Ruthenium',ar:'روثينيوم',mass:101.07,cat:'transition-metal',p:5,g:8,cfg:'[Kr] 4d⁷ 5s¹',state:'solid'},
+    {n:45,s:'Rh',name:'Rhodium',ar:'روديوم',mass:102.91,cat:'transition-metal',p:5,g:9,cfg:'[Kr] 4d⁸ 5s¹',state:'solid'},
+    {n:46,s:'Pd',name:'Palladium',ar:'بالاديوم',mass:106.42,cat:'transition-metal',p:5,g:10,cfg:'[Kr] 4d¹⁰',state:'solid'},
+    {n:47,s:'Ag',name:'Silver',ar:'فضة',mass:107.87,cat:'transition-metal',p:5,g:11,cfg:'[Kr] 4d¹⁰ 5s¹',state:'solid'},
+    {n:48,s:'Cd',name:'Cadmium',ar:'كادميوم',mass:112.41,cat:'transition-metal',p:5,g:12,cfg:'[Kr] 4d¹⁰ 5s²',state:'solid'},
+    {n:49,s:'In',name:'Indium',ar:'إنديوم',mass:114.82,cat:'post-transition',p:5,g:13,cfg:'[Kr] 4d¹⁰ 5s² 5p¹',state:'solid'},
+    {n:50,s:'Sn',name:'Tin',ar:'قصدير',mass:118.71,cat:'post-transition',p:5,g:14,cfg:'[Kr] 4d¹⁰ 5s² 5p²',state:'solid'},
+    {n:51,s:'Sb',name:'Antimony',ar:'أنتيمون',mass:121.76,cat:'metalloid',p:5,g:15,cfg:'[Kr] 4d¹⁰ 5s² 5p³',state:'solid'},
+    {n:52,s:'Te',name:'Tellurium',ar:'تيلوريوم',mass:127.60,cat:'metalloid',p:5,g:16,cfg:'[Kr] 4d¹⁰ 5s² 5p⁴',state:'solid'},
+    {n:53,s:'I',name:'Iodine',ar:'يود',mass:126.90,cat:'halogen',p:5,g:17,cfg:'[Kr] 4d¹⁰ 5s² 5p⁵',state:'solid'},
+    {n:54,s:'Xe',name:'Xenon',ar:'زينون',mass:131.29,cat:'noble-gas',p:5,g:18,cfg:'[Kr] 4d¹⁰ 5s² 5p⁶',state:'gas'},
+    {n:55,s:'Cs',name:'Cesium',ar:'سيزيوم',mass:132.91,cat:'alkali-metal',p:6,g:1,cfg:'[Xe] 6s¹',state:'solid'},
+    {n:56,s:'Ba',name:'Barium',ar:'باريوم',mass:137.33,cat:'alkaline-earth',p:6,g:2,cfg:'[Xe] 6s²',state:'solid'},
+    {n:57,s:'La',name:'Lanthanum',ar:'لانثانوم',mass:138.91,cat:'lanthanide',p:6,g:3,cfg:'[Xe] 5d¹ 6s²',state:'solid'},
+    {n:58,s:'Ce',name:'Cerium',ar:'سيريوم',mass:140.12,cat:'lanthanide',p:6,g:0,cfg:'[Xe] 4f¹ 5d¹ 6s²',state:'solid'},
+    {n:59,s:'Pr',name:'Praseodymium',ar:'براسوديميوم',mass:140.91,cat:'lanthanide',p:6,g:0,cfg:'[Xe] 4f³ 6s²',state:'solid'},
+    {n:60,s:'Nd',name:'Neodymium',ar:'نيوديميوم',mass:144.24,cat:'lanthanide',p:6,g:0,cfg:'[Xe] 4f⁴ 6s²',state:'solid'},
+    {n:61,s:'Pm',name:'Promethium',ar:'بروميثيوم',mass:145,cat:'lanthanide',p:6,g:0,cfg:'[Xe] 4f⁵ 6s²',state:'solid'},
+    {n:62,s:'Sm',name:'Samarium',ar:'ساماريوم',mass:150.36,cat:'lanthanide',p:6,g:0,cfg:'[Xe] 4f⁶ 6s²',state:'solid'},
+    {n:63,s:'Eu',name:'Europium',ar:'يوروبيوم',mass:151.96,cat:'lanthanide',p:6,g:0,cfg:'[Xe] 4f⁷ 6s²',state:'solid'},
+    {n:64,s:'Gd',name:'Gadolinium',ar:'جادولينيوم',mass:157.25,cat:'lanthanide',p:6,g:0,cfg:'[Xe] 4f⁷ 5d¹ 6s²',state:'solid'},
+    {n:65,s:'Tb',name:'Terbium',ar:'تيربيوم',mass:158.93,cat:'lanthanide',p:6,g:0,cfg:'[Xe] 4f⁹ 6s²',state:'solid'},
+    {n:66,s:'Dy',name:'Dysprosium',ar:'ديسبروسيوم',mass:162.50,cat:'lanthanide',p:6,g:0,cfg:'[Xe] 4f¹⁰ 6s²',state:'solid'},
+    {n:67,s:'Ho',name:'Holmium',ar:'هولميوم',mass:164.93,cat:'lanthanide',p:6,g:0,cfg:'[Xe] 4f¹¹ 6s²',state:'solid'},
+    {n:68,s:'Er',name:'Erbium',ar:'إيربيوم',mass:167.26,cat:'lanthanide',p:6,g:0,cfg:'[Xe] 4f¹² 6s²',state:'solid'},
+    {n:69,s:'Tm',name:'Thulium',ar:'ثوليوم',mass:168.93,cat:'lanthanide',p:6,g:0,cfg:'[Xe] 4f¹³ 6s²',state:'solid'},
+    {n:70,s:'Yb',name:'Ytterbium',ar:'إيتربيوم',mass:173.05,cat:'lanthanide',p:6,g:0,cfg:'[Xe] 4f¹⁴ 6s²',state:'solid'},
+    {n:71,s:'Lu',name:'Lutetium',ar:'لوتيتيوم',mass:174.97,cat:'lanthanide',p:6,g:0,cfg:'[Xe] 4f¹⁴ 5d¹ 6s²',state:'solid'},
+    {n:72,s:'Hf',name:'Hafnium',ar:'هافنيوم',mass:178.49,cat:'transition-metal',p:6,g:4,cfg:'[Xe] 4f¹⁴ 5d² 6s²',state:'solid'},
+    {n:73,s:'Ta',name:'Tantalum',ar:'تانتالوم',mass:180.95,cat:'transition-metal',p:6,g:5,cfg:'[Xe] 4f¹⁴ 5d³ 6s²',state:'solid'},
+    {n:74,s:'W',name:'Tungsten',ar:'تنجستين',mass:183.84,cat:'transition-metal',p:6,g:6,cfg:'[Xe] 4f¹⁴ 5d⁴ 6s²',state:'solid'},
+    {n:75,s:'Re',name:'Rhenium',ar:'رينيوم',mass:186.21,cat:'transition-metal',p:6,g:7,cfg:'[Xe] 4f¹⁴ 5d⁵ 6s²',state:'solid'},
+    {n:76,s:'Os',name:'Osmium',ar:'أوزميوم',mass:190.23,cat:'transition-metal',p:6,g:8,cfg:'[Xe] 4f¹⁴ 5d⁶ 6s²',state:'solid'},
+    {n:77,s:'Ir',name:'Iridium',ar:'إيريديوم',mass:192.22,cat:'transition-metal',p:6,g:9,cfg:'[Xe] 4f¹⁴ 5d⁷ 6s²',state:'solid'},
+    {n:78,s:'Pt',name:'Platinum',ar:'بلاتين',mass:195.08,cat:'transition-metal',p:6,g:10,cfg:'[Xe] 4f¹⁴ 5d⁹ 6s¹',state:'solid'},
+    {n:79,s:'Au',name:'Gold',ar:'ذهب',mass:196.97,cat:'transition-metal',p:6,g:11,cfg:'[Xe] 4f¹⁴ 5d¹⁰ 6s¹',state:'solid'},
+    {n:80,s:'Hg',name:'Mercury',ar:'زئبق',mass:200.59,cat:'transition-metal',p:6,g:12,cfg:'[Xe] 4f¹⁴ 5d¹⁰ 6s²',state:'liquid'},
+    {n:81,s:'Tl',name:'Thallium',ar:'ثاليوم',mass:204.38,cat:'post-transition',p:6,g:13,cfg:'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p¹',state:'solid'},
+    {n:82,s:'Pb',name:'Lead',ar:'رصاص',mass:207.2,cat:'post-transition',p:6,g:14,cfg:'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p²',state:'solid'},
+    {n:83,s:'Bi',name:'Bismuth',ar:'بزموت',mass:208.98,cat:'post-transition',p:6,g:15,cfg:'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p³',state:'solid'},
+    {n:84,s:'Po',name:'Polonium',ar:'بولونيوم',mass:209,cat:'metalloid',p:6,g:16,cfg:'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁴',state:'solid'},
+    {n:85,s:'At',name:'Astatine',ar:'أستاتين',mass:210,cat:'halogen',p:6,g:17,cfg:'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁵',state:'solid'},
+    {n:86,s:'Rn',name:'Radon',ar:'رادون',mass:222,cat:'noble-gas',p:6,g:18,cfg:'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁶',state:'gas'},
+    {n:87,s:'Fr',name:'Francium',ar:'فرانسيوم',mass:223,cat:'alkali-metal',p:7,g:1,cfg:'[Rn] 7s¹',state:'solid'},
+    {n:88,s:'Ra',name:'Radium',ar:'راديوم',mass:226,cat:'alkaline-earth',p:7,g:2,cfg:'[Rn] 7s²',state:'solid'},
+    {n:89,s:'Ac',name:'Actinium',ar:'أكتينيوم',mass:227,cat:'actinide',p:7,g:3,cfg:'[Rn] 6d¹ 7s²',state:'solid'},
+    {n:90,s:'Th',name:'Thorium',ar:'ثوريوم',mass:232.04,cat:'actinide',p:7,g:0,cfg:'[Rn] 6d² 7s²',state:'solid'},
+    {n:91,s:'Pa',name:'Protactinium',ar:'بروتاكتينيوم',mass:231.04,cat:'actinide',p:7,g:0,cfg:'[Rn] 5f² 6d¹ 7s²',state:'solid'},
+    {n:92,s:'U',name:'Uranium',ar:'يورانيوم',mass:238.03,cat:'actinide',p:7,g:0,cfg:'[Rn] 5f³ 6d¹ 7s²',state:'solid'},
+    {n:93,s:'Np',name:'Neptunium',ar:'نيبتونيوم',mass:237,cat:'actinide',p:7,g:0,cfg:'[Rn] 5f⁴ 6d¹ 7s²',state:'solid'},
+    {n:94,s:'Pu',name:'Plutonium',ar:'بلوتونيوم',mass:244,cat:'actinide',p:7,g:0,cfg:'[Rn] 5f⁶ 7s²',state:'solid'},
+    {n:95,s:'Am',name:'Americium',ar:'أمريسيوم',mass:243,cat:'actinide',p:7,g:0,cfg:'[Rn] 5f⁷ 7s²',state:'solid'},
+    {n:96,s:'Cm',name:'Curium',ar:'كوريوم',mass:247,cat:'actinide',p:7,g:0,cfg:'[Rn] 5f⁷ 6d¹ 7s²',state:'solid'},
+    {n:97,s:'Bk',name:'Berkelium',ar:'بركليوم',mass:247,cat:'actinide',p:7,g:0,cfg:'[Rn] 5f⁹ 7s²',state:'solid'},
+    {n:98,s:'Cf',name:'Californium',ar:'كاليفورنيوم',mass:251,cat:'actinide',p:7,g:0,cfg:'[Rn] 5f¹⁰ 7s²',state:'solid'},
+    {n:99,s:'Es',name:'Einsteinium',ar:'أينشتاينيوم',mass:252,cat:'actinide',p:7,g:0,cfg:'[Rn] 5f¹¹ 7s²',state:'solid'},
+    {n:100,s:'Fm',name:'Fermium',ar:'فيرميوم',mass:257,cat:'actinide',p:7,g:0,cfg:'[Rn] 5f¹² 7s²',state:'solid'},
+    {n:101,s:'Md',name:'Mendelevium',ar:'مندليفيوم',mass:258,cat:'actinide',p:7,g:0,cfg:'[Rn] 5f¹³ 7s²',state:'solid'},
+    {n:102,s:'No',name:'Nobelium',ar:'نوبليوم',mass:259,cat:'actinide',p:7,g:0,cfg:'[Rn] 5f¹⁴ 7s²',state:'solid'},
+    {n:103,s:'Lr',name:'Lawrencium',ar:'لورنسيوم',mass:266,cat:'actinide',p:7,g:0,cfg:'[Rn] 5f¹⁴ 7s² 7p¹',state:'solid'},
+    {n:104,s:'Rf',name:'Rutherfordium',ar:'رذرفورديوم',mass:267,cat:'transition-metal',p:7,g:4,cfg:'[Rn] 5f¹⁴ 6d² 7s²',state:'solid'},
+    {n:105,s:'Db',name:'Dubnium',ar:'دوبنيوم',mass:268,cat:'transition-metal',p:7,g:5,cfg:'[Rn] 5f¹⁴ 6d³ 7s²',state:'solid'},
+    {n:106,s:'Sg',name:'Seaborgium',ar:'سيبورجيوم',mass:269,cat:'transition-metal',p:7,g:6,cfg:'[Rn] 5f¹⁴ 6d⁴ 7s²',state:'solid'},
+    {n:107,s:'Bh',name:'Bohrium',ar:'بوريوم',mass:270,cat:'transition-metal',p:7,g:7,cfg:'[Rn] 5f¹⁴ 6d⁵ 7s²',state:'solid'},
+    {n:108,s:'Hs',name:'Hassium',ar:'هاسيوم',mass:277,cat:'transition-metal',p:7,g:8,cfg:'[Rn] 5f¹⁴ 6d⁶ 7s²',state:'solid'},
+    {n:109,s:'Mt',name:'Meitnerium',ar:'مايتنريوم',mass:278,cat:'transition-metal',p:7,g:9,cfg:'[Rn] 5f¹⁴ 6d⁷ 7s²',state:'solid'},
+    {n:110,s:'Ds',name:'Darmstadtium',ar:'دارمشتاتيوم',mass:281,cat:'transition-metal',p:7,g:10,cfg:'[Rn] 5f¹⁴ 6d⁸ 7s²',state:'solid'},
+    {n:111,s:'Rg',name:'Roentgenium',ar:'رونتجينيوم',mass:282,cat:'transition-metal',p:7,g:11,cfg:'[Rn] 5f¹⁴ 6d⁹ 7s²',state:'solid'},
+    {n:112,s:'Cn',name:'Copernicium',ar:'كوبرنيسيوم',mass:285,cat:'transition-metal',p:7,g:12,cfg:'[Rn] 5f¹⁴ 6d¹⁰ 7s²',state:'solid'},
+    {n:113,s:'Nh',name:'Nihonium',ar:'نيهونيوم',mass:286,cat:'post-transition',p:7,g:13,cfg:'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p¹',state:'solid'},
+    {n:114,s:'Fl',name:'Flerovium',ar:'فليروفيوم',mass:289,cat:'post-transition',p:7,g:14,cfg:'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p²',state:'solid'},
+    {n:115,s:'Mc',name:'Moscovium',ar:'موسكوفيوم',mass:290,cat:'metalloid',p:7,g:15,cfg:'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p³',state:'solid'},
+    {n:116,s:'Lv',name:'Livermorium',ar:'ليفيرموريوم',mass:293,cat:'nonmetal',p:7,g:16,cfg:'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁴',state:'solid'},
+    {n:117,s:'Ts',name:'Tennessine',ar:'تينيسين',mass:294,cat:'halogen',p:7,g:17,cfg:'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁵',state:'solid'},
+    {n:118,s:'Og',name:'Oganesson',ar:'أوغانيسون',mass:294,cat:'noble-gas',p:7,g:18,cfg:'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁶',state:'gas'}
+];
+
+/* ============================
+   POSITION MAPPING (STANDARD)
+   ============================ */
+const POS_MAP = {};
+ELEMENTS.forEach(el => {
+    let r, c;
+    if (el.n >= 58 && el.n <= 71) { 
+        r = 8;
+        c = el.n - 58 + 3;
+    } else if (el.n >= 90 && el.n <= 103) { 
+        r = 9; 
+        c = el.n - 90 + 3; 
+    } else {
+        r = el.p - 1;
+        c = el.g - 1;
+    }
+    POS_MAP[el.n] = { r, c };
+});
+
+/* ============================
+   GLOBALS
+   ============================ */
+let scene, camera, renderer, controls, composer, bloomPass;
+let elementMeshes = []; 
+let labelMeshes = [];
+let labelGroup = null; 
+let raycaster, mouse;
+let selectedObject = null;
+let activeCategory = 'all';
+let autoRotate = false;
+let clock;
+
+const urlParams = new URLSearchParams(window.location.search);
+let lang = urlParams.get('lang') || 'ar';
+
+/* ============================
+   TEXT SPRITE HELPER (FIXED)
+   ============================ */
+function createTextSprite(text, opts = {}) {
+    const { fontSize = 100, color = '#ffffff', fontFamily = 'Cairo, sans-serif', w = 256, h = 256 } = opts;
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = color;
+    ctx.font = `bold ${fontSize}px ${fontFamily}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    // رسم النص دائماً في منتصف مساحة الـ Canvas الثابتة لتفادي الاقتصاص
+    ctx.fillText(text, w / 2, h / 2 + (fontSize * 0.05));
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.needsUpdate = true;
+    
+    const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false });
+    const sprite = new THREE.Sprite(material);
+    sprite.userData.texture = texture;
+    return sprite;
+}
+
+/* ============================
+   INITIALIZATION
+   ============================ */
+function init() {
+    try {
+        const c = document.createElement('canvas');
+        if (!(c.getContext('webgl2') || c.getContext('webgl'))) throw new Error();
+    } catch (e) {
+        const errEl = document.getElementById('webglError');
+        if (errEl) errEl.classList.add('visible');
+        const loadEl = document.getElementById('loadingScreen');
+        if (loadEl) loadEl.classList.add('hidden');
+        return;
+    }
+
+    try {
+        scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050508, 0.015);
+
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 200);
+        camera.position.set(0, -2, 38);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        const container = document.getElementById('canvas-container');
+        if (container) container.appendChild(renderer.domElement);
+
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.minDistance = 10;
+        controls.maxDistance = 60;
+        controls.target.set(0, -1, 0);
+
+        createLights();
+        createGrid();
+        createStarField();
+        createPeriodicTable();
+        setupPostProcessing();
+
+        raycaster = new THREE.Raycaster();
+        mouse = new THREE.Vector2(-999, -999);
+
+        setupEventListeners();
+        applyLanguageUI();
+
+        clock = new THREE.Clock();
+        animate();
+    } catch (err) {
+        console.error("Initialization error in Periodic Table:", err);
+    } finally {
+        setTimeout(() => {
+            const loadEl = document.getElementById('loadingScreen');
+            if (loadEl) loadEl.classList.add('hidden');
+        }, 500);
+    }
+}
+
+function createLights() {
+    scene.add(new THREE.AmbientLight(0x223344, 1.5));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2);
+    dirLight.position.set(10, 20, 15);
+    scene.add(dirLight);
+    
+    const p1 = new THREE.PointLight(0x00e5a0, 1, 60); p1.position.set(-15, 10, 15); scene.add(p1);
+    const p2 = new THREE.PointLight(0x1E90FF, 0.8, 60); p2.position.set(15, -10, 10); scene.add(p2);
+}
+
+function createGrid() {
+    const grid = new THREE.GridHelper(80, 80, 0x11111a, 0x0a0a0f);
+    grid.position.y = -10;
+    grid.material.opacity = 0.5;
+    grid.material.transparent = true;
+    scene.add(grid);
+}
+
+function createStarField() {
+    const count = 1500;
+    const pos = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+        pos[i*3]   = (Math.random() - 0.5) * 150;
+        pos[i*3+1] = (Math.random() - 0.5) * 150;
+        pos[i*3+2] = (Math.random() - 0.5) * 150;
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({color: 0x556677, size: 0.2, transparent: true, opacity: 0.8});
+    scene.add(new THREE.Points(geom, mat));
+}
+
+/* ============================
+   TABLE & LABELS GENERATION
+   ============================ */
+const BLOCK_W = 1.25, BLOCK_H = 0.85, BLOCK_D = 0.25;
+const GAP_X = 0.12, GAP_Y = 0.12;
+
+function getBlockPosition(row, col) {
+    const x = (col - 8.5) * (BLOCK_W + GAP_X);
+    const y = -(row - 4.5) * (BLOCK_H + GAP_Y);
+    return new THREE.Vector3(x, y, 0);
+}
+
+let sharedBoxGeom = null;
+
+function createCombinedElementSprite(el) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    
+    // 1. Atomic number (top-left)
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 44px Cairo, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(String(el.n), 18, 14);
+    
+    // 2. Chemical symbol (center, big and bold)
+    ctx.font = 'bold 96px Cairo, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(el.s, 128, 120);
+    
+    // 3. Atomic mass (bottom-right)
+    ctx.fillStyle = '#e4e4f0';
+    ctx.font = 'bold 30px Cairo, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(String(el.mass), 238, 240);
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false });
+    const sprite = new THREE.Sprite(material);
+    sprite.scale.set(BLOCK_W * 0.95, BLOCK_H * 0.95, 1);
+    sprite.position.set(0, 0, BLOCK_D / 2 + 0.02);
+    return sprite;
+}
+
+function createElementBlock(el) {
+    const pos = POS_MAP[el.n];
+    if (!pos) return null;
+
+    if (!sharedBoxGeom) {
+        sharedBoxGeom = new THREE.BoxGeometry(BLOCK_W, BLOCK_H, BLOCK_D);
+    }
+
+    const group = new THREE.Group();
+    const hexColor = CATEGORY_COLORS[el.cat] || '#ffffff';
+    const color = new THREE.Color(hexColor);
+
+    const isGas = el.state === 'gas';
+    const mat = new THREE.MeshStandardMaterial({
+        color: color.clone().multiplyScalar(0.2),
+        emissive: color,
+        emissiveIntensity: isGas ? 0.1 : 0.25,
+        metalness: 0.6,
+        roughness: 0.3,
+        transparent: isGas,
+        opacity: isGas ? 0.6 : 1.0
+    });
+
+    const mesh = new THREE.Mesh(sharedBoxGeom, mat);
+    mesh.userData = { isElement: true, data: el, baseEmissive: mat.emissiveIntensity };
+    group.add(mesh);
+
+    // Consolidated combined text sprite (atomic number + chemical symbol + mass)
+    const elementSprite = createCombinedElementSprite(el);
+    group.add(elementSprite);
+
+    const blockPos = getBlockPosition(pos.r, pos.c);
+    group.position.copy(blockPos);
+
+    group.userData = { baseY: blockPos.y, phase: Math.random() * Math.PI * 2 };
+    mesh.userData.groupRef = group;
+
+    return { group, mesh, data: el };
+}
+
+function createPeriodicTable() {
+    const tableGroup = new THREE.Group();
+    ELEMENTS.forEach(el => {
+        const block = createElementBlock(el);
+        if (block) {
+            tableGroup.add(block.group);
+            elementMeshes.push(block);
+        }
+    });
+    scene.add(tableGroup);
+}
+
+// إنشاء المسميات الجانبية والعلوية التفاعلية الثابتة
+function createLabels() {
+    if (labelGroup) {
+        scene.remove(labelGroup);
+        labelMeshes.forEach(lbl => {
+            if (lbl.userData.texture) lbl.userData.texture.dispose();
+            lbl.material.dispose();
+        });
+        labelMeshes = [];
+    }
+    labelGroup = new THREE.Group();
+    const t = TRANSLATIONS[lang];
+
+    // أرقام المجموعات (1 إلى 18) - تم تكبير حجمها لتصبح واضحة جداً
+    for(let i=1; i<=18; i++) {
+        let topRow = 0;
+        if(i === 1 || i === 18) topRow = 0;
+        else if(i === 2 || (i >= 13 && i <= 17)) topRow = 1;
+        else topRow = 3;
+
+        const pos = getBlockPosition(topRow, i - 1);
+        pos.y += BLOCK_H/2 + 0.55; 
+
+        const sprite = createTextSprite(String(i), { fontSize: 180, color: '#8c8cba' });
+        sprite.position.copy(pos);
+        sprite.scale.set(0.8, 0.8, 1);
+        
+        sprite.userData = {
+            isLabel: true,
+            title: `${t.groupText} ${i}`,
+            desc: t.groupDesc(i)
+        };
+        labelGroup.add(sprite);
+        labelMeshes.push(sprite);
+    }
+
+    // أرقام الدورات (1 إلى 7) - تم تكبير حجمها لتصبح واضحة جداً
+    for(let i=1; i<=7; i++) {
+        const pos = getBlockPosition(i - 1, 0);
+        pos.x -= BLOCK_W/2 + 0.7; 
+
+        const sprite = createTextSprite(String(i), { fontSize: 180, color: '#8c8cba' });
+        sprite.position.copy(pos);
+        sprite.scale.set(0.8, 0.8, 1);
+        
+        sprite.userData = {
+            isLabel: true,
+            title: `${t.periodText} ${i}`,
+            desc: t.periodDesc(i)
+        };
+        labelGroup.add(sprite);
+        labelMeshes.push(sprite);
+    }
+
+    // تسميات الكتلة F (اللانثانيدات والأكتينيدات)
+    const lanthPos = getBlockPosition(8, 1);
+    lanthPos.x += 0.2; 
+    const lanthSprite = createTextSprite(t.lanthanides, { fontSize: 75, color: CATEGORY_COLORS['lanthanide'], w: 512, h: 256 });
+    lanthSprite.position.copy(lanthPos);
+    lanthSprite.scale.set(1.2, 0.6, 1); 
+    lanthSprite.userData = { isLabel: true, title: t.lanthTitle, desc: t.lanthDesc };
+    labelGroup.add(lanthSprite);
+    labelMeshes.push(lanthSprite);
+
+    const actPos = getBlockPosition(9, 1);
+    actPos.x += 0.2;
+    const actSprite = createTextSprite(t.actinides, { fontSize: 75, color: CATEGORY_COLORS['actinide'], w: 512, h: 256 });
+    actSprite.position.copy(actPos);
+    actSprite.scale.set(1.2, 0.6, 1);
+    actSprite.userData = { isLabel: true, title: t.actTitle, desc: t.actDesc };
+    labelGroup.add(actSprite);
+    labelMeshes.push(actSprite);
+
+    scene.add(labelGroup);
+}
+
+function getGroupDescription(g) {
+    if(g === 1) return "تُعرف بـ 'الفلزات القلوية' (باستثناء الهيدروجين). شديدة التفاعل.";
+    if(g === 2) return "تُعرف بـ 'الفلزات القلوية الترابية'. لامعة وموصلة جيدة.";
+    if(g >= 3 && g <= 12) return "تُعرف بـ 'الفلزات الانتقالية'. تمتاز بالصلابة وقدرتها على توصيل الحرارة.";
+    if(g === 13) return "مجموعة البورون. تتنوع من أشباه الفلزات إلى الفلزات الأساسية.";
+    if(g === 14) return "مجموعة الكربون. تحتوي على عناصر حيوية للحياة كالكربون والسيليكون.";
+    if(g === 15) return "مجموعة النيتروجين. هامة جداً في صناعة الأسمدة والإلكترونيات.";
+    if(g === 16) return "مجموعة الأكسجين. ترتبط بالخامات المعدنية والعمليات البيولوجية.";
+    if(g === 17) return "تُعرف بـ 'الهالوجينات'. لافلزات نشطة جداً وتكون أملاحاً.";
+    if(g === 18) return "تُعرف بـ 'الغازات النبيلة'. خاملة كيميائياً لامتلاء مداراتها الخارجية.";
+    return "مجموعة عناصر دورية.";
+}
+
+const CATEGORY_NAMES_EN = {
+    'alkali-metal': 'Alkali Metals',
+    'alkaline-earth': 'Alkaline Earth Metals',
+    'transition-metal': 'Transition Metals',
+    'post-transition': 'Post-transition Metals',
+    'metalloid': 'Metalloids',
+    'nonmetal': 'Reactive Nonmetals',
+    'halogen': 'Halogens',
+    'noble-gas': 'Noble Gases',
+    'lanthanide': 'Lanthanides',
+    'actinide': 'Actinides'
+};
+
+const TRANSLATIONS = {
+    ar: {
+        title: 'الجدول <span>الدوري</span> العنصري',
+        sub: 'نسخة تعليمية قياسية متقدمة — 118 عنصرًا',
+        loading: 'جاري بناء الجدول الدوري...',
+        reset: 'إعادة ضبط',
+        rotate: 'دوران تلقائي',
+        all: 'الكل',
+        lanthanides: 'اللانثانيدات',
+        actinides: 'الأكتينيدات',
+        lanthTitle: 'سلسلة اللانثانيدات',
+        lanthDesc: 'تتبع عنصر اللانثانوم. هي عناصر أرضية نادرة.',
+        actTitle: 'سلسلة الأكتينيدات',
+        actDesc: 'تتبع عنصر الأكتينيوم. جميعها عناصر مشعة.',
+        element: 'العنصر',
+        atomicNumber: 'العدد الذري',
+        name: 'الاسم',
+        mass: 'الكتلة',
+        category: 'التصنيف',
+        location: 'المكان',
+        config: 'المدارات',
+        state: 'الحالة',
+        solid: 'صلب',
+        liquid: 'سائل',
+        gas: 'غاز',
+        groupText: 'المجموعة',
+        periodText: 'الدورة',
+        groupDesc: (i) => getGroupDescriptionAr(i),
+        periodDesc: (i) => `عناصر الدورة ${i} تحتوي على ${i} مستويات طاقة رئيسية للإلكترونات.`,
+        btnLang: '🌐 English',
+        errorTitle: 'خطأ في المتصفح',
+        errorMsg: 'متصفحك لا يدعم WebGL 2. يرجى استخدام متصفح حديث للتمتع بالتجربة التعليمية الكاملة.',
+        infoSymbolLabel: 'معلومة'
+    },
+    en: {
+        title: 'Interactive <span>Periodic</span> Table',
+        sub: 'Advanced Educational Standard Edition — 118 Elements',
+        loading: 'Building Periodic Table...',
+        reset: 'Reset Camera',
+        rotate: 'Auto Rotate',
+        all: 'All',
+        lanthanides: 'Lanthanides',
+        actinides: 'Actinides',
+        lanthTitle: 'Lanthanides Series',
+        lanthDesc: 'Follows Lanthanum. They are rare earth elements.',
+        actTitle: 'Actinides Series',
+        actDesc: 'Follows Actinium. All are radioactive elements.',
+        element: 'Element',
+        atomicNumber: 'Atomic Number',
+        name: 'Name',
+        mass: 'Atomic Mass',
+        category: 'Category',
+        location: 'Location',
+        config: 'Electron Config',
+        state: 'State',
+        solid: 'Solid',
+        liquid: 'Liquid',
+        gas: 'Gas',
+        groupText: 'Group',
+        periodText: 'Period',
+        groupDesc: (i) => getGroupDescriptionEn(i),
+        periodDesc: (i) => `Elements in Period ${i} have ${i} principal electron shells.`,
+        btnLang: '🌐 العربية',
+        errorTitle: 'WebGL Error',
+        errorMsg: 'Your browser does not support WebGL 2. Please use a modern browser.',
+        infoSymbolLabel: 'Info'
+    }
+};
+
+function getGroupDescriptionAr(g) {
+    if(g === 1) return "تُعرف بـ 'الفلزات القلوية' (باستثناء الهيدروجين). شديدة التفاعل.";
+    if(g === 2) return "تُعرف بـ 'الفلزات القلوية الترابية'. لامعة وموصلة جيدة.";
+    if(g >= 3 && g <= 12) return "تُعرف بـ 'الفلزات الانتقالية'. تمتاز بالصلابة وقدرتها على توصيل الحرارة.";
+    if(g === 13) return "مجموعة البورون. تتنوع من أشباه الفلزات إلى الفلزات الأساسية.";
+    if(g === 14) return "مجموعة الكربون. تحتوي على عناصر حيوية للحياة كالكربون والسيليكون.";
+    if(g === 15) return "مجموعة النيتروجين. هامة جداً في صناعة الأسمدة والإلكترونيات.";
+    if(g === 16) return "مجموعة الأكسجين. ترتبط بالخامات المعدنية والعمليات البيولوجية.";
+    if(g === 17) return "تُعرف بـ 'الهالوجينات'. لافلزات نشطة جداً وتكون أملاحاً.";
+    if(g === 18) return "تُعرف بـ 'الغازات النبيلة'. خاملة كيميائياً لامتلاء مداراتها الخارجية.";
+    return "مجموعة عناصر دورية.";
+}
+
+function getGroupDescriptionEn(g) {
+    if(g === 1) return "Known as 'Alkali Metals' (except Hydrogen). Highly reactive.";
+    if(g === 2) return "Known as 'Alkaline Earth Metals'. Shiny and good conductors.";
+    if(g >= 3 && g <= 12) return "Known as 'Transition Metals'. Hard, dense and conduct heat/electricity.";
+    if(g === 13) return "Boron Group. Ranges from metalloids to post-transition metals.";
+    if(g === 14) return "Carbon Group. Contains vital life elements like Carbon and Silicon.";
+    if(g === 15) return "Pnictogens (Nitrogen Group). Vital in fertilizers and electronics.";
+    if(g === 16) return "Chalcogens (Oxygen Group). Linked to mineral ores and biological processes.";
+    if(g === 17) return "Known as 'Halogens'. Highly reactive nonmetals forming salts.";
+    if(g === 18) return "Known as 'Noble Gases'. Chemically inert due to full outer shells.";
+    return "Periodic group of elements.";
+}
+
+function applyLanguageUI() {
+    const t = (TRANSLATIONS && TRANSLATIONS[lang]) ? TRANSLATIONS[lang] : (TRANSLATIONS ? TRANSLATIONS.ar : {});
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = lang;
+    
+    const titleMain = document.querySelector('.title-main');
+    if (titleMain && t.title) titleMain.innerHTML = t.title;
+
+    const titleSub = document.querySelector('.title-sub');
+    if (titleSub && t.sub) titleSub.textContent = t.sub;
+
+    const btnLang = document.getElementById('btnLangToggle');
+    if (btnLang && t.btnLang) btnLang.textContent = t.btnLang;
+    
+    const btnReset = document.getElementById('btnReset');
+    if (btnReset && t.reset) {
+        btnReset.innerHTML = `
+            <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.42-.49 2.73-1.31 3.79L17 17c1.39-1.5 2.21-3.54 2.21-5.5 0-4.42-3.58-8-8-8zm-6 4c0 1.93.71 3.66 1.88 4.89L7 14c-.94-1.06-1.5-2.41-1.5-3.84 0-3.31 2.69-6 6-6v3l4-4-4-4v3c-4.42 0-8 3.58-8 8z"/></svg>
+            ${t.reset}
+        `;
+    }
+
+    const btnAutoRotate = document.getElementById('btnAutoRotate');
+    if (btnAutoRotate && t.rotate) {
+        btnAutoRotate.innerHTML = `
+            <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.42-.49 2.73-1.31 3.79L17 17c1.39-1.5 2.21-3.54 2.21-5.5 0-4.42-3.58-8-8-8zm-6 4c0 1.93.71 3.66 1.88 4.89L7 14c-.94-1.06-1.5-2.41-1.5-3.84 0-3.31 2.69-6 6-6v3l4-4-4-4v3c-4.42 0-8 3.58-8 8z"/></svg>
+            ${t.rotate}
+        `;
+    }
+    
+    const loadText = document.querySelector('.loading-text');
+    if (loadText && t.loading) loadText.textContent = t.loading;
+
+    const errTitle = document.querySelector('.webgl-error h2');
+    if (errTitle && t.errorTitle) errTitle.textContent = t.errorTitle;
+
+    const errMsg = document.querySelector('.webgl-error p');
+    if (errMsg && t.errorMsg) errMsg.textContent = t.errorMsg;
+    
+    setupUI();
+    createLabels();
+    hideInfoPanel();
+}
+
+/* ============================
+   POST-PROCESSING
+   ============================ */
+function setupPostProcessing() {
+    composer = null;
+}
+
+/* ============================
+   EVENTS & INTERACTIONS
+   ============================ */
+function setupEventListeners() {
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        if(composer) composer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    renderer.domElement.addEventListener('mousemove', onMouseMove);
+    renderer.domElement.addEventListener('click', onClick);
+
+    document.getElementById('btnReset').addEventListener('click', () => {
+        camera.position.set(0, -2, 38);
+        controls.target.set(0, -1, 0);
+        sendStateToParent('reset_camera', {});
+    });
+    document.getElementById('btnAutoRotate').addEventListener('click', (e) => {
+        autoRotate = !autoRotate;
+        controls.autoRotate = autoRotate;
+        e.currentTarget.classList.toggle('active', autoRotate);
+        sendStateToParent('auto_rotate', { autoRotate: autoRotate });
+    });
+    document.getElementById('infoClose').addEventListener('click', () => hideInfoPanel(false));
+    document.getElementById('btnLangToggle').addEventListener('click', () => {
+        lang = lang === 'ar' ? 'en' : 'ar';
+        applyLanguageUI();
+        sendStateToParent('toggle_lang', { lang: lang });
+    });
+}
+
+const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+let periodicAudioCtx = null;
+let lastHoveredId = null;
+
+function playPeriodicSound(type) {
+    try {
+        if (!periodicAudioCtx) periodicAudioCtx = new AudioContextClass();
+        if (periodicAudioCtx.state === 'suspended') periodicAudioCtx.resume();
+        
+        if (type === 'hover') {
+            const osc = periodicAudioCtx.createOscillator();
+            const gain = periodicAudioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(650, periodicAudioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(900, periodicAudioCtx.currentTime + 0.05);
+            gain.gain.setValueAtTime(0.03, periodicAudioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, periodicAudioCtx.currentTime + 0.05);
+            osc.connect(gain);
+            gain.connect(periodicAudioCtx.destination);
+            osc.start();
+            osc.stop(periodicAudioCtx.currentTime + 0.05);
+        } else if (type === 'click') {
+            const osc = periodicAudioCtx.createOscillator();
+            const gain = periodicAudioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(320, periodicAudioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(160, periodicAudioCtx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.18, periodicAudioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, periodicAudioCtx.currentTime + 0.15);
+            osc.connect(gain);
+            gain.connect(periodicAudioCtx.destination);
+            osc.start();
+            osc.stop(periodicAudioCtx.currentTime + 0.15);
+        }
+    } catch(err) {
+        console.warn("Web Audio blocked or failed:", err);
+    }
+}
+
+function getIntersectedObject() {
+    raycaster.setFromCamera(mouse, camera);
+    const interactables = [...elementMeshes.map(e => e.mesh), ...labelMeshes];
+    const intersects = raycaster.intersectObjects(interactables, false);
+    return intersects.length > 0 ? intersects[0].object : null;
+}
+
+function onMouseMove(e) {
+    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+    const obj = getIntersectedObject();
+    const tooltip = document.getElementById('tooltip');
+    
+    if (obj) {
+        renderer.domElement.style.cursor = 'pointer';
+        
+        const objId = obj.uuid || (obj.userData && obj.userData.data ? obj.userData.data.n : null);
+        if (objId !== lastHoveredId) {
+            lastHoveredId = objId;
+            playPeriodicSound('hover');
+        }
+
+        if (obj.userData.isElement) {
+            const el = obj.userData.data;
+            tooltip.textContent = `${el.s} — ${lang === 'ar' ? el.ar : el.name}`;
+        } else if (obj.userData.isLabel) {
+            tooltip.textContent = obj.userData.title;
+        }
+        tooltip.style.left = e.clientX + 'px';
+        tooltip.style.top = e.clientY + 'px';
+        tooltip.classList.add('show');
+    } else {
+        renderer.domElement.style.cursor = 'default';
+        tooltip.classList.remove('show');
+        lastHoveredId = null;
+    }
+}
+
+function onClick() {
+    const obj = getIntersectedObject();
+    if (obj) {
+        playPeriodicSound('click');
+        if (obj.userData.isElement) showElementInfo(obj.userData.data, obj);
+        else if (obj.userData.isLabel) showLabelInfo(obj.userData);
+    } else {
+        hideInfoPanel();
+    }
+}
+
+/* ============================
+   UI & INFO PANELS
+   ============================ */
+function setupUI() {
+    const filterContainer = document.getElementById('categoryFilter');
+    filterContainer.innerHTML = ''; 
+
+    const t = TRANSLATIONS[lang];
+    const allBtn = document.createElement('button');
+    allBtn.className = activeCategory === 'all' ? 'cat-btn active' : 'cat-btn';
+    allBtn.dataset.cat = 'all';
+    allBtn.innerHTML = `<span class="cat-dot" style="color:var(--accent)"></span>${t.all}<span class="cat-count">118</span>`;
+    allBtn.addEventListener('click', () => filterByCategory('all'));
+    filterContainer.appendChild(allBtn);
+
+    const categoryNames = lang === 'ar' ? CATEGORY_NAMES_AR : CATEGORY_NAMES_EN;
+
+    Object.entries(categoryNames).forEach(([key, name]) => {
+        const count = ELEMENTS.filter(e => e.cat === key).length;
+        const btn = document.createElement('button');
+        btn.className = activeCategory === key ? 'cat-btn active' : 'cat-btn';
+        btn.dataset.cat = key;
+        btn.innerHTML = `<span class="cat-dot" style="color:${CATEGORY_COLORS[key]}"></span>${name}<span class="cat-count">${count}</span>`;
+        btn.addEventListener('click', () => filterByCategory(key));
+        filterContainer.appendChild(btn);
+    });
+}
+
+// --- M&S State Sync logic ---
+function sendStateToParent(action, data) {
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+            type: 'room3d_state_change',
+            roomType: 'periodic_table',
+            action: action,
+            data: data
+        }, '*');
+    }
+}
+
+function toggleLangDirectly(langVal) {
+    lang = langVal;
+    applyLanguageUI();
+}
+
+function showElementInfoDirectly(n) {
+    const meshObj = elementMeshes.find(em => em.data.n === n);
+    if (meshObj) {
+        showElementInfo(meshObj.data, meshObj.mesh, true);
+    }
+}
+
+function filterByCategory(cat, fromSync = false) {
+    activeCategory = cat;
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+
+    elementMeshes.forEach(em => {
+        const isMatch = cat === 'all' || em.data.cat === cat;
+        em.group.visible = isMatch;
+    });
+    hideInfoPanelDirectly();
+
+    if (!fromSync) {
+        sendStateToParent('filter', { cat: cat });
+    }
+}
+
+function showElementInfo(el, mesh, fromSync = false) {
+    if(selectedObject && selectedObject.userData.isElement) {
+        selectedObject.material.emissiveIntensity = selectedObject.userData.baseEmissive;
+    }
+    selectedObject = mesh;
+    mesh.material.emissiveIntensity = 0.8;
+
+    const panel = document.getElementById('infoPanel');
+    const catColor = CATEGORY_COLORS[el.cat] || '#fff';
+    const stateColor = el.state === 'gas' ? '#70A1FF' : el.state === 'liquid' ? '#1E90FF' : '#2ED573';
+
+    const t = TRANSLATIONS[lang];
+    const categoryNames = lang === 'ar' ? CATEGORY_NAMES_AR : CATEGORY_NAMES_EN;
+    const stateName = el.state === 'gas' ? t.gas : el.state === 'liquid' ? t.liquid : t.solid;
+
+    document.getElementById('infoSymbol').textContent = el.s;
+    document.getElementById('infoNumber').textContent = `${t.atomicNumber}: ${el.n}`;
+    document.getElementById('infoNumber').style.color = catColor;
+
+    document.getElementById('infoContent').innerHTML = `
+        <div class="info-row"><span class="info-label">${t.name}</span><span class="info-value">${lang === 'ar' ? el.ar : el.name} ${lang === 'ar' ? `(${el.name})` : ''}</span></div>
+        <div class="info-row"><span class="info-label">${t.mass}</span><span class="info-value">${el.mass}</span></div>
+        <div class="info-row"><span class="info-label">${t.category}</span><span class="info-value" style="color:${catColor}">${categoryNames[el.cat]}</span></div>
+        <div class="info-row"><span class="info-label">${t.location}</span><span class="info-value">${t.periodText} ${el.p} | ${t.groupText} ${el.g > 0 ? el.g : 'f'}</span></div>
+        <div class="info-row"><span class="info-label">${t.config}</span><span class="info-value" style="font-family:monospace">${el.cfg}</span></div>
+        <div class="info-row"><span class="info-label">${t.state}</span><span class="info-state-badge" style="background:${stateColor}33;color:${stateColor}">${stateName}</span></div>
+    `;
+    panel.classList.add('visible');
+
+    if (!fromSync) {
+        sendStateToParent('show_element', { n: el.n });
+    }
+}
+
+function showLabelInfo(data, fromSync = false) {
+    if(selectedObject && selectedObject.userData.isElement) {
+        selectedObject.material.emissiveIntensity = selectedObject.userData.baseEmissive;
+        selectedObject = null;
+    }
+    const panel = document.getElementById('infoPanel');
+    const t = TRANSLATIONS[lang];
+
+    document.getElementById('infoSymbol').textContent = t.infoSymbolLabel;
+    document.getElementById('infoSymbol').style.fontSize = "24px";
+    document.getElementById('infoNumber').textContent = data.title;
+    document.getElementById('infoNumber').style.color = "var(--accent)";
+
+    document.getElementById('infoContent').innerHTML = `
+        <div class="info-desc">${data.desc}</div>
+    `;
+    panel.classList.add('visible');
+
+    if (!fromSync) {
+        sendStateToParent('show_label', { title: data.title, desc: data.desc });
+    }
+}
+
+function hideInfoPanelDirectly() {
+    document.getElementById('infoPanel').classList.remove('visible');
+    if(selectedObject && selectedObject.userData.isElement) {
+        selectedObject.material.emissiveIntensity = selectedObject.userData.baseEmissive;
+        selectedObject = null;
+    }
+}
+
+function hideInfoPanel(fromSync = false) {
+    hideInfoPanelDirectly();
+    if (!fromSync) {
+        sendStateToParent('hide_panel', {});
+    }
+}
+
+/* ============================
+   ANIMATION
+   ============================ */
+function animate() {
+    requestAnimationFrame(animate);
+    const time = clock.getElapsedTime();
+    controls.update();
+
+    elementMeshes.forEach(em => {
+        if (em.group.visible) {
+            em.group.position.y = em.group.userData.baseY + Math.sin(time * 1.5 + em.group.userData.phase) * 0.04;
+        }
+    });
+
+    labelMeshes.forEach(lbl => {
+        lbl.position.y = lbl.userData.baseY !== undefined ? lbl.userData.baseY : lbl.position.y;
+        if(lbl.userData.isLabel && lbl.title !== 'الدورة 1') {
+             lbl.material.opacity = 0.7 + Math.sin(time * 2) * 0.3;
+        }
+    });
+
+    if (composer) composer.render();
+    else renderer.render(scene, camera);
+}
+
+/* ============================
+   START
+   ============================ */
+window.addEventListener('message', (e) => {
+    const data = e.data;
+    if (!data || data.type !== 'apply_room3d_state') return;
+    
+    if (data.action === 'filter') {
+        filterByCategory(data.data.cat, true);
+    } else if (data.action === 'show_element') {
+        showElementInfoDirectly(data.data.n);
+    } else if (data.action === 'show_label') {
+        showLabelInfo(data.data, true);
+    } else if (data.action === 'hide_panel') {
+        hideInfoPanel(true);
+    } else if (data.action === 'auto_rotate') {
+        autoRotate = !!data.data.autoRotate;
+        controls.autoRotate = autoRotate;
+        const btn = document.getElementById('btnAutoRotate');
+        if (btn) btn.classList.toggle('active', autoRotate);
+    } else if (data.action === 'reset_camera') {
+        camera.position.set(0, -2, 38);
+        controls.target.set(0, -1, 0);
+    } else if (data.action === 'toggle_lang') {
+        if (data.data.lang) {
+            toggleLangDirectly(data.data.lang);
+        }
+    }
+});
+
+init();
+</script>
+</body>
+</html>

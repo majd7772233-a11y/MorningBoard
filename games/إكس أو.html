@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة إكس أو ثلاثية الأبعاد | 3D Tic-Tac-Toe</title>
+    <style>
+        :root {
+            --primary: #00f0ff;
+            --secondary: #ff007f;
+            --bg-glow: #0d0e15;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-glow);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            perspective: 1000px;
+        }
+
+        /* WebGL Canvas */
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* UI Overlay */
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-top: 10px;
+            pointer-events: auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary);
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #8a99ad;
+            letter-spacing: 1px;
+        }
+
+        /* Score Board */
+        .scoreboard {
+            display: flex;
+            gap: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 15px;
+            pointer-events: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .score-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+        }
+
+        .score-card.active {
+            transform: scale(1.1);
+            transition: transform 0.3s ease;
+        }
+
+        .score-card.player-x.active {
+            filter: drop-shadow(0 0 8px var(--primary));
+        }
+
+        .score-card.player-o.active {
+            filter: drop-shadow(0 0 8px var(--secondary));
+        }
+
+        .score-label {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .score-card.player-x .score-value {
+            color: var(--primary);
+        }
+
+        .score-card.player-o .score-value {
+            color: var(--secondary);
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            pointer-events: none; /* Let clicks pass through empty spaces */
+            display: flex;
+            gap: 15px;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            pointer-events: auto; /* Ensure buttons are clickable */
+        }
+
+        button:hover {
+            background: #fff;
+            color: #000;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Message Overlay */
+        .game-status {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translate(-50%, 50px) scale(0.9);
+            background: rgba(13, 14, 21, 0.85);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            padding: 20px 40px;
+            border-radius: 20px;
+            text-align: center;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+        }
+
+        .game-status.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, 0) scale(1);
+        }
+
+        .status-title {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        /* Instruction Tip */
+        .instruction {
+            position: absolute;
+            bottom: 90px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+            text-align: center;
+            width: 100%;
+            pointer-events: none;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0.3; }
+        }
+
+        /* Direction Adjustments for RTL */
+        header, .controls, .scoreboard {
+            direction: rtl;
+        }
+
+        /* Loading Screen */
+        #loader {
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            background: var(--bg-glow);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.5rem;
+            transition: opacity 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">جاري تحميل المعركة ثلاثية الأبعاد...</div>
+
+    <div id="canvas-container"></div>
+
+    <div class="ui-layer">
+        <header>
+            <h1>إكس أو ثلاثية الأبعاد</h1>
+            <div class="subtitle">تحدّي لاعب ضد لاعب في الفضاء الرقمي</div>
+            
+            <div class="scoreboard">
+                <div class="score-card player-x active" id="card-X">
+                    <span class="score-label">المعلم (X)</span>
+                    <span class="score-value" id="score-X">0</span>
+                </div>
+                <div class="score-card player-o" id="card-O">
+                    <span class="score-label">اللاعب O</span>
+                    <span class="score-value" id="score-O">0</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="instruction">اسحب لتحريك اللوح ثلاثي الأبعاد • اضغط على المربعات للعب</div>
+
+        <div class="controls">
+            <button id="btn-mode">الوضع: لاعب ضد لاعب 👥</button>
+            <button id="btn-reset">إعادة ضبط اللعبة</button>
+            <button id="btn-camera">إعادة ضبط الكاميرا</button>
+        </div>
+    </div>
+
+    <div class="game-status" id="status-modal">
+        <div class="status-title" id="status-text">فاز اللاعب X!</div>
+        <button id="btn-next">اللعب مجدداً</button>
+    </div>
+
+    <!-- Three.js and GSAP for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <script>
+        // --- GAME STATE ---
+        let board = Array(9).fill(null);
+        let gameActive = true;
+        let currentPlayer = 'X'; // X starts
+        let gameMode = 'two_players'; // 'vs_computer' or 'two_players'
+        let isWaitingForAI = false; // Flag to disable clicks during AI thinking
+        let scores = { X: 0, O: 0 };
+        window.eligiblePlayers = ['teacher'];
+        window.playerNames = { 'teacher': 'المعلم' };
+        const winPatterns = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+            [0, 4, 8], [2, 4, 6]             // Diagonals
+        ];
+
+        // --- WEB AUDIO SOUND ENGINE ---
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function getAudioCtx() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            return audioCtx;
+        }
+
+        function playTone(freq, type, duration, volume = 0.2, delay = 0) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioCtx();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+                gain.gain.setValueAtTime(volume, ctx.currentTime + delay);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration);
+                osc.start(ctx.currentTime + delay);
+                osc.stop(ctx.currentTime + delay + duration);
+            } catch(e){}
+        }
+
+        function soundPlaceX() {
+            playTone(523.25, 'sine', 0.15, 0.2); // C5
+            playTone(659.25, 'sine', 0.2, 0.1, 0.05); // E5
+        }
+
+        function soundPlaceO() {
+            playTone(392.00, 'sine', 0.15, 0.2); // G4
+            playTone(493.88, 'sine', 0.2, 0.1, 0.05); // B4
+        }
+
+        function soundWin() {
+            playTone(523.25, 'sine', 0.15, 0.3);
+            playTone(659.25, 'sine', 0.15, 0.3, 0.1);
+            playTone(783.99, 'sine', 0.15, 0.3, 0.2);
+            playTone(1046.50, 'sine', 0.4, 0.4, 0.3);
+        }
+
+        function soundTie() {
+            playTone(293.66, 'sine', 0.25, 0.2);
+            playTone(220.00, 'sine', 0.3, 0.15, 0.1);
+        }
+
+        function soundClick() {
+            playTone(800, 'sine', 0.04, 0.15);
+        }
+
+        // --- THREE.JS SETUP ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x0d0e15, 0.015);
+
+        // Camera
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const defaultCameraPos = { x: 0, y: 7, z: 10 };
+        camera.position.set(defaultCameraPos.x, defaultCameraPos.y, defaultCameraPos.z);
+        camera.lookAt(0, 0, 0);
+
+        // Renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+
+        // --- LIGHTING ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.55);
+        scene.add(ambientLight);
+
+        // Main Spotlights for Neon Glow
+        const spotX = new THREE.SpotLight(0x00f0ff, 5, 30, Math.PI / 4, 0.5, 1);
+        spotX.position.set(-8, 10, 5);
+        spotX.castShadow = true;
+        scene.add(spotX);
+
+        const spotO = new THREE.SpotLight(0xff007f, 5, 30, Math.PI / 4, 0.5, 1);
+        spotO.position.set(8, 10, -5);
+        spotO.castShadow = true;
+        scene.add(spotO);
+
+        // Soft Directional top light
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(0, 15, 0);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        scene.add(dirLight);
+
+        // --- ENVIRONMENT / BACKGROUND ---
+        // Particle Field
+        const particleGeo = new THREE.BufferGeometry();
+        const particleCount = 200;
+        const posArray = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 40;
+        }
+        particleGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particleMat = new THREE.PointsMaterial({
+            size: 0.05,
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.3
+        });
+        const particles = new THREE.Points(particleGeo, particleMat);
+        scene.add(particles);
+
+        // Floor Grid
+        const gridHelper = new THREE.GridHelper(50, 50, 0x1f2335, 0x12141f);
+        gridHelper.position.y = -4;
+        scene.add(gridHelper);
+
+        // --- 3D BOARD CREATION ---
+        const boardGroup = new THREE.Group();
+        scene.add(boardGroup);
+
+        const cells3D = []; // Store clickable cells
+        const pieceGroup = new THREE.Group(); // Store dynamic X and O meshes
+        boardGroup.add(pieceGroup);
+
+        // Board Materials
+        const baseMaterial = new THREE.MeshStandardMaterial({
+            color: 0x1a1d29,
+            roughness: 0.2,
+            metalness: 0.8,
+        });
+
+        const borderMaterial = new THREE.MeshStandardMaterial({
+            color: 0x2d324a,
+            roughness: 0.1,
+            metalness: 0.9,
+        });
+
+        // Grid Lines (Borders)
+        function createBoardBase() {
+            // Main platform
+            const platformGeo = new THREE.BoxGeometry(6.4, 0.3, 6.4);
+            const platform = new THREE.Mesh(platformGeo, baseMaterial);
+            platform.position.y = -0.2;
+            platform.receiveShadow = true;
+            boardGroup.add(platform);
+
+            // Inner grid dividers
+            const barGeoH = new THREE.BoxGeometry(6.2, 0.2, 0.15);
+            const positions = [-1.05, 1.05];
+            
+            positions.forEach(pos => {
+                // Horizontal Bars
+                const bar1 = new THREE.Mesh(barGeoH, borderMaterial);
+                bar1.position.set(0, 0, pos);
+                boardGroup.add(bar1);
+
+                // Vertical Bars
+                const bar2 = new THREE.Mesh(barGeoH, borderMaterial);
+                bar2.rotation.y = Math.PI / 2;
+                bar2.position.set(pos, 0, 0);
+                boardGroup.add(bar2);
+            });
+
+            // Interactive Cell Areas - Increased height to 0.6 so clicking from flat angles is much more responsive
+            const cellGeo = new THREE.BoxGeometry(1.9, 0.6, 1.9);
+            let idx = 0;
+            for (let row = -1; row <= 1; row++) {
+                for (let col = -1; col <= 1; col++) {
+                    // Transparent interactive mesh
+                    const cellMat = new THREE.MeshBasicMaterial({
+                        color: 0x00f0ff,
+                        transparent: true,
+                        opacity: 0.0, // Hidden by default, highlights on hover
+                    });
+                    const cell = new THREE.Mesh(cellGeo, cellMat);
+                    cell.position.set(col * 2.1, 0, row * 2.1);
+                    cell.userData = { index: idx };
+                    boardGroup.add(cell);
+                    cells3D.push(cell);
+                    idx++;
+                }
+            }
+        }
+
+        createBoardBase();
+
+        // --- INTERACTION & RAYCASTING ---
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let hoveredCell = null;
+
+        // Orbit Rotation variables
+        let isDragging = false;
+        let dragStartPos = { x: 0, y: 0 };
+        let hasMovedSignificantly = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        const targetRotation = { x: 0, y: 0 };
+
+        window.addEventListener('mousedown', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('.controls')) return;
+            isDragging = true;
+            hasMovedSignificantly = false;
+            dragStartPos = { x: e.clientX, y: e.clientY };
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        });
+
+        window.addEventListener('mousemove', onMouseMove);
+
+        window.addEventListener('mouseup', () => { isDragging = false; });
+
+        window.addEventListener('touchstart', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('.controls')) return;
+            isDragging = true;
+            hasMovedSignificantly = false;
+            const touch = e.touches[0];
+            dragStartPos = { x: touch.clientX, y: touch.clientY };
+            previousMousePosition = { x: touch.clientX, y: touch.clientY };
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                const touch = e.touches[0];
+                const dx = touch.clientX - dragStartPos.x;
+                const dy = touch.clientY - dragStartPos.y;
+                if (Math.hypot(dx, dy) > 8) {
+                    hasMovedSignificantly = true;
+                }
+
+                const deltaMove = {
+                    x: touch.clientX - previousMousePosition.x,
+                    y: touch.clientY - previousMousePosition.y
+                };
+                targetRotation.y += deltaMove.x * 0.005;
+                targetRotation.x += deltaMove.y * 0.005;
+                targetRotation.x = Math.max(-Math.PI/6, Math.min(Math.PI/3, targetRotation.x));
+                previousMousePosition = { x: touch.clientX, y: touch.clientY };
+            }
+        });
+
+        window.addEventListener('touchend', () => { isDragging = false; });
+
+        window.addEventListener('click', onClick);
+
+        function onMouseMove(event) {
+            // Update mouse coords for raycasting
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            // Handle Board Drag Rotation
+            if (isDragging) {
+                const dx = event.clientX - dragStartPos.x;
+                const dy = event.clientY - dragStartPos.y;
+                if (Math.hypot(dx, dy) > 8) {
+                    hasMovedSignificantly = true;
+                }
+
+                const deltaMove = {
+                    x: event.clientX - previousMousePosition.x,
+                    y: event.clientY - previousMousePosition.y
+                };
+                targetRotation.y += deltaMove.x * 0.005;
+                targetRotation.x += deltaMove.y * 0.005;
+                // Limit X axis rotation to prevent flipping upside down
+                targetRotation.x = Math.max(-Math.PI/6, Math.min(Math.PI/3, targetRotation.x));
+                previousMousePosition = { x: event.clientX, y: event.clientY };
+                return;
+            }
+
+            // Raycast Hover effect
+            let canClickCurrentTurn = false;
+            if (gameActive) {
+                if (gameMode === 'two_players') {
+                    if (currentPlayer === 'X') {
+                        canClickCurrentTurn = isHost;
+                    } else if (currentPlayer === 'O') {
+                        const activeStudents = (window.eligiblePlayers || []).filter(id => id !== 'teacher');
+                        if (activeStudents.length > 0) {
+                            canClickCurrentTurn = !isHost && (window.eligiblePlayers || []).includes(myId);
+                        } else {
+                            canClickCurrentTurn = isHost;
+                        }
+                    }
+                } else {
+                    canClickCurrentTurn = (currentPlayer === 'X');
+                }
+            }
+
+            if (canClickCurrentTurn) {
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(cells3D);
+
+                if (intersects.length > 0) {
+                    const clickedCell = intersects[0].object;
+                    const idx = clickedCell.userData.index;
+
+                    if (board[idx] === null) {
+                        if (hoveredCell !== clickedCell) {
+                            if (hoveredCell) hoveredCell.material.opacity = 0;
+                            hoveredCell = clickedCell;
+                            // Dynamic color matching current player's color
+                            hoveredCell.material.color.setHex(currentPlayer === 'X' ? 0x00f0ff : 0xff007f);
+                            hoveredCell.material.opacity = 0.15;
+                            document.body.style.cursor = 'pointer';
+                        }
+                    } else {
+                        resetHover();
+                    }
+                } else {
+                    resetHover();
+                }
+            } else {
+                resetHover();
+            }
+        }
+
+        function resetHover() {
+            if (hoveredCell) {
+                hoveredCell.material.opacity = 0;
+                hoveredCell = null;
+            }
+            document.body.style.cursor = 'default';
+        }
+
+        function onClick(event) {
+            if (!gameActive) return;
+            if (isWaitingForAI) return; // Prevent queued click events during AI thinking
+            if (hasMovedSignificantly) return;
+
+            // Turn validation for multiplayer
+            if (gameMode === 'two_players') {
+                if (currentPlayer === 'X') {
+                    // X turn: Only host (teacher) can play
+                    if (!isHost) return;
+                } else if (currentPlayer === 'O') {
+                    // O turn: Only student with control can play
+                    const activeStudents = (window.eligiblePlayers || []).filter(id => id !== 'teacher');
+                    if (activeStudents.length > 0) {
+                        // There are students with control permission: only they can play O
+                        if (isHost) return;
+                        if (!(window.eligiblePlayers || []).includes(myId)) return;
+                    } else {
+                        // No students with control permission: teacher can play O
+                        if (!isHost) return;
+                    }
+                }
+            } else {
+                // vs Computer mode: Only human X can play
+                if (currentPlayer !== 'X') return;
+            }
+
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(cells3D);
+
+            if (intersects.length > 0) {
+                const cellIdx = intersects[0].object.userData.index;
+                if (board[cellIdx] === null) {
+                    if (gameMode === 'two_players') {
+                        makeMove(cellIdx, currentPlayer);
+                    } else {
+                        if (currentPlayer === 'X') {
+                            makeMove(cellIdx, 'X');
+                        }
+                    }
+                }
+            }
+        }
+
+        // --- GAME LOGIC ---
+
+        function makeMove(index, player) {
+            board[index] = player;
+            spawnPiece3D(index, player);
+            resetHover();
+
+            if (checkWin(board, player)) {
+                endGame(player);
+                return;
+            }
+
+            if (board.every(cell => cell !== null)) {
+                endGame('tie');
+                return;
+            }
+
+            // Switch turn
+            currentPlayer = player === 'X' ? 'O' : 'X';
+            updateUI();
+
+            if (gameMode === 'vs_computer') {
+                if (currentPlayer === 'O' && gameActive) {
+                    isWaitingForAI = true; // Lock clicking when it is AI's turn
+                    setTimeout(aiMove, 600);
+                } else {
+                    isWaitingForAI = false; // Unlock clicking when turn returns to human
+                }
+            } else {
+                isWaitingForAI = false; // Always unlocked in 2-player mode
+            }
+            sendGameState();
+        }
+
+        // Generate neon 3D shapes
+        function spawnPiece3D(index, player) {
+            const row = Math.floor(index / 3) - 1;
+            const col = (index % 3) - 1;
+            const posX = col * 2.1;
+            const posZ = row * 2.1;
+
+            const pieceContainer = new THREE.Group();
+            pieceContainer.position.set(posX, -0.5, posZ); // Start slightly low for spawn animation
+
+            if (player === 'X') {
+                // Draw 3D Cross using two cylinders
+                const cylinderGeo = new THREE.CylinderGeometry(0.12, 0.12, 1.6, 16);
+                const matX = new THREE.MeshStandardMaterial({
+                    color: 0x00f0ff,
+                    emissive: 0x00a2ff,
+                    emissiveIntensity: 1.2,
+                    roughness: 0.1,
+                    metalness: 0.9
+                });
+
+                const arm1 = new THREE.Mesh(cylinderGeo, matX);
+                arm1.rotation.z = Math.PI / 4;
+                arm1.rotation.y = Math.PI / 4;
+                arm1.castShadow = true;
+
+                const arm2 = new THREE.Mesh(cylinderGeo, matX);
+                arm2.rotation.z = -Math.PI / 4;
+                arm2.rotation.y = Math.PI / 4;
+                arm2.castShadow = true;
+
+                pieceContainer.add(arm1, arm2);
+                pieceContainer.rotation.y = Math.PI; // Will animate spin
+                soundPlaceX();
+            } else {
+                // Draw 3D Torus (O)
+                const torusGeo = new THREE.TorusGeometry(0.6, 0.12, 16, 100);
+                const matO = new THREE.MeshStandardMaterial({
+                    color: 0xff007f,
+                    emissive: 0xff0055,
+                    emissiveIntensity: 1.2,
+                    roughness: 0.1,
+                    metalness: 0.9
+                });
+
+                const ring = new THREE.Mesh(torusGeo, matO);
+                ring.rotation.x = Math.PI / 2;
+                ring.rotation.z = 0.25; // Tilted slightly so the spin/rotation is visible!
+                ring.castShadow = true;
+                pieceContainer.add(ring);
+                pieceContainer.rotation.y = Math.PI; // Will animate spin
+                soundPlaceO();
+            }
+
+            pieceGroup.add(pieceContainer);
+
+            // Pop-in GSAP Animation
+            gsap.to(pieceContainer.position, {
+                y: 0.4,
+                duration: 0.6,
+                ease: 'back.out(2)'
+            });
+            gsap.to(pieceContainer.rotation, {
+                y: player === 'X' ? Math.PI * 2.25 : Math.PI * 3, // O spins a full rotation visible due to tilt!
+                duration: 0.8,
+                ease: 'power2.out'
+            });
+        }
+
+        // --- MINIMAX AI ALGORITHM ---
+        function aiMove() {
+            const bestSpot = minimax([...board], 'O').index;
+            if (bestSpot !== undefined) {
+                makeMove(bestSpot, 'O');
+            }
+        }
+
+        function minimax(newBoard, player) {
+            const availSpots = newBoard.map((v, i) => v === null ? i : null).filter(v => v !== null);
+
+            if (checkWin(newBoard, 'X')) {
+                return { score: -10 };
+            } else if (checkWin(newBoard, 'O')) {
+                return { score: 10 };
+            } else if (availSpots.length === 0) {
+                return { score: 0 };
+            }
+
+            const moves = [];
+            for (let i = 0; i < availSpots.length; i++) {
+                const move = {};
+                move.index = availSpots[i];
+                
+                // Create a copy of the board for this branch to avoid global board mutation side effects
+                const nextBoard = [...newBoard];
+                nextBoard[availSpots[i]] = player;
+
+                if (player === 'O') {
+                    const result = minimax(nextBoard, 'X');
+                    move.score = result.score;
+                } else {
+                    const result = minimax(nextBoard, 'O');
+                    move.score = result.score;
+                }
+
+                moves.push(move);
+            }
+
+            let bestMove;
+            if (player === 'O') {
+                let bestScore = -10000;
+                for (let i = 0; i < moves.length; i++) {
+                    if (moves[i].score > bestScore) {
+                        bestScore = moves[i].score;
+                        bestMove = i;
+                    }
+                }
+            } else {
+                let bestScore = 10000;
+                for (let i = 0; i < moves.length; i++) {
+                    if (moves[i].score < bestScore) {
+                        bestScore = moves[i].score;
+                        bestMove = i;
+                    }
+                }
+            }
+
+            return moves[bestMove];
+        }
+
+        function checkWin(tempBoard, player) {
+            return winPatterns.some(pattern => {
+                return pattern.every(index => tempBoard[index] === player);
+            });
+        }
+
+        function getWinningPattern(tempBoard, player) {
+            return winPatterns.find(pattern => {
+                return pattern.every(index => tempBoard[index] === player);
+            });
+        }
+
+        function drawWinningLine3D(p1, p2, player) {
+            const direction = new THREE.Vector3().subVectors(p2, p1);
+            const length = direction.length();
+            
+            const cylinderGeo = new THREE.CylinderGeometry(0.08, 0.08, length, 16);
+            
+            const winColor = player === 'X' ? 0x00f0ff : 0xff007f;
+            const winEmissive = player === 'X' ? 0x00a2ff : 0xff0055;
+            const matLine = new THREE.MeshStandardMaterial({
+                color: winColor,
+                emissive: winEmissive,
+                emissiveIntensity: 2.0,
+                roughness: 0.1,
+                metalness: 0.9,
+                transparent: true,
+                opacity: 0.9
+            });
+            
+            const cylinder = new THREE.Mesh(cylinderGeo, matLine);
+            cylinder.userData = { isLine: true }; // Flag it as a line so it doesn't spin
+            
+            const midpoint = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
+            cylinder.position.copy(midpoint);
+            cylinder.position.y = 0.4; // Align with the pieces height!
+            
+            cylinder.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize());
+            
+            pieceGroup.add(cylinder);
+            
+            cylinder.scale.set(0, 1, 0);
+            gsap.to(cylinder.scale, {
+                x: 1, z: 1,
+                duration: 0.6,
+                ease: 'elastic.out(1, 0.3)'
+            });
+        }
+
+        // Update active class and player names for X and O cards
+        function updateUI() {
+            document.getElementById('card-X').classList.toggle('active', currentPlayer === 'X');
+            document.getElementById('card-O').classList.toggle('active', currentPlayer === 'O');
+
+            if (gameMode === 'two_players') {
+                document.getElementById('card-X').querySelector('.score-label').innerText = 'المعلم (X)';
+                
+                const activeStudents = (window.eligiblePlayers || []).filter(id => id !== 'teacher');
+                if (activeStudents.length > 0) {
+                    const activeStudentId = activeStudents[0];
+                    const activeStudentName = (window.playerNames && window.playerNames[activeStudentId]) || 'الطالب';
+                    document.getElementById('card-O').querySelector('.score-label').innerText = `${activeStudentName} (O)`;
+                } else {
+                    document.getElementById('card-O').querySelector('.score-label').innerText = 'اللاعب O';
+                }
+            } else {
+                document.getElementById('card-X').querySelector('.score-label').innerText = 'اللاعب X';
+                document.getElementById('card-O').querySelector('.score-label').innerText = 'الكمبيوتر O';
+            }
+        }
+
+        function endGame(winner, skipScoreIncrement = false) {
+            gameActive = false;
+            const statusModal = document.getElementById('status-modal');
+            const statusText = document.getElementById('status-text');
+
+            if (winner === 'X') {
+                if (gameMode === 'two_players') {
+                    statusText.innerText = "فاز اللاعب X! 🎉";
+                } else {
+                    statusText.innerText = "رائع! لقد هزمت الخوارزمية 🎉";
+                }
+                statusText.style.color = "var(--primary)";
+                if (!skipScoreIncrement) {
+                    scores.X++;
+                }
+                document.getElementById('score-X').innerText = scores.X;
+                triggerVictoryEffect('X');
+                soundWin();
+                
+                const winPattern = getWinningPattern(board, 'X');
+                if (winPattern) {
+                    drawWinningLine3D(cells3D[winPattern[0]].position, cells3D[winPattern[2]].position, 'X');
+                }
+            } else if (winner === 'O') {
+                if (gameMode === 'two_players') {
+                    statusText.innerText = "فاز اللاعب O! 🎉";
+                } else {
+                    statusText.innerText = "تفوقت الآلة عليك هذه المرة! 🤖";
+                }
+                statusText.style.color = "var(--secondary)";
+                if (!skipScoreIncrement) {
+                    scores.O++;
+                }
+                document.getElementById('score-O').innerText = scores.O;
+                triggerVictoryEffect('O');
+                soundWin();
+                
+                const winPattern = getWinningPattern(board, 'O');
+                if (winPattern) {
+                    drawWinningLine3D(cells3D[winPattern[0]].position, cells3D[winPattern[2]].position, 'O');
+                }
+            } else {
+                statusText.innerText = "تعادل حاد! 🤝";
+                statusText.style.color = "#ffffff";
+                soundTie();
+            }
+
+            setTimeout(() => {
+                statusModal.classList.add('visible');
+            }, 800);
+            
+            // مزامنة حالة اللعبة النهائية فقط إذا كنا نحن من قمنا بالحركة (وليس عند استقبال مزامنة)
+            if (!skipScoreIncrement) {
+                sendGameState();
+            }
+        }
+
+        function triggerVictoryEffect(player) {
+            const targetSpot = player === 'X' ? spotX : spotO;
+            if (!targetSpot) return;
+            
+            // Flash the winning spotlight's intensity for a cool localized neon pulse
+            gsap.to(targetSpot, {
+                intensity: 15,
+                duration: 0.3,
+                yoyo: true,
+                repeat: 5,
+                onComplete: () => {
+                    targetSpot.intensity = 5;
+                }
+            });
+        }
+
+        let isApplyingSync = false;
+        function sendGameState() {
+            if (isApplyingSync) return;
+            if (window.parent && window.parent !== window) {
+                // Map null to "" so Firebase doesn't delete empty cells and break array serialization
+                const boardForFirebase = board.map(v => v === null ? "" : v);
+                window.parent.postMessage({
+                    type: 'xo_game_state_update',
+                    board: boardForFirebase,
+                    currentPlayer: currentPlayer,
+                    gameActive: gameActive,
+                    scores: scores,
+                    gameMode: gameMode
+                }, '*');
+            }
+        }
+
+        function clearMeshesOnly() {
+            board = Array(9).fill(null);
+            gameActive = true;
+            currentPlayer = 'X';
+            updateUI();
+
+            const piecesToRemove = [...pieceGroup.children];
+            piecesToRemove.forEach(p => {
+                pieceGroup.remove(p);
+                scene.add(p); // Temp transfer to scene directly for animation path
+                
+                gsap.to(p.scale, {
+                    x: 0, y: 0, z: 0,
+                    duration: 0.4,
+                    onComplete: () => {
+                        scene.remove(p);
+                        p.traverse(child => {
+                            if (child.geometry) child.geometry.dispose();
+                            if (child.material) {
+                                if (Array.isArray(child.material)) {
+                                    child.material.forEach(m => m.dispose());
+                                } else {
+                                    child.material.dispose();
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+
+            gsap.to(targetRotation, { x: 0, y: 0, duration: 1, ease: 'power2.out' });
+            isWaitingForAI = false;
+            document.getElementById('status-modal').classList.remove('visible');
+        }
+
+        function resetBoardData() {
+            clearMeshesOnly();
+            sendGameState();
+        }
+
+        // --- BUTTON EVENT LISTENERS ---
+        document.getElementById('btn-mode').addEventListener('click', (e) => {
+            e.stopPropagation();
+            soundClick();
+            if (gameMode === 'vs_computer') {
+                gameMode = 'two_players';
+                document.getElementById('btn-mode').innerText = 'الوضع: لاعب ضد لاعب 👥';
+                document.getElementById('card-O').querySelector('.score-label').innerText = 'اللاعب O';
+                document.querySelector('.subtitle').innerText = 'تحدّي لاعب ضد لاعب في الفضاء الرقمي';
+            } else {
+                gameMode = 'vs_computer';
+                document.getElementById('btn-mode').innerText = 'الوضع: ضد الكمبيوتر 🤖';
+                document.getElementById('card-O').querySelector('.score-label').innerText = 'الكمبيوتر O';
+                document.querySelector('.subtitle').innerText = 'تحدّي الذكاء الاصطناعي في الفضاء الرقمي';
+            }
+            // Reset scores and board on mode switch
+            scores = { X: 0, O: 0 };
+            document.getElementById('score-X').innerText = '0';
+            document.getElementById('score-O').innerText = '0';
+            resetBoardData();
+        });
+
+        document.getElementById('btn-reset').addEventListener('click', (e) => {
+            e.stopPropagation();
+            soundClick();
+            scores = { X: 0, O: 0 };
+            document.getElementById('score-X').innerText = '0';
+            document.getElementById('score-O').innerText = '0';
+            resetBoardData();
+        });
+
+        document.getElementById('btn-camera').addEventListener('click', (e) => {
+            e.stopPropagation();
+            soundClick();
+            gsap.to(camera.position, {
+                x: defaultCameraPos.x,
+                y: defaultCameraPos.y,
+                z: defaultCameraPos.z,
+                duration: 1.2,
+                ease: 'power2.out',
+                onUpdate: () => camera.lookAt(0,0,0)
+            });
+            gsap.to(targetRotation, { x: 0, y: 0, duration: 1.2, ease: 'power2.out' });
+        });
+
+        document.getElementById('btn-next').addEventListener('click', (e) => {
+            e.stopPropagation();
+            soundClick();
+            resetBoardData();
+        });
+
+        // Remove Loader on setup ready
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }, 1000);
+        });
+
+        // --- ENGINE LOOP ---
+        const clock = new THREE.Clock();
+        let lastWidth = 0;
+        let lastHeight = 0;
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Smoothly resize if container size changed (e.g. iframe display changed from none to flex)
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            if (width > 0 && height > 0 && (width !== lastWidth || height !== lastHeight)) {
+                lastWidth = width;
+                lastHeight = height;
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(width, height);
+            }
+
+            // Interpolate board rotation smoothly
+            boardGroup.rotation.y += (targetRotation.y - boardGroup.rotation.y) * 0.1;
+            boardGroup.rotation.x += (targetRotation.x - boardGroup.rotation.x) * 0.1;
+
+            // Idle floating animation for Board
+            const time = clock.getElapsedTime();
+            if (!isDragging) {
+                boardGroup.position.y = Math.sin(time * 1.5) * 0.15;
+            }
+
+            // Spin game pieces slightly for dynamic look
+            pieceGroup.children.forEach(piece => {
+                if (!piece.userData || !piece.userData.isLine) {
+                    piece.rotation.y += 0.005;
+                }
+            });
+
+            // Slowly spin background particles
+            particles.rotation.y = time * 0.02;
+
+            renderer.render(scene, camera);
+        }
+
+        // Window resize support
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+
+        // --- MULTIPLAYER STATE SYNC ---
+        let isHost = true;
+        let myId = 'teacher';
+        let hasReceivedInitialState = false;
+
+        window.addEventListener('message', (e) => {
+            const data = e.data;
+            if (!data) return;
+
+            if (data.type === 'init_player_id') {
+                isHost = data.isHost;
+                myId = data.userId;
+                if (!isHost) {
+                    // Hide controls for student players
+                    document.getElementById('btn-mode').style.display = 'none';
+                    document.getElementById('btn-reset').style.display = 'none';
+                    document.getElementById('btn-next').style.display = 'none';
+
+                    // Clear board and poll parent for synced game state every 1.5s
+                    clearMeshesOnly();
+                    const requestInterval = setInterval(() => {
+                        if (hasReceivedInitialState || board.some(c => c !== null)) {
+                            clearInterval(requestInterval);
+                        } else {
+                            window.parent.postMessage({ type: 'request_xo_game_state' }, '*');
+                        }
+                    }, 1500);
+                    window.parent.postMessage({ type: 'request_xo_game_state' }, '*');
+                } else {
+                    // Host (Teacher): send initial clean board state to Firebase so students get synced
+                    sendGameState();
+                }
+                return;
+            }
+
+            if (data.type === 'update_eligible_players') {
+                window.eligiblePlayers = data.eligiblePlayers;
+                window.playerNames = data.playerNames;
+                updateUI();
+                return;
+            }
+
+            if (data.type === 'apply_xo_game_state') {
+                isApplyingSync = true;
+                hasReceivedInitialState = true;
+
+                // Guard board state and convert back to 9-element array (handles both arrays and sparse Firebase objects)
+                let rawBoardArray = Array(9).fill("");
+                const rawBoard = data.board;
+                if (Array.isArray(rawBoard)) {
+                    rawBoardArray = rawBoard;
+                } else if (rawBoard && typeof rawBoard === 'object') {
+                    for (const key in rawBoard) {
+                        const idx = parseInt(key, 10);
+                        if (!isNaN(idx) && idx >= 0 && idx < 9) {
+                            rawBoardArray[idx] = rawBoard[key];
+                        }
+                    }
+                }
+                const syncedBoard = rawBoardArray.map(v => v === "" ? null : v);
+
+                // Sync board cells
+                syncedBoard.forEach((val, idx) => {
+                    if (board[idx] !== val) {
+                        board[idx] = val;
+                        if (val !== null) {
+                            spawnPiece3D(idx, val);
+                        }
+                    }
+                });
+
+                // Clear visual board if empty
+                if (syncedBoard.every(cell => cell === null)) {
+                    clearMeshesOnly();
+                }
+
+                currentPlayer = data.currentPlayer;
+                if (gameActive && !data.gameActive) {
+                    gameActive = false;
+                    if (data.scores) {
+                        scores = data.scores;
+                    }
+                    // تحديد الفائز وإطلاق شاشة النهاية محلياً مع skipScoreIncrement
+                    let winner = null;
+                    if (checkWin(board, 'X')) {
+                        winner = 'X';
+                    } else if (checkWin(board, 'O')) {
+                        winner = 'O';
+                    } else if (board.every(cell => cell !== null)) {
+                        winner = 'tie';
+                    }
+                    if (winner) {
+                        endGame(winner, true);
+                    }
+                } else {
+                    gameActive = data.gameActive;
+                    if (data.scores) {
+                        scores = data.scores;
+                        document.getElementById('score-X').innerText = scores.X;
+                        document.getElementById('score-O').innerText = scores.O;
+                    }
+                }
+                if (data.gameMode && gameMode !== data.gameMode) {
+                    gameMode = data.gameMode;
+                    // Update Mode UI
+                    if (gameMode === 'two_players') {
+                        document.getElementById('btn-mode').innerText = 'الوضع: لاعب ضد لاعب 👥';
+                        document.getElementById('card-O').querySelector('.score-label').innerText = 'اللاعب O';
+                        document.querySelector('.subtitle').innerText = 'تحدّي لاعب ضد لاعب في الفضاء الرقمي';
+                    } else {
+                        document.getElementById('btn-mode').innerText = 'الوضع: ضد الكمبيوتر 🤖';
+                        document.getElementById('card-O').querySelector('.score-label').innerText = 'الكمبيوتر O';
+                        document.querySelector('.subtitle').innerText = 'تحدّي الذكاء الاصطناعي في الفضاء الرقمي';
+                    }
+                }
+
+                if (!isHost) {
+                    document.getElementById('btn-mode').style.display = 'none';
+                    document.getElementById('btn-reset').style.display = 'none';
+                    document.getElementById('btn-next').style.display = 'none';
+                }
+
+                updateUI();
+                isApplyingSync = false;
+            }
+        });
+    </script>
+</body>
+</html>
