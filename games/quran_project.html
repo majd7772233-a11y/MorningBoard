@@ -3508,6 +3508,7 @@ body.is-student #themePanel {
       }
     } catch(e) {}
   </script>
+<style id="quran-free-edition-badges">.pro-crown-tag{display:none!important}</style>
 </head>
 <body>
   <div id="quranAudioActivator" class="quran-audio-activator" style="display:none;" onclick="activateQuranAudio()">
@@ -3526,7 +3527,7 @@ body.is-student #themePanel {
 <div class="vignette"></div>
 
 
-<button class="theme-panel-btn" id="themePanelBtn" title="تغيير الخلفية (PRO 👑)" style="position:relative;">🎨<span class="pro-crown-tag" style="position:absolute; top:-3px; right:-3px; font-size:11px;">👑</span></button>
+<button class="theme-panel-btn" id="themePanelBtn" title="تغيير الخلفية" style="position:relative;">🎨<span class="pro-crown-tag" style="position:absolute; top:-3px; right:-3px; font-size:11px;">👑</span></button>
 
 <div class="theme-panel" id="themePanel">
   <h3>اختر الخلفية</h3>
@@ -19245,49 +19246,14 @@ window.addEventListener('message', (e) => {
 });
 
 function isProActive() {
-  if (typeof _cachedParentProStatus === 'boolean') {
-    return _cachedParentProStatus;
-  }
-  try {
-    if (window.parent && window.parent !== window && typeof window.parent.isProUser === 'function') {
-      const res = window.parent.isProUser();
-      if (typeof res === 'boolean') return res;
-    }
-  } catch(e) {}
-  try {
-    if (typeof window.isProUser === 'function') {
-      const res = window.isProUser();
-      if (typeof res === 'boolean') return res;
-    }
-  } catch(e) {}
-  try {
-    const plan = localStorage.getItem('sapahboard_plan');
-    if (plan === 'free') return false;
-    const serial = localStorage.getItem('sapah_activated_serial');
-    const sig = localStorage.getItem('sapah_license_sig');
-    if (serial && sig && (plan === 'pro' || plan === 'yearly' || plan === 'lifetime' || plan === 'vip')) {
-      return true;
-    }
-  } catch(e) {}
-  return false;
+  // Unrestricted personal edition: every built-in Quran feature is available.
+  return true;
 }
 window.isProActive = isProActive;
 
 function triggerProUpgrade(reason) {
-  const msg = reason || '👑 خدمات بيان وتفسير الآيات، أحكام التجويد، والتفسير والترجمة الإنجليزية متاحة حصرياً لمشتركي النسخة الاحترافية (PRO)';
-  try {
-    if (window.parent && typeof window.parent.openProUpgradeModal === 'function') {
-      window.parent.openProUpgradeModal(msg);
-      return;
-    }
-  } catch(e) {}
-  try {
-    if (window.parent && window.parent !== window) {
-      window.parent.postMessage({ type: 'open_pro_upgrade_modal', reason: msg }, '*');
-      return;
-    }
-  } catch(e) {}
-  alert(msg);
+  // Compatibility no-op: upgrade prompts do not exist in this edition.
+  return false;
 }
 window.triggerProUpgrade = triggerProUpgrade;
 
