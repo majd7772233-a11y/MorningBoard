@@ -1,4 +1,4 @@
-const CACHE_NAME = 'morningboard-free-v2';
+const CACHE_NAME = 'morningboard-free-v3';
 const ASSETS = [
   './',
   './index.html',
