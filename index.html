@@ -298,18 +298,6 @@
       };
 
       // 3. Instant View Switching Action
-      window.switchAuthOverlayView = function(viewName) {
-        var viewWelcome = document.getElementById('auth-view-welcome');
-        var viewPlans = document.getElementById('auth-view-plans');
-        var viewAlready = document.getElementById('auth-view-already');
-        var errorCard = document.getElementById('login-error-card');
-        if (viewWelcome) viewWelcome.style.display = viewName === 'welcome' ? 'flex' : 'none';
-        if (viewPlans) viewPlans.style.display = viewName === 'plans' ? 'flex' : 'none';
-        if (viewAlready) viewAlready.style.display = viewName === 'already' ? 'flex' : 'none';
-        if (errorCard) errorCard.style.display = 'none';
-        window.fitCanvasToScreen(false);
-      };
-
       // 4. Instant Close Update Modal Action
       window.closeUpdateModalDirectly = function() {
         var updateModal = document.getElementById('update-modal');
@@ -556,13 +544,13 @@
 
   <!-- Top Info Badge -->
   <div class="glass-panel info-overlay" style="display: flex; align-items: center; gap: 8px;">
-    <!-- Page Controller (PRO 👑) -->
+    <!-- Page Controller ( 👑) -->
     <div class="page-controller" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); margin-left: 4px;">
-      <span class="pro-tag-crown" title="ميزة صفحات السبورة (PRO 👑)" style="font-size: 13px; color: #fbbf24; cursor: pointer; user-select: none; margin-left: 2px;"> <span class="pro-crown-tag">👑</span></span>
+      <span class="pro-tag-crown" title="ميزة صفحات السبورة ( 👑)" style="font-size: 13px; color: #fbbf24; cursor: pointer; user-select: none; margin-left: 2px;"> <span class="pro-crown-tag">👑</span></span>
       <button id="btn-prev-page" class="info-action-btn" title="الصفحة السابقة" style="width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 11px;">▶</button>
       <span id="page-indicator" style="font-weight: bold; font-size: 12px; color: #38bdf8; min-width: 45px; text-align: center; direction: ltr; user-select: none;">صفحة 1 / 1</span>
       <button id="btn-next-page" class="info-action-btn" title="الصفحة التالية" style="width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 11px;">◀</button>
-      <button id="btn-add-page" class="info-action-btn" title="إضافة صفحة جديدة بيضاء (PRO 👑)" style="width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: #10b981; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3);">＋</button>
+      <button id="btn-add-page" class="info-action-btn" title="إضافة صفحة جديدة بيضاء ( 👑)" style="width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: #10b981; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3);">＋</button>
     </div>
     
     <div style="width: 1px; height: 16px; background: rgba(255, 255, 255, 0.15); margin: 0 4px;"></div>
@@ -628,84 +616,84 @@
           </button>
         </div>
 
-        <!-- القسم الاحترافي PRO -->
+        <!-- قسم المؤثرات -->
         <div style="font-size: 10px; font-weight: bold; color: #fbbf24; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 6px;">
-          <span><span class="pro-crown-tag">👑 </span>مؤثرات حصرية (النسخة الاحترافية):</span>
+          <span><span class="pro-crown-tag">👑 </span>المؤثرات التفاعلية:</span>
           <span> <span class="pro-crown-tag">👑</span></span>
         </div>
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
-          <button id="btn-balloon" class="pro-enc-btn" title="احتفال البالونات التفاعلي (PRO 👑)">
+          <button id="btn-balloon" class="pro-enc-btn" title="احتفال البالونات التفاعلي ( 👑)">
             <span style="font-size: 16px;">🎈</span>
             <span class="enc-btn-label">بالونات <span class="crown-mini"> <span class="pro-crown-tag">👑</span></span></span>
           </button>
-          <button id="btn-airplane-gifts" class="pro-enc-btn" title="طائرة الهدايا التفاعلية (PRO 👑)">
+          <button id="btn-airplane-gifts" class="pro-enc-btn" title="طائرة الهدايا التفاعلية ( 👑)">
             <span style="font-size: 16px;">✈️🎁</span>
             <span class="enc-btn-label">طائرة <span class="crown-mini"> <span class="pro-crown-tag">👑</span></span></span>
           </button>
-          <button id="btn-shater" class="pro-enc-btn" title="تشجيع شاطر يا بطل (PRO 👑)">
+          <button id="btn-shater" class="pro-enc-btn" title="تشجيع شاطر يا بطل ( 👑)">
             <img src="assets/shater.gif" alt="شاطر" style="width: 22px; height: 22px; object-fit: contain; border-radius: 4px; display: block; pointer-events: none;">
             <span class="enc-btn-label">شاطر <span class="crown-mini"> <span class="pro-crown-tag">👑</span></span></span>
           </button>
-          <button id="btn-good2" class="pro-enc-btn" title="تشجيع ممتاز ورائع (PRO 👑)">
+          <button id="btn-good2" class="pro-enc-btn" title="تشجيع ممتاز ورائع ( 👑)">
             <img src="assets/good2.gif" alt="ممتاز" style="width: 22px; height: 22px; object-fit: contain; border-radius: 4px; display: block; pointer-events: none;">
             <span class="enc-btn-label">ممتاز <span class="crown-mini"> <span class="pro-crown-tag">👑</span></span></span>
           </button>
-          <button id="btn-like" class="pro-enc-btn" title="بطاقة إعجاب ولايك ملكي (PRO 👑)">
+          <button id="btn-like" class="pro-enc-btn" title="بطاقة إعجاب ولايك ملكي ( 👑)">
             <span style="font-size: 16px;">👍</span>
             <span class="enc-btn-label">إعجاب <span class="crown-mini"> <span class="pro-crown-tag">👑</span></span></span>
           </button>
-          <button id="btn-andlike" class="pro-enc-btn" title="لايك تفاعلي متحرك (PRO 👑)">
+          <button id="btn-andlike" class="pro-enc-btn" title="لايك تفاعلي متحرك ( 👑)">
             <span style="font-size: 16px;">👍✨</span>
             <span class="enc-btn-label">لايك <span class="crown-mini"> <span class="pro-crown-tag">👑</span></span></span>
           </button>
-          <button id="btn-hearts" class="pro-enc-btn" title="قلوب متطايرة للأطفال (PRO 👑)">
+          <button id="btn-hearts" class="pro-enc-btn" title="قلوب متطايرة للأطفال ( 👑)">
             <span style="font-size: 16px;">❤️</span>
             <span class="enc-btn-label">قلوب <span class="crown-mini"> <span class="pro-crown-tag">👑</span></span></span>
           </button>
 
-          <button id="btn-star" class="pro-enc-btn" title="نجمة سحرية (PRO 👑)">
+          <button id="btn-star" class="pro-enc-btn" title="نجمة سحرية ( 👑)">
             <span style="font-size: 16px;">⭐</span>
             <span class="enc-btn-label">نجمة <span class="crown-mini"> <span class="pro-crown-tag">👑</span></span></span>
           </button>
-          <button id="btn-egg" class="pro-enc-btn" title="تأثير البيضة (PRO 👑)">
+          <button id="btn-egg" class="pro-enc-btn" title="تأثير البيضة ( 👑)">
             <span style="font-size: 16px;">🥚</span>
             <span class="enc-btn-label">بيضة <span class="crown-mini"> <span class="pro-crown-tag">👑</span></span></span>
           </button>
-          <button id="btn-whistle" class="pro-enc-btn" title="تأثير الصافرة (PRO 👑)">
+          <button id="btn-whistle" class="pro-enc-btn" title="تأثير الصافرة ( 👑)">
             <span style="font-size: 16px;">📢</span>
             <span class="enc-btn-label">صافرة <span class="crown-mini"> <span class="pro-crown-tag">👑</span></span></span>
           </button>
-          <button id="btn-topa" class="pro-enc-btn" title="قالب طوب أحمر (PRO 👑)">
+          <button id="btn-topa" class="pro-enc-btn" title="قالب طوب أحمر ( 👑)">
             <span style="font-size: 16px;">🧱</span>
             <span class="enc-btn-label">طوب <span class="crown-mini"> <span class="pro-crown-tag">👑</span></span></span>
           </button>
 
-          <button id="btn-tomatem" class="pro-enc-btn" title="تأثير الطماطم (PRO 👑)">
+          <button id="btn-tomatem" class="pro-enc-btn" title="تأثير الطماطم ( 👑)">
             <span style="font-size: 16px;">🍅</span>
             <span class="enc-btn-label">طماطم <span class="crown-mini"> <span class="pro-crown-tag">👑</span></span></span>
           </button>
-          <button id="btn-warning-triangle" class="pro-enc-btn" title="مثلث تحذير (PRO 👑)">
+          <button id="btn-warning-triangle" class="pro-enc-btn" title="مثلث تحذير ( 👑)">
             <span style="font-size: 16px;">🔺</span>
             <span class="enc-btn-label">تحذير <span class="crown-mini"> <span class="pro-crown-tag">👑</span></span></span>
           </button>
-          <button id="btn-no" class="pro-enc-btn" title="إجابة خاطئة / لا ❌ (PRO 👑)">
+          <button id="btn-no" class="pro-enc-btn" title="إجابة خاطئة / لا ❌ ( 👑)">
             <span style="font-size: 16px;">❌</span>
             <span class="enc-btn-label">خطأ <span class="crown-mini"> <span class="pro-crown-tag">👑</span></span></span>
           </button>
-          <button id="btn-top-enc-scratch" class="pro-enc-btn" title="كروت الخربشة التفاعلية (PRO 👑)">
+          <button id="btn-top-enc-scratch" class="pro-enc-btn" title="كروت الخربشة التفاعلية ( 👑)">
             <span style="font-size: 16px;">💳</span>
             <span class="enc-btn-label">كروت <span class="crown-mini"> <span class="pro-crown-tag">👑</span></span></span>
           </button>
-          <button id="btn-top-enc-honor" class="pro-enc-btn" title="لوحة الشرف والنجوم (PRO 👑)">
+          <button id="btn-top-enc-honor" class="pro-enc-btn" title="لوحة الشرف والنجوم ( 👑)">
             <span style="font-size: 16px;">🎖️</span>
             <span class="enc-btn-label">شرف <span class="crown-mini"><span class="pro-crown-tag">👑</span></span></span>
           </button>
 
-          <button id="btn-bubble-gun" class="pro-enc-btn" title="مسدس الفقاعات التفاعلي (PRO 👑)">
+          <button id="btn-bubble-gun" class="pro-enc-btn" title="مسدس الفقاعات التفاعلي ( 👑)">
             <span style="font-size: 16px;">🔫</span>
             <span class="enc-btn-label">فقاعات <span class="crown-mini"> <span class="pro-crown-tag">👑</span></span></span>
           </button>
-          <button id="btn-show-gif" class="pro-enc-btn" title="عرض GIF شاشة كاملة (PRO 👑)">
+          <button id="btn-show-gif" class="pro-enc-btn" title="عرض GIF شاشة كاملة ( 👑)">
             <span style="font-size: 16px;">🎬</span>
             <span class="enc-btn-label">شاشة GIF <span class="crown-mini"> <span class="pro-crown-tag">👑</span></span></span>
           </button>
@@ -722,8 +710,8 @@
     <button id="btn-check-update" class="info-action-btn" title="البحث عن تحديث جديد" style="width: 36px; height: 36px; padding: 0; background: rgba(0, 162, 255, 0.15); border: 1px solid rgba(0, 162, 255, 0.4); color: var(--accent-primary); transition: transform 0.15s; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; margin-right: 4px;">
       🔄
     </button>
-    <!-- Language Toggle Button (PRO 👑) -->
-    <button id="btn-lang-toggle" class="info-action-btn" title="تبديل اللغة (Switch Language - PRO 👑)" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: #10b981; transition: transform 0.15s; margin-right: 4px;">
+    <!-- Language Toggle Button ( 👑) -->
+    <button id="btn-lang-toggle" class="info-action-btn" title="تبديل اللغة (Switch Language -  👑)" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: #10b981; transition: transform 0.15s; margin-right: 4px;">
       EN <span class="pro-crown-tag" style="font-size: 9px; color: #fbbf24; vertical-align: super; margin-right: 1px;">👑</span>
     </button>
     <!-- Heart / About Button (Living Beating Heart) -->
@@ -748,8 +736,8 @@
 
     
 
-    <!-- Modern Mode Toggle Button (PRO 👑) -->
-    <button id="btn-toggle-modern-mode" class="info-action-btn" onclick="window.toggleModernLayout()" title="تبديل للوضع الحديث (قائمة النيومورفيك الدائرية - PRO 👑)" style="padding: 4px 10px; font-size: 12px; font-weight: bold; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #3b82f6; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; margin-left: 6px; display: inline-flex; align-items: center; gap: 4px;">
+    <!-- Modern Mode Toggle Button ( 👑) -->
+    <button id="btn-toggle-modern-mode" class="info-action-btn" onclick="window.toggleModernLayout()" title="تبديل للوضع الحديث (قائمة النيومورفيك الدائرية -  👑)" style="padding: 4px 10px; font-size: 12px; font-weight: bold; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #3b82f6; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; margin-left: 6px; display: inline-flex; align-items: center; gap: 4px;">
       <span><span class="pro-crown-tag">👑 </span>الوضع الحديث</span>
     </button>
 
@@ -777,7 +765,7 @@
     <button class="panel-close-btn" id="close-left-panel" title="إغلاق الإعدادات">✕</button>
     <button class="panel-close-btn" id="lock-panels-fade-btn" title="تثبيت القوائم ومنع الاختفاء" style="position: absolute; top: 12px; left: 48px; font-size: 14px;">🔓</button>
     <div style="position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; z-index: 10;">
-      <button id="btn-sidebar-paste" class="panel-close-btn" title="لصق صورة من الحافظة (PRO 👑)" style="position: relative; font-size: 15px; width: 30px; height: 30px; margin: 0; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #3b82f6;">📋<span style="position: absolute; top: -5px; right: -5px; font-size: 10px; line-height: 1; pointer-events: none;"> <span class="pro-crown-tag">👑</span></span></button>
+      <button id="btn-sidebar-paste" class="panel-close-btn" title="لصق صورة من الحافظة ( 👑)" style="position: relative; font-size: 15px; width: 30px; height: 30px; margin: 0; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #3b82f6;">📋<span style="position: absolute; top: -5px; right: -5px; font-size: 10px; line-height: 1; pointer-events: none;"> <span class="pro-crown-tag">👑</span></span></button>
       <button id="btn-sidebar-fit-screen" class="panel-close-btn" title="ملائمة السبورة للشاشة (Fit Screen)" onclick="if (window.cm) window.cm.resetView(); window.applyMasterScreenFitSequence();" style="position: static; font-size: 14px; font-weight: bold; width: 30px; height: 30px; margin: 0; padding: 0; display: inline-flex; align-items: center; justify-content: center;">⛶</button>
       <button id="btn-sidebar-zoom-out" class="panel-close-btn" title="تصغير زووم" style="position: static; font-size: 16px; font-weight: bold; width: 30px; height: 30px; margin: 0; padding: 0;">-</button>
       <button id="btn-sidebar-zoom-in" class="panel-close-btn" title="تكبير زووم" style="position: static; font-size: 16px; font-weight: bold; width: 30px; height: 30px; margin: 0; padding: 0;">+</button>
@@ -842,8 +830,8 @@
         </svg>
       </button>
       
-      <!-- Map Insertion Button (PRO 👑) -->
-      <button class="quick-icon-btn" id="btn-insert-map" title="إدراج خريطة تعليمية للشرح (PRO 👑)" style="position: relative; background: rgba(14, 165, 233, 0.15); border: 1px solid rgba(14, 165, 233, 0.3); border-radius: 8px; cursor: pointer; color: #0ea5e9; transition: transform 0.15s, background 0.15s; padding: 5px; display: inline-flex; align-items: center; justify-content: center;">
+      <!-- Map Insertion Button ( 👑) -->
+      <button class="quick-icon-btn" id="btn-insert-map" title="إدراج خريطة تعليمية للشرح ( 👑)" style="position: relative; background: rgba(14, 165, 233, 0.15); border: 1px solid rgba(14, 165, 233, 0.3); border-radius: 8px; cursor: pointer; color: #0ea5e9; transition: transform 0.15s, background 0.15s; padding: 5px; display: inline-flex; align-items: center; justify-content: center;">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="3 6 9 3 15 6 21 3 21 18 15 15 9 18 3 15"/>
           <line x1="9" y1="3" x2="9" y2="18"/>
@@ -852,8 +840,8 @@
         <span style="position: absolute; top: -4px; right: -4px; font-size: 10px; line-height: 1; pointer-events: none;"> <span class="pro-crown-tag">👑</span></span>
       </button>
 
-      <!-- Webpage Insertion Button (PRO 👑) -->
-      <button class="quick-icon-btn" id="btn-insert-webpage" onclick="if(window.showWebpageModal) window.showWebpageModal();" title="إدراج موقع إلكتروني للتصفح والشرح (PRO 👑)" style="position: relative; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; cursor: pointer; color: #3b82f6; transition: transform 0.15s, background 0.15s; padding: 5px; display: inline-flex; align-items: center; justify-content: center;">
+      <!-- Webpage Insertion Button ( 👑) -->
+      <button class="quick-icon-btn" id="btn-insert-webpage" onclick="if(window.showWebpageModal) window.showWebpageModal();" title="إدراج موقع إلكتروني للتصفح والشرح ( 👑)" style="position: relative; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; cursor: pointer; color: #3b82f6; transition: transform 0.15s, background 0.15s; padding: 5px; display: inline-flex; align-items: center; justify-content: center;">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="2" y1="12" x2="22" y2="12"></line>
@@ -862,8 +850,8 @@
         <span style="position: absolute; top: -4px; right: -4px; font-size: 10px; line-height: 1; pointer-events: none;"> <span class="pro-crown-tag">👑</span></span>
       </button>
 
-      <!-- Giphy Stickers Button (PRO 👑) -->
-      <button class="quick-icon-btn" id="btn-insert-giphy" onclick="document.getElementById('btn-giphy-toggle').click()" title="إدراج ملصقات متحركة Giphy (PRO 👑)" style="position: relative; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 8px; cursor: pointer; color: #a855f7; transition: transform 0.15s, background 0.15s; padding: 5px; display: inline-flex; align-items: center; justify-content: center;">
+      <!-- Giphy Stickers Button ( 👑) -->
+      <button class="quick-icon-btn" id="btn-insert-giphy" onclick="document.getElementById('btn-giphy-toggle').click()" title="إدراج ملصقات متحركة Giphy ( 👑)" style="position: relative; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 8px; cursor: pointer; color: #a855f7; transition: transform 0.15s, background 0.15s; padding: 5px; display: inline-flex; align-items: center; justify-content: center;">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
           <line x1="7" y1="2" x2="7" y2="22"></line>
@@ -877,8 +865,8 @@
         <span style="position: absolute; top: -4px; right: -4px; font-size: 10px; line-height: 1; pointer-events: none;"> <span class="pro-crown-tag">👑</span></span>
       </button>
 
-      <!-- Screenshot Capture Button (PRO 👑) -->
-      <button class="quick-icon-btn" id="btn-screenshot-capture" title="لقطة شاشة وقص جزء منها (PRO 👑)" style="position: relative; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 8px; cursor: pointer; color: #a855f7; transition: transform 0.15s, background 0.15s; padding: 5px; display: inline-flex; align-items: center; justify-content: center;">
+      <!-- Screenshot Capture Button ( 👑) -->
+      <button class="quick-icon-btn" id="btn-screenshot-capture" title="لقطة شاشة وقص جزء منها ( 👑)" style="position: relative; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 8px; cursor: pointer; color: #a855f7; transition: transform 0.15s, background 0.15s; padding: 5px; display: inline-flex; align-items: center; justify-content: center;">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
           <circle cx="12" cy="13" r="4"/>
@@ -904,8 +892,8 @@
 
       <!-- Left Side: Camera and Screen Recording side-by-side (Compact icons) -->
       <div style="display: flex; gap: 4px; align-items: center; flex-shrink: 0;">
-        <!-- Insert Camera (PRO 👑) -->
-        <button class="quick-icon-btn" id="btn-insert-camera" title="إدراج الكاميرا (PRO 👑)" style="position: relative; background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.3); border-radius: 8px; cursor: pointer; color: #0ea5e9; transition: transform 0.15s, background 0.15s; padding: 4px; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; min-width: 28px; flex-shrink: 0;">
+        <!-- Insert Camera ( 👑) -->
+        <button class="quick-icon-btn" id="btn-insert-camera" title="إدراج الكاميرا ( 👑)" style="position: relative; background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.3); border-radius: 8px; cursor: pointer; color: #0ea5e9; transition: transform 0.15s, background 0.15s; padding: 4px; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; min-width: 28px; flex-shrink: 0;">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M23 7l-7 5 7 5V7z"/>
             <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
@@ -913,9 +901,9 @@
           <span style="position: absolute; top: -4px; right: -4px; font-size: 10px; line-height: 1; pointer-events: none;"> <span class="pro-crown-tag">👑</span></span>
         </button>
 
-        <!-- Screen Recording Group (Button + Dropdown Arrow for Mic selection) (PRO 👑) -->
+        <!-- Screen Recording Group (Button + Dropdown Arrow for Mic selection) ( 👑) -->
         <div style="position: relative; display: inline-flex; align-items: center; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; overflow: visible; height: 28px; flex-shrink: 0;">
-          <button class="quick-icon-btn" id="btn-record-screen" title="تسجيل الشاشة فيديو (PRO 👑)" style="background: transparent; border: none; cursor: pointer; color: #ef4444; transition: background 0.15s; padding: 4px; display: inline-flex; align-items: center; justify-content: center; height: 28px; width: 28px; min-width: 28px; flex-shrink: 0;">
+          <button class="quick-icon-btn" id="btn-record-screen" title="تسجيل الشاشة فيديو ( 👑)" style="background: transparent; border: none; cursor: pointer; color: #ef4444; transition: background 0.15s; padding: 4px; display: inline-flex; align-items: center; justify-content: center; height: 28px; width: 28px; min-width: 28px; flex-shrink: 0;">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" id="record-btn-svg">
               <circle cx="12" cy="12" r="10"/>
               <circle cx="12" cy="12" r="3.5" fill="currentColor" id="record-dot"/>
@@ -964,7 +952,7 @@
     <!-- Board Background & Grid/Lines Layout -->
     <div style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px; margin-bottom: 4px; margin-top: 2px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 4px;">
       <h3 id="label-bg-grid" style="margin-bottom: 2px; font-size: 13px; border-bottom: none; padding-bottom: 0;">خلفية السبورة والتخطيط</h3>
-      <button id="btn-open-pixabay-modal" onclick="window.openPixabayBackgroundModal()" title="مكتبة الخلفيات العالمية Pixabay HD (PRO 👑)" style="width: 100%; margin-top: 6px; margin-bottom: 6px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(99, 102, 241, 0.3)); border: 1.5px solid rgba(56, 189, 248, 0.6); color: #38bdf8; font-size: 12px; font-weight: bold; padding: 7px 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(56, 189, 248, 0.2); box-sizing: border-box;" onmouseover="this.style.background='linear-gradient(135deg, rgba(56, 189, 248, 0.4), rgba(99, 102, 241, 0.45))'" onmouseout="this.style.background='linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(99, 102, 241, 0.3))'">
+      <button id="btn-open-pixabay-modal" onclick="window.openPixabayBackgroundModal()" title="مكتبة الخلفيات العالمية Pixabay HD ( 👑)" style="width: 100%; margin-top: 6px; margin-bottom: 6px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(99, 102, 241, 0.3)); border: 1.5px solid rgba(56, 189, 248, 0.6); color: #38bdf8; font-size: 12px; font-weight: bold; padding: 7px 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(56, 189, 248, 0.2); box-sizing: border-box;" onmouseover="this.style.background='linear-gradient(135deg, rgba(56, 189, 248, 0.4), rgba(99, 102, 241, 0.45))'" onmouseout="this.style.background='linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(99, 102, 241, 0.3))'">
         <span>🌐 مكتبة الخلفيات العالمية (Pixabay HD) <span class="pro-crown-tag">👑</span></span>
       </button>
       <div style="display: flex; gap: 10px; align-items: center; margin-top: 4px;">
@@ -1012,34 +1000,34 @@
       </div>
     </div>
 
-    <!-- 📐 Smart Shape Recognition (Auto-Snap) Toggle Section (PRO 👑) -->
-    <div style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; margin-bottom: 6px; margin-top: 4px; padding-top: 4px;" title="الرسم الذكي للأشكال (PRO 👑)">
+    <!-- 📐 Smart Shape Recognition (Auto-Snap) Toggle Section ( 👑) -->
+    <div style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; margin-bottom: 6px; margin-top: 4px; padding-top: 4px;" title="الرسم الذكي للأشكال ( 👑)">
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
         <div style="display: flex; align-items: center; gap: 8px;">
           <span style="font-size: 18px; filter: drop-shadow(0 0 6px #c084fc);">✨</span>
           <div>
             <div style="font-size: 12px; font-weight: 700; color: #c084fc; display: flex; align-items: center; gap: 4px;">الرسم الذكي للأشكال <span style="font-size: 11px; color: #fbbf24;"> <span class="pro-crown-tag">👑</span></span></div>
-            <div style="font-size: 10px; color: #94a3b8;">تحويل الرسم الحر تلقائياً لأشكال منتظمة (PRO)</div>
+            <div style="font-size: 10px; color: #94a3b8;">تحويل الرسم الحر تلقائياً لأشكال منتظمة ()</div>
           </div>
         </div>
-        <label class="switch" style="margin: 0; flex-shrink: 0;" title="تفعيل التعرف التلقائي الذكي على الأشكال الهندسية والخطوط (PRO 👑)">
+        <label class="switch" style="margin: 0; flex-shrink: 0;" title="تفعيل التعرف التلقائي الذكي على الأشكال الهندسية والخطوط ( 👑)">
           <input type="checkbox" id="smart-shapes-checkbox">
           <span class="switch-slider"></span>
         </label>
       </div>
     </div>
 
-    <!-- ✍️ Pen Pressure Sensitivity & Simulation Toggle Section (PRO 👑) -->
-    <div style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; margin-bottom: 6px; margin-top: 4px; padding-top: 4px;" title="حساسية ومحاكاة ضغط القلم (PRO 👑)">
+    <!-- ✍️ Pen Pressure Sensitivity & Simulation Toggle Section ( 👑) -->
+    <div style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; margin-bottom: 6px; margin-top: 4px; padding-top: 4px;" title="حساسية ومحاكاة ضغط القلم ( 👑)">
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
         <div style="display: flex; align-items: center; gap: 8px;">
           <span style="font-size: 18px; filter: drop-shadow(0 0 6px #f59e0b);">✍️</span>
           <div>
             <div style="font-size: 12px; font-weight: 700; color: #fbbf24; display: flex; align-items: center; gap: 4px;">حساسية ومحاكاة ضغط القلم <span style="font-size: 11px; color: #fbbf24;"> <span class="pro-crown-tag">👑</span></span></div>
-            <div style="font-size: 10px; color: #94a3b8;">تغيير سمك الخط ديناميكياً بقوة الضغط والسرعة (PRO)</div>
+            <div style="font-size: 10px; color: #94a3b8;">تغيير سمك الخط ديناميكياً بقوة الضغط والسرعة ()</div>
           </div>
         </div>
-        <label class="switch" style="margin: 0; flex-shrink: 0;" title="تفعيل محاكاة وحساسية ضغط القلم أثناء الكتابة والرسم (PRO 👑)">
+        <label class="switch" style="margin: 0; flex-shrink: 0;" title="تفعيل محاكاة وحساسية ضغط القلم أثناء الكتابة والرسم ( 👑)">
           <input type="checkbox" id="pressure-sensitivity-checkbox">
           <span class="switch-slider"></span>
         </label>
@@ -1051,7 +1039,7 @@
     <input type="file" id="image-upload-input" accept="image/*" style="opacity: 0; width: 1px; height: 1px; position: absolute; z-index: -1;">
     <input type="file" id="pdf-upload-input" accept=".pdf" style="opacity: 0; width: 1px; height: 1px; position: absolute; z-index: -1;">
 
-    <!-- P2P Whiteboard Sharing Section (PRO 👑) -->
+    <!-- P2P Whiteboard Sharing Section ( 👑) -->
     <div style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; margin-bottom: 6px; margin-top: 4px;">
       
         <!-- Pinned Rooms Selector Bar -->
@@ -1068,7 +1056,7 @@
           <input type="text" id="collab-room-password" placeholder="كلمة المرور للغرفة (اختياري)..." style="flex-grow: 1; padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: #fff; font-size: 11px; text-align: center; height: 26px; box-sizing: border-box; outline: none;">
         </div>
         
-        <button class="action-btn" id="btn-collab-toggle" title="مشاركة السبورة مع الطلاب مباشرة (PRO 👑)" style="background: linear-gradient(135deg, #0d9488, #0f766e); border-color: #14b8a6; color: #fff; height: 36px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <button class="action-btn" id="btn-collab-toggle" title="مشاركة السبورة مع الطلاب مباشرة ( 👑)" style="background: linear-gradient(135deg, #0d9488, #0f766e); border-color: #14b8a6; color: #fff; height: 36px; display: flex; align-items: center; justify-content: center; gap: 8px;">
           🔗 <span id="collab-btn-text">بدء مشاركة السبورة</span> <span class="pro-crown-tag" style="font-size: 12px; color: #fbbf24;">👑</span>
         </button>
         
@@ -1117,7 +1105,7 @@
           <span id="text-export-jpg">تصدير كصورة JPG</span>
         </button>
 
-        <button class="action-btn" id="export-pdf-btn" title="تصدير كملف PDF عالي الدقة (PRO 👑)">
+        <button class="action-btn" id="export-pdf-btn" title="تصدير كملف PDF عالي الدقة ( 👑)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
           <span id="text-export-pdf">تصدير كملف PDF <span class="pro-crown-tag">👑</span></span>
         </button>
@@ -1645,148 +1633,148 @@
         <button class="stamp-dropdown-item" data-sticker="assets/Stickers/Stickers (4).png" title="علامة خطأ">
           <img src="assets/Stickers/Stickers (4).png" alt="علامة خطأ" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/1.png" title="ختم تشجيعي 1 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/1.png" title="ختم تشجيعي 1 ( 👑)">
           <img src="assets/Stickers/1.png" alt="1" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/2.png" title="ختم تشجيعي 2 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/2.png" title="ختم تشجيعي 2 ( 👑)">
           <img src="assets/Stickers/2.png" alt="2" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/3.png" title="ختم تشجيعي 3 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/3.png" title="ختم تشجيعي 3 ( 👑)">
           <img src="assets/Stickers/3.png" alt="3" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/4.png" title="ختم تشجيعي 4 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/4.png" title="ختم تشجيعي 4 ( 👑)">
           <img src="assets/Stickers/4.png" alt="4" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/5.png" title="ختم تشجيعي 5 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/5.png" title="ختم تشجيعي 5 ( 👑)">
           <img src="assets/Stickers/5.png" alt="5" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (1).png" title="ختم تشجيعي 6 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (1).png" title="ختم تشجيعي 6 ( 👑)">
           <img src="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (1).png" alt="Colorful Kids’ Motivational Sticker Sheet (1)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (2).png" title="ختم تشجيعي 7 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (2).png" title="ختم تشجيعي 7 ( 👑)">
           <img src="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (2).png" alt="Colorful Kids’ Motivational Sticker Sheet (2)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (3).png" title="ختم تشجيعي 8 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (3).png" title="ختم تشجيعي 8 ( 👑)">
           <img src="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (3).png" alt="Colorful Kids’ Motivational Sticker Sheet (3)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (4).png" title="ختم تشجيعي 9 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (4).png" title="ختم تشجيعي 9 ( 👑)">
           <img src="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (4).png" alt="Colorful Kids’ Motivational Sticker Sheet (4)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (5).png" title="ختم تشجيعي 10 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (5).png" title="ختم تشجيعي 10 ( 👑)">
           <img src="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (5).png" alt="Colorful Kids’ Motivational Sticker Sheet (5)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (6).png" title="ختم تشجيعي 11 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (6).png" title="ختم تشجيعي 11 ( 👑)">
           <img src="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (6).png" alt="Colorful Kids’ Motivational Sticker Sheet (6)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (7).png" title="ختم تشجيعي 12 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (7).png" title="ختم تشجيعي 12 ( 👑)">
           <img src="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet (7).png" alt="Colorful Kids’ Motivational Sticker Sheet (7)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet.png" title="ختم تشجيعي 13 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet.png" title="ختم تشجيعي 13 ( 👑)">
           <img src="assets/Stickers/Colorful Kids’ Motivational Sticker Sheet.png" alt="Colorful Kids’ Motivational Sticker Sheet" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Education Sticker Collage (1).png" title="ختم تشجيعي 14 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Education Sticker Collage (1).png" title="ختم تشجيعي 14 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational Education Sticker Collage (1).png" alt="Colorful Motivational Education Sticker Collage (1)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Education Sticker Collage (2).png" title="ختم تشجيعي 15 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Education Sticker Collage (2).png" title="ختم تشجيعي 15 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational Education Sticker Collage (2).png" alt="Colorful Motivational Education Sticker Collage (2)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Education Sticker Collage (3).png" title="ختم تشجيعي 16 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Education Sticker Collage (3).png" title="ختم تشجيعي 16 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational Education Sticker Collage (3).png" alt="Colorful Motivational Education Sticker Collage (3)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Education Sticker Collage (4).png" title="ختم تشجيعي 17 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Education Sticker Collage (4).png" title="ختم تشجيعي 17 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational Education Sticker Collage (4).png" alt="Colorful Motivational Education Sticker Collage (4)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Education Sticker Collage (5).png" title="ختم تشجيعي 18 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Education Sticker Collage (5).png" title="ختم تشجيعي 18 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational Education Sticker Collage (5).png" alt="Colorful Motivational Education Sticker Collage (5)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Education Sticker Collage (6).png" title="ختم تشجيعي 19 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Education Sticker Collage (6).png" title="ختم تشجيعي 19 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational Education Sticker Collage (6).png" alt="Colorful Motivational Education Sticker Collage (6)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Education Sticker Collage (7).png" title="ختم تشجيعي 20 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Education Sticker Collage (7).png" title="ختم تشجيعي 20 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational Education Sticker Collage (7).png" alt="Colorful Motivational Education Sticker Collage (7)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Education Sticker Collage.png" title="ختم تشجيعي 21 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Education Sticker Collage.png" title="ختم تشجيعي 21 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational Education Sticker Collage.png" alt="Colorful Motivational Education Sticker Collage" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet (1).png" title="ختم تشجيعي 22 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet (1).png" title="ختم تشجيعي 22 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational School Sticker Sheet (1).png" alt="Colorful Motivational School Sticker Sheet (1)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet (2).png" title="ختم تشجيعي 23 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet (2).png" title="ختم تشجيعي 23 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational School Sticker Sheet (2).png" alt="Colorful Motivational School Sticker Sheet (2)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet (3).png" title="ختم تشجيعي 24 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet (3).png" title="ختم تشجيعي 24 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational School Sticker Sheet (3).png" alt="Colorful Motivational School Sticker Sheet (3)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet (4).png" title="ختم تشجيعي 25 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet (4).png" title="ختم تشجيعي 25 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational School Sticker Sheet (4).png" alt="Colorful Motivational School Sticker Sheet (4)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet (5).png" title="ختم تشجيعي 26 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet (5).png" title="ختم تشجيعي 26 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational School Sticker Sheet (5).png" alt="Colorful Motivational School Sticker Sheet (5)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet (6).png" title="ختم تشجيعي 27 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet (6).png" title="ختم تشجيعي 27 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational School Sticker Sheet (6).png" alt="Colorful Motivational School Sticker Sheet (6)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet (7).png" title="ختم تشجيعي 28 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet (7).png" title="ختم تشجيعي 28 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational School Sticker Sheet (7).png" alt="Colorful Motivational School Sticker Sheet (7)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet (8).png" title="ختم تشجيعي 29 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet (8).png" title="ختم تشجيعي 29 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational School Sticker Sheet (8).png" alt="Colorful Motivational School Sticker Sheet (8)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet (9).png" title="ختم تشجيعي 30 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet (9).png" title="ختم تشجيعي 30 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational School Sticker Sheet (9).png" alt="Colorful Motivational School Sticker Sheet (9)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet.png" title="ختم تشجيعي 31 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational School Sticker Sheet.png" title="ختم تشجيعي 31 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational School Sticker Sheet.png" alt="Colorful Motivational School Sticker Sheet" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Sticker Sheet (1).png" title="ختم تشجيعي 32 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Sticker Sheet (1).png" title="ختم تشجيعي 32 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational Sticker Sheet (1).png" alt="Colorful Motivational Sticker Sheet (1)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Sticker Sheet (2).png" title="ختم تشجيعي 33 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Sticker Sheet (2).png" title="ختم تشجيعي 33 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational Sticker Sheet (2).png" alt="Colorful Motivational Sticker Sheet (2)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Sticker Sheet (3).png" title="ختم تشجيعي 34 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Sticker Sheet (3).png" title="ختم تشجيعي 34 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational Sticker Sheet (3).png" alt="Colorful Motivational Sticker Sheet (3)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Sticker Sheet (4).png" title="ختم تشجيعي 35 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Sticker Sheet (4).png" title="ختم تشجيعي 35 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational Sticker Sheet (4).png" alt="Colorful Motivational Sticker Sheet (4)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Sticker Sheet (5).png" title="ختم تشجيعي 36 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Sticker Sheet (5).png" title="ختم تشجيعي 36 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational Sticker Sheet (5).png" alt="Colorful Motivational Sticker Sheet (5)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Sticker Sheet (6).png" title="ختم تشجيعي 37 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Sticker Sheet (6).png" title="ختم تشجيعي 37 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational Sticker Sheet (6).png" alt="Colorful Motivational Sticker Sheet (6)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Sticker Sheet (7).png" title="ختم تشجيعي 38 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Sticker Sheet (7).png" title="ختم تشجيعي 38 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational Sticker Sheet (7).png" alt="Colorful Motivational Sticker Sheet (7)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Sticker Sheet.png" title="ختم تشجيعي 39 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Colorful Motivational Sticker Sheet.png" title="ختم تشجيعي 39 ( 👑)">
           <img src="assets/Stickers/Colorful Motivational Sticker Sheet.png" alt="Colorful Motivational Sticker Sheet" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/designarena_image_7wm1o69a (1).png" title="ختم تشجيعي 40 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/designarena_image_7wm1o69a (1).png" title="ختم تشجيعي 40 ( 👑)">
           <img src="assets/Stickers/designarena_image_7wm1o69a (1).png" alt="designarena_image_7wm1o69a (1)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/designarena_image_7wm1o69a (2).png" title="ختم تشجيعي 41 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/designarena_image_7wm1o69a (2).png" title="ختم تشجيعي 41 ( 👑)">
           <img src="assets/Stickers/designarena_image_7wm1o69a (2).png" alt="designarena_image_7wm1o69a (2)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/designarena_image_7wm1o69a.png" title="ختم تشجيعي 42 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/designarena_image_7wm1o69a.png" title="ختم تشجيعي 42 ( 👑)">
           <img src="assets/Stickers/designarena_image_7wm1o69a.png" alt="designarena_image_7wm1o69a" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Gemini_Generated_Image_yccskzyccskzyccs (1).png" title="ختم تشجيعي 43 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Gemini_Generated_Image_yccskzyccskzyccs (1).png" title="ختم تشجيعي 43 ( 👑)">
           <img src="assets/Stickers/Gemini_Generated_Image_yccskzyccskzyccs (1).png" alt="Gemini_Generated_Image_yccskzyccskzyccs (1)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Gemini_Generated_Image_yccskzyccskzyccs (2).png" title="ختم تشجيعي 44 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Gemini_Generated_Image_yccskzyccskzyccs (2).png" title="ختم تشجيعي 44 ( 👑)">
           <img src="assets/Stickers/Gemini_Generated_Image_yccskzyccskzyccs (2).png" alt="Gemini_Generated_Image_yccskzyccskzyccs (2)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Gemini_Generated_Image_yccskzyccskzyccs.png" title="ختم تشجيعي 45 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Gemini_Generated_Image_yccskzyccskzyccs.png" title="ختم تشجيعي 45 ( 👑)">
           <img src="assets/Stickers/Gemini_Generated_Image_yccskzyccskzyccs.png" alt="Gemini_Generated_Image_yccskzyccskzyccs" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Motivational School Sticker Collection (1).png" title="ختم تشجيعي 46 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Motivational School Sticker Collection (1).png" title="ختم تشجيعي 46 ( 👑)">
           <img src="assets/Stickers/Motivational School Sticker Collection (1).png" alt="Motivational School Sticker Collection (1)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Motivational School Sticker Collection (2).png" title="ختم تشجيعي 47 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Motivational School Sticker Collection (2).png" title="ختم تشجيعي 47 ( 👑)">
           <img src="assets/Stickers/Motivational School Sticker Collection (2).png" alt="Motivational School Sticker Collection (2)" loading="lazy" />
         </button>
-        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Motivational School Sticker Collection.png" title="ختم تشجيعي 48 (PRO 👑)">
+        <button class="stamp-dropdown-item is-pro" data-sticker="assets/Stickers/Motivational School Sticker Collection.png" title="ختم تشجيعي 48 ( 👑)">
           <img src="assets/Stickers/Motivational School Sticker Collection.png" alt="Motivational School Sticker Collection" loading="lazy" />
         </button>
       </div>
@@ -1924,7 +1912,7 @@
     </div>
 
     <!-- 15. 🤖 AI Teacher Assistant (مساعد الصباح الذكي) -->
-    <button class="tool-btn ai-assistant-glow-btn" id="tool-ai-assistant-btn" data-tooltip="🤖 مساعد الصباح الذكي (AI - PRO 👑)" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.35)); border: 1.5px solid rgba(168, 85, 247, 0.6); color: #c084fc; position: relative; box-shadow: 0 0 10px rgba(168, 85, 247, 0.3); padding: 0 !important; display: inline-flex; align-items: center; justify-content: center; overflow: visible;">
+    <button class="tool-btn ai-assistant-glow-btn" id="tool-ai-assistant-btn" data-tooltip="🤖 مساعد الصباح الذكي (AI -  👑)" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.35)); border: 1.5px solid rgba(168, 85, 247, 0.6); color: #c084fc; position: relative; box-shadow: 0 0 10px rgba(168, 85, 247, 0.3); padding: 0 !important; display: inline-flex; align-items: center; justify-content: center; overflow: visible;">
       <span class="pro-crown-tag" style="position: absolute; top: -5px; right: -5px; font-size: 11px; z-index: 5; pointer-events: none; filter: drop-shadow(0 0 4px #fbbf24);">👑</span>
       <span class="cute-robot-ai-icon" style="width: 44px; height: 44px;" aria-hidden="true">
         <svg class="cute-robot-svg" viewBox="0 0 32 30" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100% !important; height: 100% !important;">
@@ -1958,7 +1946,7 @@
     </button>
 
     <!-- 15b. 🔍 AI Vision (قص وفحص وحل جزئية بالذكاء الاصطناعي) -->
-    <button class="tool-btn ai-vision-glow-btn" id="tool-ai-vision-btn" data-tooltip="🔍 فحص وحل جزئية بالذكاء الاصطناعي (AI Vision - PRO 👑)" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.25), rgba(168, 85, 247, 0.35)); border: 1.5px solid rgba(236, 72, 153, 0.6); color: #f472b6; position: relative; box-shadow: 0 0 10px rgba(236, 72, 153, 0.3);">
+    <button class="tool-btn ai-vision-glow-btn" id="tool-ai-vision-btn" data-tooltip="🔍 فحص وحل جزئية بالذكاء الاصطناعي (AI Vision -  👑)" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.25), rgba(168, 85, 247, 0.35)); border: 1.5px solid rgba(236, 72, 153, 0.6); color: #f472b6; position: relative; box-shadow: 0 0 10px rgba(236, 72, 153, 0.3);">
       <span class="pro-crown-tag" style="position: absolute; top: -5px; right: -5px; font-size: 11px; z-index: 5; pointer-events: none; filter: drop-shadow(0 0 4px #fbbf24);">👑</span>
       <span style="font-size: 16px; filter: drop-shadow(0 0 6px #f472b6);">🔍</span>
     </button>
@@ -2051,7 +2039,7 @@
         <!-- Left controls -->
         <div style="display: flex; align-items: center; gap: 8px;">
           <button id="wheel-btn-close" onclick='if (window.diceWidget) { window.diceWidget.hide(); } else { document.getElementById("math-dice-overlay").style.display="none"; }' title="إغلاق" style="background: #ef4444; border: 1px solid #dc2626; color: white; font-size: 11px; font-weight: bold; cursor: pointer; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; outline: none; padding: 0; transition: background 0.15s, transform 0.15s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">✕</button>
-          <button id="wheel-btn-settings" title="تعديل الأسماء والأقسام (PRO 👑)" style="background: #10b981; border: 1px solid #059669; color: white; font-size: 11px; cursor: pointer; height: 24px; padding: 0 10px; border-radius: 6px; transition: background 0.15s, transform 0.15s; outline: none; display: flex; align-items: center; justify-content: center; gap: 3px;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">⚙️ الأسماء<span class="pro-crown-tag" style="font-size: 9px; vertical-align: super;">👑</span></button>
+          <button id="wheel-btn-settings" title="تعديل الأسماء والأقسام ( 👑)" style="background: #10b981; border: 1px solid #059669; color: white; font-size: 11px; cursor: pointer; height: 24px; padding: 0 10px; border-radius: 6px; transition: background 0.15s, transform 0.15s; outline: none; display: flex; align-items: center; justify-content: center; gap: 3px;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">⚙️ الأسماء<span class="pro-crown-tag" style="font-size: 9px; vertical-align: super;">👑</span></button>
         </div>
         <!-- Right title -->
         <div style='font-size: 13px; font-weight: bold; color: #f8fafc; display: flex; align-items: center; gap: 5px; white-space: nowrap;'>🎡 <span>العجلة الدوارة</span></div>
@@ -2575,7 +2563,7 @@
       <div style="font-size: 11.5px; color: #94a3b8; font-weight: 600; margin-bottom: 4px;">الإصدار v3.3</div>
 
       <!-- 1. معلومات الاشتراك (تظهر فقط للمشتركين Pro وتختفي تماماً للمجاني) -->
-      <div id="about-subscription-info" style="display: none; width: 100%; flex-shrink: 0; position: relative; box-sizing: border-box; margin: 0;"></div>
+      
 
       <!-- 2. صدقة جارية عن روح أمي -->
       <div style="background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(245,158,11,0.08)); border: 1px solid rgba(239,68,68,0.3); border-radius: 14px; padding: 12px 10px; width: 100%; box-sizing: border-box; text-align: center; position: relative; flex-shrink: 0; margin: 0;">
@@ -3958,100 +3946,100 @@
           <span class="cartoon-card-num">خلفية كرتونية 4</span>
         </div>
       </div>
-      <!-- Card 5 (PRO) -->
+      <!-- Card 5 () -->
       <div class="cartoon-bg-card" data-preset="bg-5" onclick="window.setCartoonBgFromPicker('bg-5')">
         <div class="cartoon-thumb-wrap">
           <img src="assets/bg/5.jpg" alt="خلفية كرتونية 5" loading="lazy">
           <div class="cartoon-card-check">✓</div>
-          <span class="cartoon-card-pro-crown">👑 PRO</span>
+          <span class="cartoon-card-pro-crown">👑 </span>
         </div>
         <div class="cartoon-card-info">
           <span class="cartoon-card-num">خلفية كرتونية 5</span>
         </div>
       </div>
-      <!-- Card 6 (PRO) -->
+      <!-- Card 6 () -->
       <div class="cartoon-bg-card" data-preset="bg-6" onclick="window.setCartoonBgFromPicker('bg-6')">
         <div class="cartoon-thumb-wrap">
           <img src="assets/bg/6.jpg" alt="خلفية كرتونية 6" loading="lazy">
           <div class="cartoon-card-check">✓</div>
-          <span class="cartoon-card-pro-crown">👑 PRO</span>
+          <span class="cartoon-card-pro-crown">👑 </span>
         </div>
         <div class="cartoon-card-info">
           <span class="cartoon-card-num">خلفية كرتونية 6</span>
         </div>
       </div>
-      <!-- Card 7 (PRO) -->
+      <!-- Card 7 () -->
       <div class="cartoon-bg-card" data-preset="bg-7" onclick="window.setCartoonBgFromPicker('bg-7')">
         <div class="cartoon-thumb-wrap">
           <img src="assets/bg/7.jpg" alt="خلفية كرتونية 7" loading="lazy">
           <div class="cartoon-card-check">✓</div>
-          <span class="cartoon-card-pro-crown">👑 PRO</span>
+          <span class="cartoon-card-pro-crown">👑 </span>
         </div>
         <div class="cartoon-card-info">
           <span class="cartoon-card-num">خلفية كرتونية 7</span>
         </div>
       </div>
-      <!-- Card 8 (PRO) -->
+      <!-- Card 8 () -->
       <div class="cartoon-bg-card" data-preset="bg-8" onclick="window.setCartoonBgFromPicker('bg-8')">
         <div class="cartoon-thumb-wrap">
           <img src="assets/bg/8.jpg" alt="خلفية كرتونية 8" loading="lazy">
           <div class="cartoon-card-check">✓</div>
-          <span class="cartoon-card-pro-crown">👑 PRO</span>
+          <span class="cartoon-card-pro-crown">👑 </span>
         </div>
         <div class="cartoon-card-info">
           <span class="cartoon-card-num">خلفية كرتونية 8</span>
         </div>
       </div>
-      <!-- Card 9 (PRO) -->
+      <!-- Card 9 () -->
       <div class="cartoon-bg-card" data-preset="bg-9" onclick="window.setCartoonBgFromPicker('bg-9')">
         <div class="cartoon-thumb-wrap">
           <img src="assets/bg/9.jpg" alt="خلفية كرتونية 9" loading="lazy">
           <div class="cartoon-card-check">✓</div>
-          <span class="cartoon-card-pro-crown">👑 PRO</span>
+          <span class="cartoon-card-pro-crown">👑 </span>
         </div>
         <div class="cartoon-card-info">
           <span class="cartoon-card-num">خلفية كرتونية 9</span>
         </div>
       </div>
-      <!-- Card 10 (PRO) -->
+      <!-- Card 10 () -->
       <div class="cartoon-bg-card" data-preset="bg-10" onclick="window.setCartoonBgFromPicker('bg-10')">
         <div class="cartoon-thumb-wrap">
           <img src="assets/bg/10.jpg" alt="خلفية كرتونية 10" loading="lazy">
           <div class="cartoon-card-check">✓</div>
-          <span class="cartoon-card-pro-crown">👑 PRO</span>
+          <span class="cartoon-card-pro-crown">👑 </span>
         </div>
         <div class="cartoon-card-info">
           <span class="cartoon-card-num">خلفية كرتونية 10</span>
         </div>
       </div>
-      <!-- Card 11 (PRO) -->
+      <!-- Card 11 () -->
       <div class="cartoon-bg-card" data-preset="bg-11" onclick="window.setCartoonBgFromPicker('bg-11')">
         <div class="cartoon-thumb-wrap">
           <img src="assets/bg/11.jpg" alt="خلفية كرتونية 11" loading="lazy">
           <div class="cartoon-card-check">✓</div>
-          <span class="cartoon-card-pro-crown">👑 PRO</span>
+          <span class="cartoon-card-pro-crown">👑 </span>
         </div>
         <div class="cartoon-card-info">
           <span class="cartoon-card-num">خلفية كرتونية 11</span>
         </div>
       </div>
-      <!-- Card 12 (PRO) -->
+      <!-- Card 12 () -->
       <div class="cartoon-bg-card" data-preset="bg-12" onclick="window.setCartoonBgFromPicker('bg-12')">
         <div class="cartoon-thumb-wrap">
           <img src="assets/bg/12.jpg" alt="خلفية كرتونية 12" loading="lazy">
           <div class="cartoon-card-check">✓</div>
-          <span class="cartoon-card-pro-crown">👑 PRO</span>
+          <span class="cartoon-card-pro-crown">👑 </span>
         </div>
         <div class="cartoon-card-info">
           <span class="cartoon-card-num">خلفية كرتونية 12</span>
         </div>
       </div>
-      <!-- Card 13 (PRO) -->
+      <!-- Card 13 () -->
       <div class="cartoon-bg-card" data-preset="bg-13" onclick="window.setCartoonBgFromPicker('bg-13')">
         <div class="cartoon-thumb-wrap">
           <img src="assets/bg/13.jpg" alt="خلفية كرتونية 13" loading="lazy">
           <div class="cartoon-card-check">✓</div>
-          <span class="cartoon-card-pro-crown">👑 PRO</span>
+          <span class="cartoon-card-pro-crown">👑 </span>
         </div>
         <div class="cartoon-card-info">
           <span class="cartoon-card-num">خلفية كرتونية 13</span>
@@ -4146,32 +4134,32 @@
       <span class="neumorphic-tooltip">المصحف</span>
     </div>
 
-    <!-- LAYER 2 (3 items: Map, Website, Animated Stickers) (PRO 👑) -->
-    <div class="neumorphic-item layer-2 item-map" onclick="document.getElementById('btn-insert-map').click()" title="🗺️ إدراج خريطة (PRO 👑)">
+    <!-- LAYER 2 (3 items: Map, Website, Animated Stickers) ( 👑) -->
+    <div class="neumorphic-item layer-2 item-map" onclick="document.getElementById('btn-insert-map').click()" title="🗺️ إدراج خريطة ( 👑)">
       <span>🗺️</span>
       <span class="neumorphic-tooltip">خريطة <span class="pro-crown-tag">👑</span></span>
     </div>
-    <div class="neumorphic-item layer-2 item-webpage" onclick="document.getElementById('btn-insert-webpage').click()" title="🌐 إدراج موقع (PRO 👑)">
+    <div class="neumorphic-item layer-2 item-webpage" onclick="document.getElementById('btn-insert-webpage').click()" title="🌐 إدراج موقع ( 👑)">
       <span>🌐</span>
       <span class="neumorphic-tooltip">موقع <span class="pro-crown-tag">👑</span></span>
     </div>
-    <div class="neumorphic-item layer-2 item-stickers" onclick="document.getElementById('btn-insert-giphy').click()" title="🌟 ملصقات متحركة (PRO 👑)">
+    <div class="neumorphic-item layer-2 item-stickers" onclick="document.getElementById('btn-insert-giphy').click()" title="🌟 ملصقات متحركة ( 👑)">
       <span>🌟</span>
       <span class="neumorphic-tooltip">ملصقات <span class="pro-crown-tag">👑</span></span>
     </div>
 
-    <!-- LAYER 3 (2 items: Camera, Screenshot) (PRO 👑) -->
-    <div class="neumorphic-item layer-3 item-camera" onclick="const b=document.getElementById('btn-insert-camera'); if(b) b.click();" title="📷 إدراج كاميرا (PRO 👑)">
+    <!-- LAYER 3 (2 items: Camera, Screenshot) ( 👑) -->
+    <div class="neumorphic-item layer-3 item-camera" onclick="const b=document.getElementById('btn-insert-camera'); if(b) b.click();" title="📷 إدراج كاميرا ( 👑)">
       <span>📷</span>
       <span class="neumorphic-tooltip">كاميرا <span class="pro-crown-tag">👑</span></span>
     </div>
-    <div class="neumorphic-item layer-3 item-screenshot" onclick="document.getElementById('btn-screenshot-capture').click()" title="قص لقطة شاشة (PRO 👑)">
+    <div class="neumorphic-item layer-3 item-screenshot" onclick="document.getElementById('btn-screenshot-capture').click()" title="قص لقطة شاشة ( 👑)">
       <span>✂️</span>
       <span class="neumorphic-tooltip">لقطة شاشة <span class="pro-crown-tag">👑</span></span>
     </div>
 
-    <!-- LAYER 4 (1 item: Screen Recording) (PRO 👑) -->
-    <div class="neumorphic-item layer-4 item-record" onclick="const b=document.getElementById('btn-record-screen'); if(b) b.click();" title="تسجيل فيديو الشاشة (PRO 👑)">
+    <!-- LAYER 4 (1 item: Screen Recording) ( 👑) -->
+    <div class="neumorphic-item layer-4 item-record" onclick="const b=document.getElementById('btn-record-screen'); if(b) b.click();" title="تسجيل فيديو الشاشة ( 👑)">
       <span style="display:inline-block; width:16px; height:16px; background:#ef4444; border-radius:50%; box-shadow:0 0 10px #ef4444; border: 2px solid #fff;"></span>
       <span class="neumorphic-tooltip">تسجيل فيديو <span class="pro-crown-tag">👑</span></span>
     </div>
@@ -4265,7 +4253,7 @@
       <div class="popover-options-list">
         <button class="popover-option-btn" onclick="window.openCartoonBackgroundModal()" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(99, 102, 241, 0.3)); border: 1.5px solid #38bdf8; color: #38bdf8; font-weight: 800; text-align: center; margin-bottom: 6px; padding: 8px 10px;">🖼️ تصفح بالصور المصغرة الكاملة</button>
         <button class="popover-option-btn" onclick="window.setCartoonBgFromNeumorphic('none')">⬜ بدون خلفية كرتونية</button>
-        <button class="popover-option-btn" onclick="if(typeof window.isProUser === 'function' && !window.isProUser()){ if(typeof window.openProUpgradeModal==='function') window.openProUpgradeModal('👑 ميزة اختيار خلفية كرتونية من الجهاز متاحة حصرياً في النسخة الاحترافية PRO'); else showToast('👑 ميزة اختيار خلفية كرتونية متاحة حصرياً في PRO', true); } else { document.getElementById('cartoon-bg-upload-input').click(); }">🖼️ اختيار خلفية من الجهاز... <span class="pro-crown-tag">👑</span></button>
+        <button class="popover-option-btn" onclick="document.getElementById(&#39;cartoon-bg-upload-input&#39;).click()">🖼️ اختيار خلفية من الجهاز... <span class="pro-crown-tag">👑</span></button>
         <button class="popover-option-btn" onclick="window.setCartoonBgFromNeumorphic('bg-1')">🎨 خلفية كرتونية 1</button>
         <button class="popover-option-btn" onclick="window.setCartoonBgFromNeumorphic('bg-2')">🎨 خلفية كرتونية 2</button>
         <button class="popover-option-btn" onclick="window.setCartoonBgFromNeumorphic('bg-3')">🎨 خلفية كرتونية 3</button>
@@ -4298,7 +4286,7 @@
     </div>
 
     <!-- 2. Save PDF -->
-    <div class="neumorphic-item file-item item-save-pdf" onclick="const b=document.getElementById('export-pdf-btn'); if(b) b.click();" title="تصدير PDF (PRO 👑)">
+    <div class="neumorphic-item file-item item-save-pdf" onclick="const b=document.getElementById('export-pdf-btn'); if(b) b.click();" title="تصدير PDF ( 👑)">
       <span>📄</span>
       <span class="neumorphic-tooltip">PDF <span class="pro-crown-tag">👑</span></span>
     </div>
@@ -4324,7 +4312,7 @@
 
     <!-- ROW 3 (1 item Apex: Share Board) -->
     <!-- 6. Share Board -->
-    <div class="neumorphic-item file-item item-share-board" onclick="window.toggleNeumorphicCollabPanel()" title="مشاركة السبورة (PRO 👑)">
+    <div class="neumorphic-item file-item item-share-board" onclick="window.toggleNeumorphicCollabPanel()" title="مشاركة السبورة ( 👑)">
       <span>🔗</span>
       <span class="neumorphic-tooltip">مشاركة <span class="pro-crown-tag">👑</span></span>
     </div>
@@ -4345,7 +4333,7 @@
     </div>
 
     <!-- 2. Paste Image -->
-    <div class="neumorphic-item undo-item item-paste" onclick="const b=document.getElementById('btn-sidebar-paste'); if(b) b.click();" title="لصق صورة من الحافظة (PRO 👑)">
+    <div class="neumorphic-item undo-item item-paste" onclick="const b=document.getElementById('btn-sidebar-paste'); if(b) b.click();" title="لصق صورة من الحافظة ( 👑)">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
       <span class="neumorphic-tooltip">لصق <span class="pro-crown-tag">👑</span></span>
     </div>
@@ -4530,8 +4518,8 @@
       <span class="neumorphic-tooltip">تهيئة</span>
     </div>
 
-    <!-- 4. Toggle Language (PRO 👑) -->
-    <div class="neumorphic-item control-item item-toggle-lang" onclick="window.triggerControlToggleLang()" title="اللغة (PRO 👑)">
+    <!-- 4. Toggle Language ( 👑) -->
+    <div class="neumorphic-item control-item item-toggle-lang" onclick="window.triggerControlToggleLang()" title="اللغة ( 👑)">
       <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
       <span class="neumorphic-tooltip">اللغة <span class="pro-crown-tag">👑</span></span>
     </div>
@@ -4562,8 +4550,8 @@
       <span class="neumorphic-tooltip">التالية</span>
     </div>
 
-    <!-- 9. Pages Overview & Add Page (Plus Sign) (PRO 👑) -->
-    <div class="neumorphic-item control-item item-pages-overview" onclick="window.triggerControlPagesOverview()" title="إضافة صفحة (PRO 👑)">
+    <!-- 9. Pages Overview & Add Page (Plus Sign) ( 👑) -->
+    <div class="neumorphic-item control-item item-pages-overview" onclick="window.triggerControlPagesOverview()" title="إضافة صفحة ( 👑)">
       <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       <span class="neumorphic-tooltip">صفحات <span class="pro-crown-tag">👑</span></span>
     </div>

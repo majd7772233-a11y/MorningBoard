@@ -1,9 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  getMachineId: () => ipcRenderer.invoke('get-machine-id'),
-  saveLicenseKey: (key) => ipcRenderer.invoke('save-license-key', key),
-  loadLicenseKey: () => ipcRenderer.invoke('load-license-key'),
   saveAlphabetWords: (words) => ipcRenderer.invoke('save-alphabet-words', words),
   loadAlphabetWords: () => ipcRenderer.invoke('load-alphabet-words'),
   startScreenCapture: () => ipcRenderer.send('start-screen-capture'),
@@ -30,8 +27,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   saveAppSetting: (key, val) => ipcRenderer.invoke('save-app-setting', key, val),
   loadAppSettings: () => ipcRenderer.invoke('load-app-settings'),
-  getMicrosoftStoreProducts: () => ipcRenderer.invoke('get-microsoft-store-products'),
-  buyMicrosoftStore: (storeId) => ipcRenderer.invoke('buy-microsoft-store', storeId),
-  checkMicrosoftStoreLicense: () => ipcRenderer.invoke('check-microsoft-store-license')
 });
 

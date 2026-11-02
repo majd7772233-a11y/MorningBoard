@@ -39,6 +39,7 @@
     '#box-subscribe-desktop',
     '#btn-subscribe-google',
     '#btn-activate-submit',
+    '#about-subscription-info',
     '.sapah-auth-overlay',
     '.sapah-plans-grid',
     '.sapah-plan-card',
