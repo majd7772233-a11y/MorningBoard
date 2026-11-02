@@ -1,4 +1,4 @@
-const CACHE_NAME = 'edah-board-v3.3';
+const CACHE_NAME = 'morningboard-free-v1';
 const ASSETS = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const ASSETS = [
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
+  './src/free-edition.js',
   './src/main.js',
   './src/canvas-manager.js',
   './src/shapes-manager.js',
