@@ -9,9 +9,7 @@
       var _h = window.location.hostname;
       if (_h === 'spahboard-meeting.ninjascribe.workers.dev' || _h.indexOf('workers.dev') !== -1 || _h.indexOf('pages.dev') !== -1) {
         document.open();
-        document.write('<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>سبورة الصباح - خادم مشاركة الغرف</title><style>*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif;}body{background:#0b0f19;color:#f8fafc;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;text-align:center;}.card{background:rgba(23,32,51,0.95);border:1px solid rgba(239,68,68,0.3);border-radius:24px;padding:40px 28px;max-width:500px;box-shadow:0 25px 60px rgba(0,0,0,0.6);}.icon{font-size:56px;margin-bottom:16px;}.title{font-size:20px;font-weight:800;color:#f8fafc;margin-bottom:12px;}.desc{font-size:14px;color:#94a3b8;line-height:1.7;margin-bottom:20px;}.badge{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;font-size:12px;font-weight:700;padding:8px 16px;border-radius:12px;display:inline-block;}</style>  <!-- Free edition: all built-in features are enabled without subscription checks -->
-  <script src="src/free-edition.js?v=1"></script>
-</head><body><div class="card"><div class="icon">🚫</div><div class="title">عذراً، هذا الرابط مخصص للمشاركة فقط!</div><div class="desc">هذا النطاق مخصص حصرياً لانضمام الطلاب للغرف الدراسية المباشرة (عبر رابط المشاركة الخاص بالمعلم).<br>لا يمكن فتح برنامج السبورة أو تسجيل الدخول من المتصفح مباشرة.</div><div class="badge">🔒 نطاق مخصص لمشاركة غرف الطلاب فقط</div></div></body></html>');
+        document.write('<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>سبورة الصباح - خادم مشاركة الغرف</title><style>*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif;}body{background:#0b0f19;color:#f8fafc;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;text-align:center;}.card{background:rgba(23,32,51,0.95);border:1px solid rgba(239,68,68,0.3);border-radius:24px;padding:40px 28px;max-width:500px;box-shadow:0 25px 60px rgba(0,0,0,0.6);}.icon{font-size:56px;margin-bottom:16px;}.title{font-size:20px;font-weight:800;color:#f8fafc;margin-bottom:12px;}.desc{font-size:14px;color:#94a3b8;line-height:1.7;margin-bottom:20px;}.badge{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;font-size:12px;font-weight:700;padding:8px 16px;border-radius:12px;display:inline-block;}</style></head><body><div class="card"><div class="icon">🚫</div><div class="title">عذراً، هذا الرابط مخصص للمشاركة فقط!</div><div class="desc">هذا النطاق مخصص حصرياً لانضمام الطلاب للغرف الدراسية المباشرة (عبر رابط المشاركة الخاص بالمعلم).<br>لا يمكن فتح برنامج السبورة أو تسجيل الدخول من المتصفح مباشرة.</div><div class="badge">🔒 نطاق مخصص لمشاركة غرف الطلاب فقط</div></div></body></html>');
         document.close();
         window.stop();
         if (typeof Object.freeze === 'function') Object.freeze(window);
@@ -310,6 +308,8 @@
       };
     })();
   </script>
+  <!-- Free edition: all built-in features are enabled without subscription checks -->
+  <script src="src/free-edition.js?v=1"></script>
 </head>
 <body>
   <!-- Whiteboard Loading Overlay (Vector Sunrise Animation) -->
