@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.DownloadManager;
 import android.content.ActivityNotFoundException;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -14,8 +15,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Message;
-import android.provider.Settings;
+import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
@@ -41,9 +43,14 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.graphics.Insets;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class MainActivity extends Activity {
@@ -70,6 +77,10 @@ public class MainActivity extends Activity {
     private String pendingDownloadUserAgent;
     private String pendingDownloadContentDisposition;
     private String pendingDownloadMimeType;
+
+    private byte[] pendingDataDownload;
+    private String pendingDataDownloadName;
+    private String pendingDataDownloadMimeType;
 
     private final Map<WebView, Dialog> popupDialogs = new HashMap<>();
     private Dialog activePopup;
@@ -485,14 +496,34 @@ public class MainActivity extends Activity {
 
     private void beginDownload(String url, String userAgent,
                                String contentDisposition, String mimeType) {
-        if (TextUtils.isEmpty(url)
-                || !(url.startsWith("https://") || url.startsWith("http://"))) {
+        if (TextUtils.isEmpty(url)) {
+            Toast.makeText(this, R.string.download_failed,
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (url.startsWith("data:")) {
+            beginDataUrlDownload(url, contentDisposition, mimeType);
+            return;
+        }
+
+        if (url.startsWith("blob:")) {
+            Toast.makeText(this,
+                    "تعذر حفظ هذا النوع من الملفات من رابط Blob.",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (!(url.startsWith("https://") || url.startsWith("http://"))) {
             Toast.makeText(this,
                     "هذا النوع من التنزيلات غير مدعوم من رابط الصفحة.",
                     Toast.LENGTH_LONG).show();
             return;
         }
 
+        pendingDataDownload = null;
+        pendingDataDownloadName = null;
+        pendingDataDownloadMimeType = null;
         pendingDownloadUrl = url;
         pendingDownloadUserAgent = userAgent;
         pendingDownloadContentDisposition = contentDisposition;
@@ -507,6 +538,181 @@ public class MainActivity extends Activity {
         } else {
             enqueuePendingDownload();
         }
+    }
+
+    private void beginDataUrlDownload(String dataUrl,
+                                       String contentDisposition,
+                                       String mimeType) {
+        try {
+            int comma = dataUrl.indexOf(',');
+            if (comma < 0) {
+                throw new IllegalArgumentException("Malformed data URL");
+            }
+
+            String metadata = dataUrl.substring(5, comma);
+            String payload = dataUrl.substring(comma + 1);
+            String detectedMimeType = mimeType;
+
+            int semicolon = metadata.indexOf(';');
+            String headerMimeType = semicolon >= 0
+                    ? metadata.substring(0, semicolon) : metadata;
+            if (TextUtils.isEmpty(detectedMimeType)
+                    && !TextUtils.isEmpty(headerMimeType)) {
+                detectedMimeType = headerMimeType;
+            }
+            if (TextUtils.isEmpty(detectedMimeType)) {
+                detectedMimeType = "application/octet-stream";
+            }
+
+            byte[] bytes;
+            if (metadata.toLowerCase(Locale.ROOT).contains(";base64")) {
+                bytes = Base64.decode(payload, Base64.DEFAULT);
+            } else {
+                bytes = Uri.decode(payload).getBytes(StandardCharsets.UTF_8);
+            }
+
+            if (bytes.length == 0 || bytes.length > 30 * 1024 * 1024) {
+                throw new IllegalArgumentException("Export size is not supported");
+            }
+
+            String fileName = URLUtil.guessFileName(
+                    "https://morningboard.local/MorningBoard-export",
+                    contentDisposition,
+                    detectedMimeType);
+            if (TextUtils.isEmpty(fileName)
+                    || "downloadfile".equalsIgnoreCase(fileName)) {
+                fileName = "MorningBoard-export";
+            }
+            fileName = ensureFileExtension(
+                    sanitizeFileName(fileName), detectedMimeType);
+
+            pendingDownloadUrl = null;
+            pendingDownloadUserAgent = null;
+            pendingDownloadContentDisposition = null;
+            pendingDownloadMimeType = null;
+
+            pendingDataDownload = bytes;
+            pendingDataDownloadName = fileName;
+            pendingDataDownloadMimeType = detectedMimeType;
+
+            if (Build.VERSION.SDK_INT <= 28
+                    && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        REQUEST_DOWNLOAD_STORAGE);
+            } else {
+                savePendingDataDownload();
+            }
+        } catch (Exception exception) {
+            clearPendingDataDownload();
+            Toast.makeText(this, R.string.download_failed,
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private String ensureFileExtension(String fileName, String mimeType) {
+        if (fileName.lastIndexOf('.') > 0) {
+            return fileName;
+        }
+
+        String extension;
+        if ("image/jpeg".equalsIgnoreCase(mimeType)) {
+            extension = "jpg";
+        } else if ("image/png".equalsIgnoreCase(mimeType)) {
+            extension = "png";
+        } else if ("application/pdf".equalsIgnoreCase(mimeType)) {
+            extension = "pdf";
+        } else if ("application/json".equalsIgnoreCase(mimeType)) {
+            extension = "json";
+        } else if ("text/plain".equalsIgnoreCase(mimeType)) {
+            extension = "txt";
+        } else if ("image/webp".equalsIgnoreCase(mimeType)) {
+            extension = "webp";
+        } else {
+            extension = "bin";
+        }
+        return fileName + "." + extension;
+    }
+
+    private void savePendingDataDownload() {
+        if (pendingDataDownload == null
+                || TextUtils.isEmpty(pendingDataDownloadName)) {
+            return;
+        }
+
+        Uri insertedUri = null;
+        try {
+            if (Build.VERSION.SDK_INT >= 29) {
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.MediaColumns.DISPLAY_NAME,
+                        pendingDataDownloadName);
+                values.put(MediaStore.MediaColumns.MIME_TYPE,
+                        pendingDataDownloadMimeType);
+                values.put(MediaStore.MediaColumns.RELATIVE_PATH,
+                        Environment.DIRECTORY_DOWNLOADS);
+                values.put(MediaStore.MediaColumns.IS_PENDING, 1);
+
+                insertedUri = getContentResolver().insert(
+                        MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+                if (insertedUri == null) {
+                    throw new IllegalStateException("Unable to create download");
+                }
+
+                try (OutputStream output =
+                             getContentResolver().openOutputStream(insertedUri)) {
+                    if (output == null) {
+                        throw new IllegalStateException("Unable to open download");
+                    }
+                    output.write(pendingDataDownload);
+                    output.flush();
+                }
+
+                ContentValues completed = new ContentValues();
+                completed.put(MediaStore.MediaColumns.IS_PENDING, 0);
+                getContentResolver().update(insertedUri, completed, null, null);
+            } else {
+                File downloadsDirectory = Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_DOWNLOADS);
+                if (!downloadsDirectory.exists()
+                        && !downloadsDirectory.mkdirs()) {
+                    throw new IllegalStateException("Unable to create Downloads folder");
+                }
+
+                File outputFile = new File(downloadsDirectory,
+                        pendingDataDownloadName);
+                if (outputFile.exists()) {
+                    String name = pendingDataDownloadName;
+                    int dot = name.lastIndexOf('.');
+                    String base = dot > 0 ? name.substring(0, dot) : name;
+                    String extension = dot > 0 ? name.substring(dot) : "";
+                    outputFile = new File(downloadsDirectory,
+                            base + "-" + System.currentTimeMillis() + extension);
+                }
+
+                try (FileOutputStream output = new FileOutputStream(outputFile)) {
+                    output.write(pendingDataDownload);
+                    output.flush();
+                }
+            }
+
+            Toast.makeText(this, R.string.download_started,
+                    Toast.LENGTH_LONG).show();
+        } catch (Exception exception) {
+            if (insertedUri != null && Build.VERSION.SDK_INT >= 29) {
+                getContentResolver().delete(insertedUri, null, null);
+            }
+            Toast.makeText(this, R.string.download_failed,
+                    Toast.LENGTH_LONG).show();
+        } finally {
+            clearPendingDataDownload();
+        }
+    }
+
+    private void clearPendingDataDownload() {
+        pendingDataDownload = null;
+        pendingDataDownloadName = null;
+        pendingDataDownloadMimeType = null;
     }
 
     private void enqueuePendingDownload() {
@@ -613,9 +819,14 @@ public class MainActivity extends Activity {
             if (Build.VERSION.SDK_INT <= 28
                     && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     == PackageManager.PERMISSION_GRANTED) {
-                enqueuePendingDownload();
+                if (pendingDataDownload != null) {
+                    savePendingDataDownload();
+                } else {
+                    enqueuePendingDownload();
+                }
             } else {
                 pendingDownloadUrl = null;
+                clearPendingDataDownload();
                 Toast.makeText(this, R.string.download_permission_denied,
                         Toast.LENGTH_LONG).show();
             }
@@ -682,6 +893,7 @@ public class MainActivity extends Activity {
             fileChooserCallback.onReceiveValue(null);
             fileChooserCallback = null;
         }
+        clearPendingDataDownload();
         if (webView != null) {
             webView.stopLoading();
             webView.setWebChromeClient(null);
