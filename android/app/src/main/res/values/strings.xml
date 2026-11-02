@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MorningBoard</string>
+    <string name="file_picker_title">اختر ملفاً لـ MorningBoard</string>
+    <string name="download_started">بدأ تنزيل الملف. ستجده في مجلد Downloads.</string>
+    <string name="download_permission_denied">يلزم السماح بالوصول إلى التخزين لحفظ التنزيل على هذا الإصدار من Android.</string>
+    <string name="download_failed">تعذر بدء التنزيل.</string>
+    <string name="media_permission_denied">لم يتم منح إذن الكاميرا أو الميكروفون.</string>
+    <string name="network_error">تعذر تحميل MorningBoard. تحقق من اتصال الإنترنت ثم أعد المحاولة.</string>
+</resources>
