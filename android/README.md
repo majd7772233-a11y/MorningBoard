@@ -4,6 +4,7 @@
 - **App label:** `MorningBoard`
 - **Minimum Android:** Android 6.0 (API 23)
 - **Target SDK:** API 35
+- **Version:** 1.2.0
 - **Online website:** `https://majd7772233-a11y.github.io/MorningBoard/`
 
 ## Online and offline behavior
@@ -35,4 +36,24 @@ bash android/prepare-offline-assets.sh
 gradle --no-daemon assembleDebug -p android
 ```
 
-The APK is generated at `android/app/build/outputs/apk/debug/app-debug.apk`. GitHub Actions prepares the offline website snapshot, builds the APK, and uploads the `MorningBoard-Android-debug` artifact.
+The APKs are generated at:
+
+- Debug: `android/app/build/outputs/apk/debug/app-debug.apk`
+- Signed release: `android/app/build/outputs/apk/release/app-release.apk`
+
+## Release signing in GitHub Actions
+
+The workflow reads these repository Actions secrets without printing them:
+
+- `MY_KEYSTORE_JKS`: Base64-encoded contents of the JKS keystore file, not a file path.
+- `KEYSTORE_PASSWORD`
+- `KEY_ALIAS`
+- `KEY_PASSWORD`
+
+It decodes the keystore into the runner's temporary directory, validates the keystore and alias with `keytool`, signs the Release APK, verifies the result with `apksigner`, and deletes the temporary keystore at the end of the job. The APK is uploaded as the `MorningBoard-Android-release` artifact.
+
+Keep the keystore and its passwords private. Losing the same keystore can prevent future updates from being installable over this signed Release app.
+
+## Launcher icon
+
+Android now uses the repository-root `icon-512.png` asset. The source file is JPEG-encoded despite its `.png` filename, so the exact original image blob is stored with its correct `.jpg` extension at `mipmap-nodpi/ic_launcher.jpg`. Android scales the high-resolution square bitmap to the launcher size and density.

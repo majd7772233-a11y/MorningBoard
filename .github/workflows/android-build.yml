@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build installable debug APK
+    name: Build signed Android APKs
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -47,18 +47,81 @@ jobs:
       - name: Prepare offline website snapshot
         run: bash android/prepare-offline-assets.sh
 
-      - name: Build APK
-        run: gradle --no-daemon --stacktrace -p android assembleDebug
-
-      - name: Verify APK output
+      - name: Prepare release signing key
+        shell: bash
+        env:
+          MY_KEYSTORE_JKS: ${{ secrets.MY_KEYSTORE_JKS }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
-          test -s android/app/build/outputs/apk/debug/app-debug.apk
-          sha256sum android/app/build/outputs/apk/debug/app-debug.apk
+          set -euo pipefail
+          set +x
 
-      - name: Upload installable APK
+          for secret_name in MY_KEYSTORE_JKS KEYSTORE_PASSWORD KEY_ALIAS; do
+            if [[ -z "${!secret_name:-}" ]]; then
+              echo "::error::Required GitHub Actions secret is missing: ${secret_name}"
+              exit 1
+            fi
+          done
+
+          key_path="$RUNNER_TEMP/morningboard-release.jks"
+          if ! printf '%s' "$MY_KEYSTORE_JKS" | base64 --decode > "$key_path"; then
+            echo "::error::MY_KEYSTORE_JKS must contain the Base64-encoded JKS keystore."
+            exit 1
+          fi
+
+          chmod 600 "$key_path"
+          if ! keytool -list -keystore "$key_path" \
+              -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" \
+              >/dev/null 2>&1; then
+            rm -f "$key_path"
+            echo "::error::The JKS, store password, or key alias could not be validated."
+            exit 1
+          fi
+
+          echo "MY_KEYSTORE_PATH=$key_path" >> "$GITHUB_ENV"
+
+      - name: Build debug and signed release APKs
+        env:
+          MY_KEYSTORE_PATH: ${{ runner.temp }}/morningboard-release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$KEY_PASSWORD" ]]; then
+            echo "::error::Required GitHub Actions secret is missing: KEY_PASSWORD"
+            exit 1
+          fi
+          gradle --no-daemon --stacktrace -p android assembleDebug assembleRelease
+
+      - name: Verify APKs and release signature
+        run: |
+          set -euo pipefail
+          debug_apk="android/app/build/outputs/apk/debug/app-debug.apk"
+          release_apk="android/app/build/outputs/apk/release/app-release.apk"
+          test -s "$debug_apk"
+          test -s "$release_apk"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$release_apk" >/dev/null
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$release_apk" | grep -F "com.magd.morningboard"
+          sha256sum "$debug_apk" "$release_apk"
+
+      - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: MorningBoard-Android-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: Upload signed release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MorningBoard-Android-release
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Remove release keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/morningboard-release.jks"
