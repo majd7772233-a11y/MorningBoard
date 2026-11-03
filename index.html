@@ -4608,5 +4608,18 @@
     </div>
   </div>
 
+
+  <!-- Offline PWA cache; Android additionally packages the complete website in its APK. -->
+  <script>
+    (function () {
+      if (!('serviceWorker' in navigator) || location.protocol !== 'https:') return;
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('./sw.js', { scope: './' })
+          .catch(function (error) {
+            console.warn('[MorningBoard] Offline cache registration failed:', error);
+          });
+      });
+    })();
+  </script>
 </body>
 </html>

@@ -1,97 +1,68 @@
-const CACHE_NAME = 'morningboard-free-v3';
-const ASSETS = [
-  './',
-  './index.html',
-  './styles.css',
-  './favicon.svg',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png',
-  './src/free-edition.js',
-  './src/main.js',
-  './src/canvas-manager.js',
-  './src/shapes-manager.js',
-  './src/state-manager.js',
-  './src/laser-pointer.js',
-  './src/math-tools.js',
-  './assets/tasfik.MP3',
-  './assets/ahtifal.MP3',
-  './assets/heh.MP3',
-  './assets/new.gif'
+const CACHE_NAME = 'morningboard-offline-v4';
+const CORE_ASSETS = [
+  './', './index.html', './styles.css', './favicon.svg', './manifest.json',
+  './icon-192.png', './icon-512.png', './assets/pdf.min.js',
+  './assets/tasfik.MP3', './assets/ahtifal.MP3', './assets/heh.MP3',
+  './assets/new.gif', './src/free-edition.js', './src/gifler.min.js',
+  './src/jspdf.umd.min.js', './src/state-manager.js', './src/laser-pointer.js',
+  './src/math-tools.js', './src/encouragement-games.js', './src/shapes-manager.js',
+  './src/canvas-manager.js', './src/water-gun.js', './src/super-laser.js',
+  './src/trace-logger.js', './src/main.js'
 ];
-
-// Allow the page to trigger skipWaiting immediately
-self.addEventListener('message', (e) => {
-  if (e.data && e.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
-
-
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[PWA SW] Pre-caching static assets');
-      return cache.addAll(ASSETS).catch(err => {
-        console.warn('[PWA SW] Pre-cache failed for some assets, registration continuing:', err);
-      });
-    })
-  );
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            console.log('[PWA SW] Removing old cache:', key);
-            return caches.delete(key);
-          }
-        })
-      );
-    })
-  );
-  self.clients.claim();
-});
-
-self.addEventListener('fetch', (e) => {
-  // Only handle GET requests and exclude tauri:// or file:// resources
-  if (e.request.method !== 'GET' || !e.request.url.startsWith(self.location.origin)) {
-    return;
-  }
-
-  // Rewrite index.html to / to prevent Cloudflare Pages 308 redirects from failing the PWA
-  let request = e.request;
-  const url = new URL(e.request.url);
-  if (url.pathname === '/index.html') {
-    request = new Request(url.origin + '/');
-  }
-
-  e.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Fetch new version in background to update cache (stale-while-revalidate)
-        fetch(request).then((networkResponse) => {
-          if (networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, networkResponse);
-            });
-          }
-        }).catch(() => {});
-        return cachedResponse;
-      }
-      return fetch(request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          return networkResponse;
+self.addEventListener('install', (event) => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    // Cache individually so one optional/missing file cannot cancel installation.
+    await Promise.all(CORE_ASSETS.map(async (assetPath) => {
+      const url = new URL(assetPath, self.registration.scope);
+      try {
+        const response = await fetch(url.toString(), { cache: 'reload' });
+        if (response && response.ok && response.type === 'basic') {
+          await cache.put(url.toString(), response);
         }
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(request, responseToCache);
-        });
-        return networkResponse;
+      } catch (error) {
+        console.warn('[MorningBoard SW] Could not pre-cache:', url.pathname, error);
+      }
+    }));
+    await self.skipWaiting();
+  })());
+});
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.map((key) => key.startsWith('morningboard-') && key !== CACHE_NAME
+      ? caches.delete(key) : Promise.resolve()));
+    await self.clients.claim();
+  })());
+});
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  if (request.method !== 'GET') return;
+  const url = new URL(request.url);
+  const scopeUrl = new URL(self.registration.scope);
+  if (url.origin !== scopeUrl.origin || !url.pathname.startsWith(scopeUrl.pathname)) return;
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(request, { ignoreSearch: true });
+    if (cached) return cached;
+    try {
+      const response = await fetch(request);
+      if (response && response.ok && response.type === 'basic') {
+        await cache.put(request, response.clone());
+      }
+      return response;
+    } catch (error) {
+      if (request.mode === 'navigate') {
+        const shell = await cache.match(new URL('index.html', scopeUrl).toString());
+        if (shell) return shell;
+      }
+      return new Response('هذا الملف غير متاح دون اتصال بالإنترنت.', {
+        status: 503,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
       });
-    })
-  );
+    }
+  })());
 });

@@ -7,9 +7,12 @@ import android.app.Dialog;
 import android.app.DownloadManager;
 import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -30,6 +33,7 @@ import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -42,6 +46,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.graphics.Insets;
+import androidx.webkit.WebViewAssetLoader;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -64,6 +69,9 @@ public class MainActivity extends Activity {
     private static final int REQUEST_MEDIA_PERMISSIONS = 4101;
     private static final int REQUEST_DOWNLOAD_STORAGE = 4102;
     private static final int REQUEST_FILE_CHOOSER = 4103;
+
+    private WebViewAssetLoader localAssetLoader;
+    private volatile boolean useBundledWebsite;
 
     private WebView webView;
     private FrameLayout rootLayout;
@@ -109,6 +117,13 @@ public class MainActivity extends Activity {
             return windowInsets;
         });
 
+        // Serve APK assets under the existing HTTPS origin and path.
+        localAssetLoader = new WebViewAssetLoader.Builder()
+                .setDomain(TRUSTED_PAGES_HOST)
+                .addPathHandler("/MorningBoard/",
+                        new WebViewAssetLoader.AssetsPathHandler(this))
+                .build();
+
         webView = new WebView(this);
         configureWebView(webView, true);
 
@@ -136,14 +151,27 @@ public class MainActivity extends Activity {
         setContentView(rootLayout);
         ViewCompat.requestApplyInsets(rootLayout);
 
-        if (savedInstanceState == null) {
-            webView.loadUrl(START_URL);
-        } else {
-            webView.restoreState(savedInstanceState);
-            if (webView.getUrl() == null) {
-                webView.loadUrl(START_URL);
-            }
+        boolean restored = false;
+        if (savedInstanceState != null && hasNetworkConnection()) {
+            restored = webView.restoreState(savedInstanceState) != null
+                    && webView.getUrl() != null;
         }
+        if (!restored) {
+            useBundledWebsite = !hasNetworkConnection();
+            if (useBundledWebsite) {
+                Toast.makeText(this, R.string.offline_mode, Toast.LENGTH_LONG).show();
+            }
+            webView.loadUrl(START_URL);
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private boolean hasNetworkConnection() {
+        ConnectivityManager manager = (ConnectivityManager)
+                getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (manager == null) return false;
+        NetworkInfo activeNetwork = manager.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.isConnected();
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -179,6 +207,20 @@ public class MainActivity extends Activity {
 
         target.setWebViewClient(new WebViewClient() {
             @Override
+            public WebResourceResponse shouldInterceptRequest(
+                    WebView view, WebResourceRequest request) {
+                if (useBundledWebsite
+                        && "GET".equalsIgnoreCase(request.getMethod())
+                        && TRUSTED_PAGES_HOST.equalsIgnoreCase(
+                                request.getUrl().getHost())) {
+                    WebResourceResponse local =
+                            localAssetLoader.shouldInterceptRequest(request.getUrl());
+                    if (local != null) return local;
+                }
+                return super.shouldInterceptRequest(view, request);
+            }
+
+            @Override
             public boolean shouldOverrideUrlLoading(
                     WebView view, WebResourceRequest request) {
                 return handleNavigation(request.getUrl());
@@ -213,6 +255,15 @@ public class MainActivity extends Activity {
                                         WebResourceError error) {
                 super.onReceivedError(view, request, error);
                 if (request.isForMainFrame()) {
+                    if (view == webView && !useBundledWebsite) {
+                        // Fall back after DNS, connection, or captive-portal failures.
+                        useBundledWebsite = true;
+                        if (progressBar != null) progressBar.setVisibility(View.GONE);
+                        Toast.makeText(MainActivity.this,
+                                R.string.offline_mode, Toast.LENGTH_LONG).show();
+                        view.post(() -> view.loadUrl(START_URL));
+                        return;
+                    }
                     if (view == webView && progressBar != null) {
                         progressBar.setVisibility(View.GONE);
                     }
