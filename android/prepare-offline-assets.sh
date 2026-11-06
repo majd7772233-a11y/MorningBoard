@@ -126,15 +126,22 @@ index = re.sub(
 )
 
 # The Android APK is already its offline app shell; it does not need a PWA service worker.
-index, sw_count = re.subn(
-    r"<script\b[^>]*>.*?navigator\.serviceWorker\.register\s*\(\s*['\"]\.\/sw\.js['\"].*?</script>",
-    "",
+# Inspect complete script elements individually so this removal cannot consume
+# the scripts that precede the service-worker registration in index.html.
+script_elements = list(re.finditer(
+    r"<script\b[^>]*>.*?</script>",
     index,
-    count=1,
     flags=re.IGNORECASE | re.DOTALL,
-)
-if sw_count != 1:
-    raise RuntimeError("Could not remove the PWA service-worker registration from the APK copy")
+))
+service_worker_elements = [
+    match for match in script_elements
+    if "navigator.serviceWorker.register" in match.group(0)
+    and "./sw.js" in match.group(0)
+]
+if len(service_worker_elements) != 1:
+    raise RuntimeError("Expected exactly one service-worker registration script in the APK copy")
+worker_element = service_worker_elements[0]
+index = index[:worker_element.start()] + index[worker_element.end():]
 
 index_path.write_text(index, encoding="utf-8")
 
