@@ -6,6 +6,5 @@
     <string name="download_permission_denied">يلزم السماح بالوصول إلى التخزين لحفظ التنزيل على هذا الإصدار من Android.</string>
     <string name="download_failed">تعذر بدء التنزيل.</string>
     <string name="media_permission_denied">لم يتم منح إذن الكاميرا أو الميكروفون.</string>
-    <string name="network_error">تعذر تحميل MorningBoard. تحقق من اتصال الإنترنت ثم أعد المحاولة.</string>
-    <string name="offline_mode">لا يوجد اتصال بالإنترنت. يعمل MorningBoard الآن من النسخة المحلية؛ المزامنة والغرف والخدمات السحابية تحتاج اتصالاً.</string>
+    <string name="network_error">تعذر فتح ملفات MorningBoard المضمّنة في التطبيق. قد تكون حزمة التثبيت غير مكتملة.</string>
 </resources>

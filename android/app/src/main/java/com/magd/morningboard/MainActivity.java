@@ -7,12 +7,9 @@ import android.app.Dialog;
 import android.app.DownloadManager;
 import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -48,11 +45,13 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.graphics.Insets;
 import androidx.webkit.WebViewAssetLoader;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -71,8 +70,6 @@ public class MainActivity extends Activity {
     private static final int REQUEST_FILE_CHOOSER = 4103;
 
     private WebViewAssetLoader localAssetLoader;
-    private volatile boolean useBundledWebsite;
-
     private WebView webView;
     private FrameLayout rootLayout;
     private ProgressBar progressBar;
@@ -151,27 +148,9 @@ public class MainActivity extends Activity {
         setContentView(rootLayout);
         ViewCompat.requestApplyInsets(rootLayout);
 
-        boolean restored = false;
-        if (savedInstanceState != null && hasNetworkConnection()) {
-            restored = webView.restoreState(savedInstanceState) != null
-                    && webView.getUrl() != null;
-        }
-        if (!restored) {
-            useBundledWebsite = !hasNetworkConnection();
-            if (useBundledWebsite) {
-                Toast.makeText(this, R.string.offline_mode, Toast.LENGTH_LONG).show();
-            }
-            webView.loadUrl(START_URL);
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    private boolean hasNetworkConnection() {
-        ConnectivityManager manager = (ConnectivityManager)
-                getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (manager == null) return false;
-        NetworkInfo activeNetwork = manager.getActiveNetworkInfo();
-        return activeNetwork != null && activeNetwork.isConnected();
+        // Always open the website shell from assets packaged inside this APK.
+        // Internet is used only by explicit services and remote destinations.
+        webView.loadUrl(START_URL);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -209,14 +188,23 @@ public class MainActivity extends Activity {
             @Override
             public WebResourceResponse shouldInterceptRequest(
                     WebView view, WebResourceRequest request) {
-                if (useBundledWebsite
-                        && "GET".equalsIgnoreCase(request.getMethod())
+                // All files from the app's own website origin must come from the APK.
+                // Do not silently retry a missing HTML/JS/CSS/media file over the network.
+                if ("GET".equalsIgnoreCase(request.getMethod())
                         && TRUSTED_PAGES_HOST.equalsIgnoreCase(
                                 request.getUrl().getHost())) {
                     WebResourceResponse local =
                             localAssetLoader.shouldInterceptRequest(request.getUrl());
                     if (local != null) return local;
+                    return new WebResourceResponse(
+                            "text/plain",
+                            "UTF-8",
+                            404,
+                            "Not Found",
+                            Collections.singletonMap("Cache-Control", "no-store"),
+                            new ByteArrayInputStream(new byte[0]));
                 }
+                // Firebase, collaboration workers, and other external HTTPS services stay online.
                 return super.shouldInterceptRequest(view, request);
             }
 
@@ -255,15 +243,6 @@ public class MainActivity extends Activity {
                                         WebResourceError error) {
                 super.onReceivedError(view, request, error);
                 if (request.isForMainFrame()) {
-                    if (view == webView && !useBundledWebsite) {
-                        // Fall back after DNS, connection, or captive-portal failures.
-                        useBundledWebsite = true;
-                        if (progressBar != null) progressBar.setVisibility(View.GONE);
-                        Toast.makeText(MainActivity.this,
-                                R.string.offline_mode, Toast.LENGTH_LONG).show();
-                        view.post(() -> view.loadUrl(START_URL));
-                        return;
-                    }
                     if (view == webView && progressBar != null) {
                         progressBar.setVisibility(View.GONE);
                     }

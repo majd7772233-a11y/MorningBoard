@@ -2,58 +2,38 @@
 
 - **Application ID:** `com.magd.morningboard`
 - **App label:** `MorningBoard`
+- **Version:** 1.3.0
 - **Minimum Android:** Android 6.0 (API 23)
 - **Target SDK:** API 35
-- **Version:** 1.2.0
-- **Online website:** `https://majd7772233-a11y.github.io/MorningBoard/`
 
-## Online and offline behavior
+## APK-first application architecture
 
-1. **Online:** the app opens the latest published website. Firebase, authentication, live rooms, cloud sync, and other network-backed services remain available while their providers are reachable.
-2. **Offline:** when no network is connected, or the initial page load fails, Android automatically opens the full website snapshot bundled in the APK. The board interface and local tools can then be used without an internet connection.
+The Android app does **not** open GitHub Pages to obtain its interface. It loads the HTML entry point from the application's own APK assets through AndroidX `WebViewAssetLoader`, while preserving the existing GitHub Pages HTTPS origin for local web storage and Firebase configuration.
 
-The bundled files are served through `WebViewAssetLoader` at the same HTTPS host and `/MorningBoard/` path as GitHub Pages. This preserves the web origin for local browser storage and existing site-origin configuration, without enabling unsafe `file://` access.
+The complete website tree is copied into `app/src/main/assets` during the Android build: HTML, CSS, JavaScript, images, audio/video, games, PDF support files, and other static resources. Firebase compat SDK JavaScript and Google Fonts/WOFF2 files are downloaded during CI packaging and stored inside the APK. The APK's private copy of HTML/CSS is adjusted to reference these local vendor files; **the deployed website's source files are not edited by this packaging step**.
 
-**Offline limitations:** Firebase authentication and synchronization, shared classrooms/rooms, online presence, remote media, and external APIs still require internet. They are not simulated with local dummy responses. Optional third-party fonts or content may also be unavailable offline.
+The app's own website origin is served strictly from the APK. If an app file is missing from the package, WebView receives a local 404 rather than silently downloading it from GitHub Pages.
 
-The APK's offline snapshot is refreshed by GitHub Actions on every push to `main`. The live website can update independently, but an installed APK uses its bundled version whenever it falls back to offline mode.
+## Internet is a feature dependency, not an app-start dependency
 
-## Android capabilities
+The `INTERNET` permission remains enabled. Internet is used only by features that explicitly contact external services, such as Firebase Realtime Database, live collaboration rooms/workers, remote links, and remote content the user opens. Bundling Firebase's JavaScript SDK locally does not make Firebase data local; cloud synchronization, online presence, and shared rooms still require an internet connection.
 
-- JavaScript and DOM storage are enabled.
-- Camera and microphone are requested only when a trusted MorningBoard page asks for them.
-- File inputs use Android's system document picker.
-- Downloads are saved to **Downloads**.
-- External phone and email links are handed to Android apps.
-- No location, contacts, SMS, call-log, or all-files permissions are requested.
+The local board interface and its static code/resources are installed with the APK, so launching the app and using local tools does not depend on GitHub Pages or a CDN being reachable.
 
 ## Build
 
-Requires JDK 17+, Android SDK Platform 35, Build Tools 35.0.0, and Gradle 8.9. From the repository root:
+Requires JDK 17+, Android SDK Platform 35, Build Tools 35.0.0, Gradle 8.9, Bash, curl, and Python 3.
+
+From the repository root:
 
 ```bash
 bash android/prepare-offline-assets.sh
-gradle --no-daemon assembleDebug -p android
+gradle --no-daemon assembleDebug assembleRelease -p android
 ```
 
-The APKs are generated at:
+The Android workflow packages the local website snapshot, builds Debug and signed Release APKs, verifies the Release signature, and uploads:
 
-- Debug: `android/app/build/outputs/apk/debug/app-debug.apk`
-- Signed release: `android/app/build/outputs/apk/release/app-release.apk`
+- `MorningBoard-Android-debug`
+- `MorningBoard-Android-release`
 
-## Release signing in GitHub Actions
-
-The workflow reads these repository Actions secrets without printing them:
-
-- `MY_KEYSTORE_JKS`: Base64-encoded contents of the JKS keystore file, not a file path.
-- `KEYSTORE_PASSWORD`
-- `KEY_ALIAS`
-- `KEY_PASSWORD`
-
-It decodes the keystore into the runner's temporary directory, validates the keystore and alias with `keytool`, signs the Release APK, verifies the result with `apksigner`, and deletes the temporary keystore at the end of the job. The APK is uploaded as the `MorningBoard-Android-release` artifact.
-
-Keep the keystore and its passwords private. Losing the same keystore can prevent future updates from being installable over this signed Release app.
-
-## Launcher icon
-
-Android now uses the repository-root `icon-512.png` asset. The source file is JPEG-encoded despite its `.png` filename, so the exact original image blob is stored with its correct `.jpg` extension at `mipmap-nodpi/ic_launcher.jpg`. Android scales the high-resolution square bitmap to the launcher size and density.
+Release signing uses the protected GitHub Actions secrets `MY_KEYSTORE_JKS`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, and `KEY_PASSWORD`. The temporary JKS is removed at the end of the workflow.
