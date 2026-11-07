@@ -2,13 +2,13 @@
 
 - **Application ID:** `com.magd.morningboard`
 - **App label:** `MorningBoard`
-- **Version:** 1.3.0
+- **Version:** 1.4.0
 - **Minimum Android:** Android 6.0 (API 23)
 - **Target SDK:** API 35
 
 ## APK-first application architecture
 
-The Android app does **not** open GitHub Pages to obtain its interface. It loads the HTML entry point from the application's own APK assets through AndroidX `WebViewAssetLoader`, while preserving the existing GitHub Pages HTTPS origin for local web storage and Firebase configuration.
+The Android app does **not** open GitHub Pages to obtain its interface. Its launch URL points explicitly to `/MorningBoard/index.html` (not the directory URL), and AndroidX `WebViewAssetLoader` reads that file from the APK's `assets/index.html`. The existing GitHub Pages HTTPS origin is preserved for local web storage and Firebase configuration.
 
 The complete website tree is copied into `app/src/main/assets` during the Android build: HTML, CSS, JavaScript, images, audio/video, games, PDF support files, and other static resources. Firebase compat SDK JavaScript and Google Fonts/WOFF2 files are downloaded during CI packaging and stored inside the APK. The APK's private copy of HTML/CSS is adjusted to reference these local vendor files; **the deployed website's source files are not edited by this packaging step**.
 

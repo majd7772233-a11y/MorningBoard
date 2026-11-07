@@ -95,13 +95,32 @@ jobs:
           fi
           gradle --no-daemon --stacktrace -p android assembleDebug assembleRelease
 
-      - name: Verify APKs and release signature
+      - name: Verify local app entry and bundled code inside APKs
         run: |
           set -euo pipefail
           debug_apk="android/app/build/outputs/apk/debug/app-debug.apk"
           release_apk="android/app/build/outputs/apk/release/app-release.apk"
-          test -s "$debug_apk"
-          test -s "$release_apk"
+
+          for apk in "$debug_apk" "$release_apk"; do
+            test -s "$apk"
+            unzip -Z1 "$apk" | grep -Fx "assets/index.html"
+            unzip -Z1 "$apk" | grep -Fx "assets/styles.css"
+            unzip -Z1 "$apk" | grep -Fx "assets/src/main.js"
+            unzip -Z1 "$apk" | grep -Fx "assets/src/canvas-manager.js"
+            unzip -Z1 "$apk" | grep -Fx "assets/vendor/firebase-app-compat.js"
+            unzip -Z1 "$apk" | grep -Fx "assets/vendor/firebase-database-compat.js"
+            unzip -Z1 "$apk" | grep -Fx "assets/vendor/morningboard-fonts.css"
+          done
+
+          # The installed APK must explicitly enter the packaged HTML document, not the empty directory URL.
+          grep -F 'https://majd7772233-a11y.github.io/MorningBoard/index.html' \
+            android/app/src/main/java/com/magd/morningboard/MainActivity.java
+
+      - name: Verify APK signatures and application identity
+        run: |
+          set -euo pipefail
+          debug_apk="android/app/build/outputs/apk/debug/app-debug.apk"
+          release_apk="android/app/build/outputs/apk/release/app-release.apk"
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$release_apk" >/dev/null
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$release_apk" | grep -F "com.magd.morningboard"
           sha256sum "$debug_apk" "$release_apk"

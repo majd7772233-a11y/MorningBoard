@@ -60,7 +60,7 @@ import java.util.Map;
 public class MainActivity extends Activity {
 
     private static final String START_URL =
-            "https://majd7772233-a11y.github.io/MorningBoard/";
+            "https://majd7772233-a11y.github.io/MorningBoard/index.html";
     private static final String TRUSTED_PAGES_HOST = "majd7772233-a11y.github.io";
     private static final String TRUSTED_ROOM_HOST =
             "spahboard-meeting.ninjascribe.workers.dev";
